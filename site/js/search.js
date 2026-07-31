@@ -7,6 +7,7 @@
   if (!input || !results) return;
 
   var root = window.PILOG_ROOT || "";
+  var onHome = !!document.getElementById("card-grid");
   var index = null;
   var loaded = false;
   var query = "";
@@ -185,7 +186,7 @@
     e.preventDefault();
     e.stopPropagation();
     var tag = tagEl.getAttribute("data-tag");
-    if (window.pilogFilters && window.pilogFilters.toggleTag) {
+    if (onHome && window.pilogFilters && window.pilogFilters.toggleTag) {
       window.pilogFilters.toggleTag(tag);
       results.hidden = true;
       input.value = "";

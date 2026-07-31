@@ -139,6 +139,14 @@ def main() -> None:
         page.locator(".site-nav a[data-kind='folder']", has_text="技术").click()
         ok &= check("tree nav stays in tree", page.locator("#view-tree").evaluate("el => !el.hidden"))
         ok &= check("tree nav flashes folder", page.locator(".tree-row.tree-flash").count() >= 1)
+        # clicking a filter tag while in tree view shows a hint that the
+        # filter applies to the cards view
+        page.locator(".filter-tags .tag-chip").first.click()
+        ok &= check("filter hint in tree view", page.locator(".filter-hint.is-show").count() == 1)
+        hint = page.locator(".filter-hint").first.inner_text()
+        ok &= check("filter hint text", "卡片视图" in hint and "生效" in hint, hint)
+        page.locator(".sel-chip .sel-x").first.click()
+        page.wait_for_timeout(200)
 
         # graph view
         page.click('[data-view="graph"]')

@@ -206,14 +206,45 @@ def main() -> None:
         gap2 = nearest_gap()
         ok &= check("snake escaped dragged node", gap2 is not None and gap2 >= 8, f"gap={gap2}px")
 
-        # 10. nav folder link highlights the folder subtree (flash box)
+        # 10. nav folder link highlights the folder subtree and KEEPS the
+        # zoomed/centered viewport (only the flash box fades away)
+        def viewport():
+            return page.evaluate("""
+                () => {
+                  const g = document.querySelector('#graph-svg g');
+                  if (!g) return null;
+                  const m = g.getAttribute('transform').match(
+                    /translate\\(([\\d.-]+),([\\d.-]+)\\) scale\\(([\\d.]+)\\)/);
+                  return m ? {ox: parseFloat(m[1]), oy: parseFloat(m[2]), z: parseFloat(m[3])} : null;
+                }
+            """)
+
+        vp0 = viewport()
         page.locator(".site-nav a[data-kind='folder']", has_text="随笔").click()
-        page.wait_for_timeout(400)
+        page.wait_for_timeout(700)
+        vp1 = viewport()
         flash = page.locator(".graph-flash").count()
         ok &= check("nav folder graph flash", flash >= 1, str(flash))
-        page.wait_for_timeout(2200)
+        page.wait_for_timeout(2000)
+        vp2 = viewport()
         flash2 = page.locator(".graph-flash").count()
         ok &= check("graph flash fades away", flash2 == 0, str(flash2))
+        ok &= check("graph viewport keeps located zoom",
+                    bool(vp1 and vp2 and abs(vp1["z"] - vp2["z"]) < 0.02 and
+                         abs(vp1["ox"] - vp2["ox"]) < 0.5 and
+                         abs(vp1["oy"] - vp2["oy"]) < 0.5),
+                    f"{vp1} -> {vp2}")
+        ok &= check("graph viewport moved to the subtree",
+                    bool(vp0 and vp1 and (abs(vp0["z"] - vp1["z"]) > 0.05 or
+                                          abs(vp0["ox"] - vp1["ox"]) > 5 or
+                                          abs(vp0["oy"] - vp1["oy"]) > 5)),
+                    f"{vp0} -> {vp1}")
+
+        # 11. filter tag clicked in graph view -> cards-view hint
+        page.locator(".filter-tags .tag-chip").first.click()
+        ok &= check("filter hint in graph view", page.locator(".filter-hint.is-show").count() == 1)
+        page.locator(".sel-chip .sel-x").first.click()
+        page.wait_for_timeout(200)
 
         browser.close()
     srv.shutdown()

@@ -327,11 +327,18 @@
 
   function toggleTag(tag) {
     if (!tag) return;
-    if (filterState.tags[tag]) delete filterState.tags[tag];
-    else filterState.tags[tag] = true;
+    var adding = !filterState.tags[tag];
+    if (adding) filterState.tags[tag] = true;
+    else delete filterState.tags[tag];
     syncChips();
     renderSelected();
     applyFilters();
+    if (adding) {
+      var view = currentView();
+      if (view === "tree" || view === "graph") {
+        showFilterHint("已选中筛选「#" + tag + "」，在卡片视图生效");
+      }
+    }
   }
 
   function toggleFolder(folder) {
@@ -342,6 +349,26 @@
     syncChips();
     renderSelected();
     applyFilters();
+  }
+
+  var filterHintEl = null;
+  var filterHintTimer = null;
+
+  function showFilterHint(text) {
+    var bar = document.getElementById("filter-bar");
+    if (!bar) return;
+    if (!filterHintEl) {
+      filterHintEl = document.createElement("div");
+      filterHintEl.className = "filter-hint";
+      filterHintEl.setAttribute("role", "status");
+      bar.appendChild(filterHintEl);
+    }
+    filterHintEl.textContent = text;
+    filterHintEl.classList.add("is-show");
+    clearTimeout(filterHintTimer);
+    filterHintTimer = setTimeout(function () {
+      filterHintEl.classList.remove("is-show");
+    }, 2400);
   }
 
   window.pilogFilters = { toggleTag: toggleTag, toggleFolder: toggleFolder };

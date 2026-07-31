@@ -704,18 +704,15 @@
       flash.remove();
     });
 
-    // gentle temporary zoom toward the subtree, then ease back
+    // gentle zoom toward the subtree, easing in and keeping the viewport
     var rect = svg.getBoundingClientRect();
     var cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
-    var z0 = zoom, ox0 = ox, oy0 = oy;
-    var targetZoom = Math.min(1.18, Math.max(z0, 1.1));
+    var targetZoom = Math.min(1.18, Math.max(zoom, 1.1));
     var tx = rect.width / 2 - cx * targetZoom;
     var ty = rect.height / 2 - cy * targetZoom;
-    var timer = setTimeout(function () {
-      animateTransform([targetZoom, tx, ty], [z0, ox0, oy0], 420);
-    }, 900);
-    if (flashAnim) flashAnim.timer = timer;
-    animateTransform([z0, ox0, oy0], [targetZoom, tx, ty], 320);
+    // the located viewport (size + position) stays where it lands; only the
+    // flash highlight fades away
+    animateTransform([zoom, ox, oy], [targetZoom, tx, ty], 320);
   }
 
   /* ============================================================
