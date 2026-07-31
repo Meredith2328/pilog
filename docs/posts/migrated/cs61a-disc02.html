@@ -23,6 +23,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
   
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   <link rel="stylesheet" href="../../css/style.css">
   
 </head>
@@ -98,13 +99,15 @@
     </div>
   </header>
 
+  
+
   <div class="post-body markdown-body">
     <p><a href="https://cs61a.org/disc/disc02/">Discussion 2 | CS 61A Summer 2024</a></p>
 <h2 id="q1-warm-up">Q1: Warm Up</h2>
 <p>这里的等号是数学等号，不是赋值↓</p>
 <p><code>(lambda x:3)(4)</code> = 3
 <code>(lambda x:  2 * 3 * x)(5)</code> = 30</p>
-<h2 id="q2q3">~~Q2/Q3~~</h2>
+<h2 id="q2q3"><del>Q2/Q3</del></h2>
 <p>对Environment Diagram不太有兴趣，Q2和Q3就跳过了qwq</p>
 <h2 id="q4-make-keeper">Q4: Make Keeper</h2>
 <p>思路：还是符合上一次disc提到的解决问题的迭代与抽象方式。
@@ -265,6 +268,9 @@ Higher Order Function/高阶函数看起来很有趣。我们返回的函数作�
     window.PILOG_ROOT = "../../";
     window.PILOG_DEFAULT_VIEW = "cards";
   </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+          onload="try{if(window.renderMathInElement){renderMathInElement(document.body,{delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});}}catch(e){}"></script>
   <script src="../../js/search.js" defer></script>
   
 </body>

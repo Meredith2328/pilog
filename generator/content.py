@@ -25,6 +25,8 @@ class Post:
     draft: bool = False
     pin: bool = False
     highlight: bool = False
+    hidden: bool = False
+    feature: str = ""
     order: float | None = None
     folder: str = ""
     url: str = ""
@@ -33,6 +35,7 @@ class Post:
     preview_plain: str = ""
     thumb_src: Path | None = None
     thumb_url: str | None = None
+    feature_url: str | None = None
     image_sources: list = field(default_factory=list)
     refs: list = field(default_factory=list)
     word_count: int = 0
@@ -155,6 +158,8 @@ def scan_posts(blog_root: Path, ctx: MarkdownContext) -> list[Post]:
             draft=bool(fm.get("draft", False)),
             pin=bool(fm.get("pin", False)),
             highlight=bool(fm.get("highlight", False)),
+            hidden=bool(fm.get("hidden", False) or fm.get("hideInList", False)),
+            feature=_parse_feature(fm.get("feature")),
             order=(
                 float(fm["order"])
                 if fm.get("order") is not None
@@ -165,6 +170,22 @@ def scan_posts(blog_root: Path, ctx: MarkdownContext) -> list[Post]:
         )
         posts.append(post)
     return posts
+
+
+def _parse_feature(value) -> str:
+    """Normalize the `feature` front matter value.
+
+    Gridea writes `feature: /post-images/xxx.png`; pilog also accepts
+    `feature: true` to reuse the post's preview image. Returns "" when unset.
+    """
+    if isinstance(value, bool):
+        return "preview" if value else ""
+    if value is None:
+        return ""
+    text = str(value).strip()
+    if text.lower() in ("true", "yes", "1"):
+        return "preview"
+    return text.lstrip("/")
 
 
 def build_index(blog_root: Path) -> dict:

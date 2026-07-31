@@ -13,6 +13,7 @@ import argparse
 import json
 import shutil
 import sys
+import time
 from pathlib import Path
 
 from bs4 import BeautifulSoup
@@ -172,16 +173,23 @@ def make_dino_icons(root: Path, out: Path) -> None:
         return
     if not sprite.exists():
         return
-    try:
-        trex = Image.open(sprite).convert("RGBA").crop(TREX_BOX)
-        (out / "img").mkdir(parents=True, exist_ok=True)
-        favicon = trex.resize((32, 36), Image.NEAREST)
-        favicon.save(out / "favicon.png")
-        icon = trex.resize((26, 28), Image.NEAREST)
-        icon.save(out / "img" / "dino-icon.png")
-        log("dino icons generated")
-    except OSError as exc:
-        log(f"warning: cannot make dino icons: {exc}")
+    # Windows sometimes holds recently-written files in a user-mapped section
+    # (WinError 1224); retry once before giving up
+    last_exc: OSError | None = None
+    for attempt in range(2):
+        try:
+            trex = Image.open(sprite).convert("RGBA").crop(TREX_BOX)
+            (out / "img").mkdir(parents=True, exist_ok=True)
+            favicon = trex.resize((32, 36), Image.NEAREST)
+            favicon.save(out / "favicon.png")
+            icon = trex.resize((26, 28), Image.NEAREST)
+            icon.save(out / "img" / "dino-icon.png")
+            log("dino icons generated")
+            return
+        except OSError as exc:
+            last_exc = exc
+            time.sleep(1.0)
+    log(f"warning: cannot make dino icons: {last_exc}")
 
 
 def render_nav(page_url: str, ctx: MarkdownContext) -> str:
@@ -220,6 +228,9 @@ def build_site(
     if clean and out_root.exists():
         shutil.rmtree(out_root)
     out_root.mkdir(parents=True, exist_ok=True)
+    # GitHub Pages would otherwise run Jekyll and skip dot-directories such
+    # as assets/.thumbs/; this opts the output into plain static hosting
+    (out_root / ".nojekyll").write_text("", encoding="utf-8")
 
     assets = AssetMap(blog_root=blog_root, out_root=out_root)
     ctx = MarkdownContext(
@@ -228,7 +239,9 @@ def build_site(
         base_path=cfg.base_path,
     )
 
-    posts = scan_posts(blog_root, ctx)
+    # hidden posts (front matter `hidden: true`, or Gridea's `hideInList`)
+    # are kept in blogs/ for editing but never rendered or published
+    posts = [p for p in scan_posts(blog_root, ctx) if not p.hidden]
     ctx.posts_by_rel = {p.rel: p for p in posts}
     for post in posts:
         post.url = post.rel + ".html"
@@ -270,6 +283,15 @@ def build_site(
                 "assets/.thumbs/" + thumb.name if thumb else original_rel
             )
             post.thumb_src = thumb_src
+        if post.feature:
+            feature_src = (
+                thumb_src
+                if post.feature == "preview" and thumb_src
+                else find_asset(post.feature, post.src, ctx)
+            )
+            post.feature_url = (
+                resolve_asset_out(feature_src, ctx) if feature_src else None
+            )
 
     # 3. graph + tree + search index
     collapse_threshold = int(cfg.site.get("collapse_threshold") or 25)
@@ -454,9 +476,19 @@ def build_site(
 
     # 5. static assets + blog assets + dino
     static_src = Path(__file__).parent / "generator" / "static"
-    shutil.copytree(static_src, out_root, dirs_exist_ok=True)
-    sync_tree(blog_root / "assets", out_root / "assets")
-    assets.copy_all(log)
+    # Windows sometimes pins recently-edited files in a user-mapped section
+    # (WinError 1224), which makes copies fail transiently; retry idempotently
+    for attempt in range(4):
+        try:
+            shutil.copytree(static_src, out_root, dirs_exist_ok=True)
+            sync_tree(blog_root / "assets", out_root / "assets")
+            assets.copy_all(log)
+            break
+        except (OSError, shutil.Error) as exc:
+            if attempt == 3:
+                raise
+            log(f"asset copy hit a transient file lock, retrying…")
+            time.sleep(1.5)
 
     dino_src = cfg.root / "dino" / "index.html"
     if dino_src.exists():

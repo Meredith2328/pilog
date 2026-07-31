@@ -50,7 +50,7 @@ with sync_playwright() as p:
     # post page + back link (the classic subdirectory pitfall)
     pg.click(".card-link")
     pg.wait_for_load_state("networkidle")
-    check("post under /pilog", pg.url.startswith(BASE + "/posts/"))
+    check("post URL stays under site root", pg.url.startswith(BASE + "/posts/"))
     check("post css relative", pg.locator("link[href$='style.css']").get_attribute("href")
           == "../../css/style.css")
     pg.click(".back-link")
@@ -63,7 +63,7 @@ with sync_playwright() as p:
     pg.wait_for_load_state("networkidle")
     pg.locator(".site-nav a", has_text="首页").click()
     pg.wait_for_load_state("networkidle")
-    check("nav home from subpage -> /pilog",
+    check("nav home from subpage -> site root",
           pg.url.replace("/index.html", "").rstrip("/") == BASE)
 
     # views
@@ -110,8 +110,12 @@ with sync_playwright() as p:
     check("404 status", resp.status == 404)
     check("custom 404", pg.locator(".notfound-art").count() == 1)
     print("404 link href:", pg.locator("#notfound-link").get_attribute("href"))
-    check("404 home link points to /pilog/index.html",
-          pg.locator("#notfound-link").get_attribute("href") == "/pilog/index.html")
+    from urllib.parse import urlparse
+
+    expected_404 = urlparse(BASE).path.rstrip("/") + "/index.html"
+    check("404 home link points to site root index",
+          pg.locator("#notfound-link").get_attribute("href") == expected_404,
+          expected_404)
 
     check("no page errors", not errs, "; ".join(errs))
     pg.screenshot(path="output/playwright/16-live-home.png")

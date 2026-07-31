@@ -23,6 +23,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
   
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   <link rel="stylesheet" href="../../css/style.css">
   
 </head>
@@ -98,6 +99,8 @@
     </div>
   </header>
 
+  
+
   <div class="post-body markdown-body">
     <p>总而言之是叽里呱啦一些《算法导论》笔记
 基础算法案例，分治，比较算法与随机化，动态规划，贪心，最短路径，
@@ -117,7 +120,7 @@
 Lec2 分治√
 Lec3 比较算法与随机化√
 Lec4 哈希 不太能用这个结构讲√
-~~Lec5 布隆过滤器 不太能用这个结构讲~~
+<del>Lec5 布隆过滤器 不太能用这个结构讲</del>
 Lec6 动态规划必须可以√
 Lec7 贪心可以√
 Lec8 摊还分析主要是数学分析方法，略过√
@@ -126,8 +129,8 @@ Lec10 网络流可以√
 Lec11 回溯可以√
 Lec12 在线算法可以√
 Lec13 线性规划主要是数学分析方法，略过√
-~~Lec14 密码算法只是导论，略过~~
-~~Lec15 人工智能算法没讲，略过~~
+<del>Lec14 密码算法只是导论，略过</del>
+<del>Lec15 人工智能算法没讲，略过</del>
 Lec16 P/NP主要是规约分析√
 Lec17 近似算法可以√</p>
 <h2 id="3x2">关于我提到的“3x2”</h2>
@@ -147,7 +150,7 @@ Lec17 近似算法可以√</p>
 <h2 id="lec1">Lec1 简单排序</h2>
 <h3 id="_1">插入排序</h3>
 <p>直觉：我们可以把新的元素插入已排好序的序列的合理位置，使得有序序列长度增加。
-- 追问略去. 复杂度为 $\Theta(n^2)$ 。
+- 追问略去. 复杂度为 <span class="arithmatex">\(\Theta(n^2)\)</span> 。
 过程：以31 41 59 26 41 58为例，
 - 循环不变量：<code>i</code>记录有序段的长度，<code>a[i]</code>是待排序元素，迭代前有序段已有序，迭代后有序段有序、且长度加一。
 <img alt="" src="post-images/20251215125004.png"/>
@@ -162,9 +165,9 @@ for i = 1 to n - 1: // 已有序的元素数量
     a[j + 1] = x
 </code></pre></div>
 <h3 id="_2">归并排序</h3>
-<p>直觉：我们可以设置两个指针，将两个有序段合并成一个有序段。每次合并是 $O(n)$ 的。
-与此同时，<strong>为了减少合并次数</strong>，我们可以将数组二分，合并次数是 $O(\log n)$ 。
-- 追问：什么是低效的合并？比如一个有序段每次只和一个元素合并，这样的合并次数是 $O(n)$ 。甚至有点像插入排序了。
+<p>直觉：我们可以设置两个指针，将两个有序段合并成一个有序段。每次合并是 <span class="arithmatex">\(O(n)\)</span> 的。
+与此同时，<strong>为了减少合并次数</strong>，我们可以将数组二分，合并次数是 <span class="arithmatex">\(O(\log n)\)</span> 。
+- 追问：什么是低效的合并？比如一个有序段每次只和一个元素合并，这样的合并次数是 <span class="arithmatex">\(O(n)\)</span> 。甚至有点像插入排序了。
 过程：（子数组长度为1,2,4,8）
 <img alt="" src="post-images/20251215130312.png"/>
 - 追问：一定要考虑边界条件。对于原数组长度为1时，已自动有序，不需要找子数组。除此之外，<strong>二分并不保证两个数组长度严格相等</strong>，且我们在合并迭代过程中事实上需要处理数组长度不相等的情况。对于其中一个子数组长度为0时，我们不需要做比较，而是直接把另一个子数组的所有元素依序添加到合并数组最后即可。
@@ -196,7 +199,7 @@ Merge(A, l, mid, mid + 1, r) {
 <h3 id="_3">二分查找</h3>
 <p>直觉：我们可以通过每一次迭代时的信息，排除掉数组中一部分不满足性质的段，只在满足性质的段中查找所需元素。
 - 上下文：<strong>有序</strong>，或者更深刻地：<strong>当前元素的左半部分或右半部分满足某一性质，另一半部分不满足。</strong>
-- 暴力：从前往后或从后往前，需要判断所有元素所以 $\Theta(n)$ ，但我们二分的话只需要判断 $\Theta(\log n)$ 的元素。
+- 暴力：从前往后或从后往前，需要判断所有元素所以 <span class="arithmatex">\(\Theta(n)\)</span> ，但我们二分的话只需要判断 <span class="arithmatex">\(\Theta(\log n)\)</span> 的元素。
 过程：
 <img alt="" src="post-images/20251215133035.png"/>
 - 边界：当待判断元素恰等于所求元素时，则已找到。当待判断区间长度为0还是找不到时（这是一定存在的，因为二分并不严格保证两个子区间长度相同），则不存在。
@@ -223,7 +226,7 @@ BSEARCH(A, l, r, x) {
 edit time: 2025-12-15 14:00:51</p>
 </blockquote>
 <p>直觉：<strong>当每个元素的左侧都小于等于它、右侧都大于它时，则整个数组已有序。</strong> 即我们由长到短进行“划分”，当我们划分区间长度为1或0时，则整个数组已有序。
-- 复杂度：每次选一个划分点、把其余元素放到左边和右边是 $O(n)$ 的。当我们选择元素作为划分点这件事需要对所有元素执行时，则快速排序退化为 $O(n^2)$ 。当我们选择元素作为划分点这件事只需要对一个元素执行时（原数组已有序），则快速排序进化为 $O(n)$ 。一般地，不严谨地讨论，当我们随机地选择划分点时，左右两侧的区间长度是基本相等的，那么我们总共需要选择 $O(\log n)$ 次划分点，也就是一般的复杂度为 $O(n \log n)$ 。
+- 复杂度：每次选一个划分点、把其余元素放到左边和右边是 <span class="arithmatex">\(O(n)\)</span> 的。当我们选择元素作为划分点这件事需要对所有元素执行时，则快速排序退化为 <span class="arithmatex">\(O(n^2)\)</span> 。当我们选择元素作为划分点这件事只需要对一个元素执行时（原数组已有序），则快速排序进化为 <span class="arithmatex">\(O(n)\)</span> 。一般地，不严谨地讨论，当我们随机地选择划分点时，左右两侧的区间长度是基本相等的，那么我们总共需要选择 <span class="arithmatex">\(O(\log n)\)</span> 次划分点，也就是一般的复杂度为 <span class="arithmatex">\(O(n \log n)\)</span> 。
 - 上下文：排序就不说了，大家伙都清楚。
 过程：下述是对数组长度为8的划分过程，后续还要对子区间依次执行划分过程才能完成整个排序。
 <img alt="" src="post-images/20251215135127.png"/>
@@ -240,11 +243,11 @@ edit time: 2025-12-15 14:00:51</p>
 <p>以下为了节省自己的工作量，文字部分由ai编写。</p>
 </blockquote>
 <p>直觉：我们可以将大矩阵分解为小块进行乘法，减少单次乘法的规模，利用递归实现。
-- 根据下述过程，<strong>设 $n \times n$ 的矩阵乘法的代价为 $T(n)$</strong> ，<strong>则根据计算1次矩阵乘法需要计算8次子矩阵乘法，有 $T(n)=8T(n/2)+\Theta(n)$ 。求得为 $O(n^3)$</strong>。但它为后续的优化算法（如Strassen算法，$O(n^{2.81})$）提供了基础框架。
-- 暴力方式是三重循环直接计算 $C[i][j] = \sum_{k=1}^{n} A[i][k] \cdot B[k][j]$，$O(n^3)$ 。</p>
+- 根据下述过程，<strong>设 <span class="arithmatex">\(n \times n\)</span> 的矩阵乘法的代价为 <span class="arithmatex">\(T(n)\)</span></strong> ，<strong>则根据计算1次矩阵乘法需要计算8次子矩阵乘法，有 <span class="arithmatex">\(T(n)=8T(n/2)+\Theta(n)\)</span> 。求得为 <span class="arithmatex">\(O(n^3)\)</span></strong>。但它为后续的优化算法（如Strassen算法，<span class="arithmatex">\(O(n^{2.81})\)</span>）提供了基础框架。
+- 暴力方式是三重循环直接计算 <span class="arithmatex">\(C[i][j] = \sum_{k=1}^{n} A[i][k] \cdot B[k][j]\)</span>，<span class="arithmatex">\(O(n^3)\)</span> 。</p>
 <p>过程：矩阵乘法的分块计算。（核心！！）
 <img alt="" src="post-images/20251215141246.png"/>
-- 边界条件是当矩阵大小为 $1 \times 1$ 时，递归终止，直接返回两个数的乘积。如果尝试用分治处理非2的幂次维度，需要进行填充或特殊处理子矩阵大小。
+- 边界条件是当矩阵大小为 <span class="arithmatex">\(1 \times 1\)</span> 时，递归终止，直接返回两个数的乘积。如果尝试用分治处理非2的幂次维度，需要进行填充或特殊处理子矩阵大小。
 - <strong>先解决小的矩阵，再解决大的矩阵。所以递归调用写在把矩阵组合起来的前面</strong>。</p>
 <p>伪代码：</p>
 <div class="highlight"><pre><span></span><code>MatrixMultiply(A, B, n):
@@ -266,47 +269,47 @@ edit time: 2025-12-15 14:00:51</p>
 <p>循环不变量：
 - 每次迭代前，先进行划分，四个子块未完成计算。迭代后，<strong>四个子块均完成计算，可以直接合并成为结果块。</strong> 返回的矩阵大小和两个输入矩阵大小相等。</p>
 <p>Strassen算法：
-之前的矩阵乘法的分块计算需要8次矩阵乘法。Strassen算法通过一些巧妙的方式，只需要7次矩阵乘法。~~怎么直觉感觉是信息压缩和共享~~</p>
+之前的矩阵乘法的分块计算需要8次矩阵乘法。Strassen算法通过一些巧妙的方式，只需要7次矩阵乘法。<del>怎么直觉感觉是信息压缩和共享</del></p>
 <h3 id="_6">多项式乘法</h3>
 <blockquote>
 <p>包括朴素分治、Karatsuba算法、FFT。
 讲得并不仔细。</p>
 </blockquote>
-<p>直觉：利用多项式的<strong>点值表示法</strong>（一组$(x, y)$点）进行乘法比系数表示法（$a_0 + a_1x + \dots$）更高效，因为点值乘法只需 $O(n)$ 时间（对应点 $y$ 值相乘）。
+<p>直觉：利用多项式的<strong>点值表示法</strong>（一组<span class="arithmatex">\((x, y)\)</span>点）进行乘法比系数表示法（<span class="arithmatex">\(a_0 + a_1x + \dots\)</span>）更高效，因为点值乘法只需 <span class="arithmatex">\(O(n)\)</span> 时间（对应点 <span class="arithmatex">\(y\)</span> 值相乘）。
 而多项式<strong>在复数域上</strong>是一定可以<strong>分解</strong>为点值表示法的，进而我们先转换为点值表示法、利用点值表示法进行乘积、再转回原多项式形式。</p>
-<p>过程：计算 $(x^2 + 3x + 2)(x^2 + 6x + 5)$ ，如果拆开乘是 $\Theta(n^2)$ 的，而如果转为点值表示法则可以快速得到 $(x+1)^2(x+2)(x+5)$、再转回原多项式形式即可。</p>
-<p>朴素分治：$T(n)=4T(n/2)+\Theta(n)$，解得是 $\Theta(n^2)$ 的，与拆开乘复杂度相同。
+<p>过程：计算 <span class="arithmatex">\((x^2 + 3x + 2)(x^2 + 6x + 5)\)</span> ，如果拆开乘是 <span class="arithmatex">\(\Theta(n^2)\)</span> 的，而如果转为点值表示法则可以快速得到 <span class="arithmatex">\((x+1)^2(x+2)(x+5)\)</span>、再转回原多项式形式即可。</p>
+<p>朴素分治：<span class="arithmatex">\(T(n)=4T(n/2)+\Theta(n)\)</span>，解得是 <span class="arithmatex">\(\Theta(n^2)\)</span> 的，与拆开乘复杂度相同。
 <img alt="" src="post-images/20251215143427.png"/></p>
-<p>Karatsuba算法：解得是 $\Theta(n^{\log_2 3})$的。有所提升。
+<p>Karatsuba算法：解得是 <span class="arithmatex">\(\Theta(n^{\log_2 3})\)</span>的。有所提升。
 <img alt="" src="post-images/20251215143543.png"/></p>
 <p>FFT（快速傅里叶变换）：在复数域上分解多项式。
-<strong>记n项的多项式 $A(x)$ （最高次数为 $n-1$ ，最低次数为 $0$）是 $n-1$ 次多项式，</strong>
-两个 $n-1$ 次多项式乘积是 $2n - 2$ 次多项式，也就是 $2n-1$ 项。</p>
+<strong>记n项的多项式 <span class="arithmatex">\(A(x)\)</span> （最高次数为 <span class="arithmatex">\(n-1\)</span> ，最低次数为 <span class="arithmatex">\(0\)</span>）是 <span class="arithmatex">\(n-1\)</span> 次多项式，</strong>
+两个 <span class="arithmatex">\(n-1\)</span> 次多项式乘积是 <span class="arithmatex">\(2n - 2\)</span> 次多项式，也就是 <span class="arithmatex">\(2n-1\)</span> 项。</p>
 <blockquote>
 <p>注意上面这个定义。</p>
 </blockquote>
-<p>为了确定一个 $2n-1$ 项的多项式，我们需要为它采样 $2n-1$ 个点，这 $2n-1$ 个点是在两个原多项式中各采样 $2n-1$ 个点，然后再把它们乘到一起得到的。</p>
-<p>ps. 注意原多项式可以采样任意多个点（就像在直线上有无穷多个点），但只要 $n-1$ 个点就可以确定原多项式（就像两点就能确定一条直线y=kx+b，它的次数 $n-1=1$，项数为 $2$）。</p>
+<p>为了确定一个 <span class="arithmatex">\(2n-1\)</span> 项的多项式，我们需要为它采样 <span class="arithmatex">\(2n-1\)</span> 个点，这 <span class="arithmatex">\(2n-1\)</span> 个点是在两个原多项式中各采样 <span class="arithmatex">\(2n-1\)</span> 个点，然后再把它们乘到一起得到的。</p>
+<p>ps. 注意原多项式可以采样任意多个点（就像在直线上有无穷多个点），但只要 <span class="arithmatex">\(n-1\)</span> 个点就可以确定原多项式（就像两点就能确定一条直线y=kx+b，它的次数 <span class="arithmatex">\(n-1=1\)</span>，项数为 <span class="arithmatex">\(2\)</span>）。</p>
 <p><img alt="" src="post-images/20251215144121.png"/></p>
 <p>整理一下，FFT分为三步：
-<strong>在两个多项式各自采样 $2n-1$ 个点，这一步进行了很大的优化，从 $O(n^2)$ 变成了 $O(n \log n)$</strong>。
-将这 $2n-1$ 个点乘在一起是 $\Theta (n)$ 的。</p>
+<strong>在两个多项式各自采样 <span class="arithmatex">\(2n-1\)</span> 个点，这一步进行了很大的优化，从 <span class="arithmatex">\(O(n^2)\)</span> 变成了 <span class="arithmatex">\(O(n \log n)\)</span></strong>。
+将这 <span class="arithmatex">\(2n-1\)</span> 个点乘在一起是 <span class="arithmatex">\(\Theta (n)\)</span> 的。</p>
 <p><img alt="" src="post-images/20251215144807.png"/></p>
-<p>如何 $O(n \log n)$ 地采样 $2n-1$ 个点？
+<p>如何 <span class="arithmatex">\(O(n \log n)\)</span> 地采样 <span class="arithmatex">\(2n-1\)</span> 个点？
 <img alt="" src="post-images/20251215145414.png"/>
-关键注意：我们通过计算两个子过程 $A_{even}$，获得了原过程 $A$ 的两个点。这是非常amazing的。</p>
+关键注意：我们通过计算两个子过程 <span class="arithmatex">\(A_{even}\)</span>，获得了原过程 <span class="arithmatex">\(A\)</span> 的两个点。这是非常amazing的。</p>
 <h2 id="lec3">Lec3 比较算法与随机化</h2>
 <h3 id="_7">堆排序</h3>
 <blockquote>
-<p>非常易错：<strong>建立堆是 $O(n)$ 的。</strong>
-而每次更新是 $O(\log n)$ 的。</p>
+<p>非常易错：<strong>建立堆是 <span class="arithmatex">\(O(n)\)</span> 的。</strong>
+而每次更新是 <span class="arithmatex">\(O(\log n)\)</span> 的。</p>
 </blockquote>
 <p>直觉：<strong>先建立大根堆，然后每次从堆中排出一个元素</strong>，这样形成的一个序列是升序的。
-- 建立大根堆是 $O(n)$ 的，下述会证明。每次从堆中排出一个元素时，不妨把它与数组末尾的元素交换，则一次交换和一次维护堆的过程是 $O(\log n)$ 的，故堆排序是 $O(n \log n)$ 的。
-- 关于建立大根堆是 $O(n)$ 的，我们可能会不严谨地想：对于一个数组，把后半作为叶子元素，然后对前 $n/2$ 个元素执行维护操作，而维护操作是 $O(\log n)$ 的，故这一操作应该有个上界 $O(n \log n)$ 。但通过严格分析，我们发现不同高度的维护代价是不同的：<strong>对于某个特定的 $h$ ，维护操作是 $O(h)$ 的，高度为 $h$ 的节点数为 $n/2^{h+1}$，$h$的取值范围是 $0$ 到$\log n$。</strong> 这样求和之后即得 $O(n)$ 。
+- 建立大根堆是 <span class="arithmatex">\(O(n)\)</span> 的，下述会证明。每次从堆中排出一个元素时，不妨把它与数组末尾的元素交换，则一次交换和一次维护堆的过程是 <span class="arithmatex">\(O(\log n)\)</span> 的，故堆排序是 <span class="arithmatex">\(O(n \log n)\)</span> 的。
+- 关于建立大根堆是 <span class="arithmatex">\(O(n)\)</span> 的，我们可能会不严谨地想：对于一个数组，把后半作为叶子元素，然后对前 <span class="arithmatex">\(n/2\)</span> 个元素执行维护操作，而维护操作是 <span class="arithmatex">\(O(\log n)\)</span> 的，故这一操作应该有个上界 <span class="arithmatex">\(O(n \log n)\)</span> 。但通过严格分析，我们发现不同高度的维护代价是不同的：<strong>对于某个特定的 <span class="arithmatex">\(h\)</span> ，维护操作是 <span class="arithmatex">\(O(h)\)</span> 的，高度为 <span class="arithmatex">\(h\)</span> 的节点数为 <span class="arithmatex">\(n/2^{h+1}\)</span>，<span class="arithmatex">\(h\)</span>的取值范围是 <span class="arithmatex">\(0\)</span> 到<span class="arithmatex">\(\log n\)</span>。</strong> 这样求和之后即得 <span class="arithmatex">\(O(n)\)</span> 。
 <img alt="" src="post-images/20251215162710.png"/></p>
 <blockquote>
-<p>上面这一处建立大根堆是 $O(n)$ 的分析比较重要！</p>
+<p>上面这一处建立大根堆是 <span class="arithmatex">\(O(n)\)</span> 的分析比较重要！</p>
 </blockquote>
 <p>过程：
 1. 维护大根堆
@@ -342,11 +345,11 @@ HEAPIFY(A, n, i) {
 <h3 id="_8">随机快速排序、随机快速选择</h3>
 <p>随机快速排序和随机快速选择的分析，参见【知识】数学部分的Lec3指示器随机变量部分。</p>
 <h3 id="_9">中位数的中位数算法</h3>
-<p>这个算法很神奇。它在寻找Top-K时<strong>最坏情况是$O(n)$的</strong>。
-（我们之前的随机快速选择都只是 $O(n \log n)$ 。）</p>
-<p>我们先从结果得到的递归式直观地感觉一下它得到的是 $O(n)$ 。
-$T(n)=T(n/5)+T(7n/10)+O(n)$
-两个子问题加起来不到 $n$ ，我们从【知识】数学部分的Lec2 递归方程求解那里就能直观感觉到，这玩意最坏应该是 $O(n)$ 的。这里给了一个简单的尝试法证明。</p>
+<p>这个算法很神奇。它在寻找Top-K时<strong>最坏情况是<span class="arithmatex">\(O(n)\)</span>的</strong>。
+（我们之前的随机快速选择都只是 <span class="arithmatex">\(O(n \log n)\)</span> 。）</p>
+<p>我们先从结果得到的递归式直观地感觉一下它得到的是 <span class="arithmatex">\(O(n)\)</span> 。
+<span class="arithmatex">\(T(n)=T(n/5)+T(7n/10)+O(n)\)</span>
+两个子问题加起来不到 <span class="arithmatex">\(n\)</span> ，我们从【知识】数学部分的Lec2 递归方程求解那里就能直观感觉到，这玩意最坏应该是 <span class="arithmatex">\(O(n)\)</span> 的。这里给了一个简单的尝试法证明。</p>
 <p><img alt="" src="post-images/20251229230142.png"/>
 <img alt="" src="post-images/20251229230153.png"/></p>
 <p>接下来稍微详细地看看这个东西的直觉。
@@ -354,11 +357,11 @@ $T(n)=T(n/5)+T(7n/10)+O(n)$
 <p><img alt="" src="post-images/20251229230520.png"/>
 <img alt="" src="post-images/20251229230728.png"/>
 <img alt="" src="post-images/20251229230734.png"/>
-SELECT函数过程：（$T(n)$）
+SELECT函数过程：（<span class="arithmatex">\(T(n)\)</span>）
 1. 我们将n个元素分成5个一组的约n/5个组。在每个5个一组中，我们使用直接插入排序，找到中位数（黄色）。
-2. 对这些约n/5个中位数执行SELECT函数，得到中位数的中位数 $x$ （红色）。（$T(n/5)$）
-3. 如果 $x$ 就是要找的 top-k ，则停止。否则大于等于 $x$ 的元素至少有 $3n/10$ 个，小于等于 $x$ 的元素也至少有 $3n/10$ 个。我们只会排除掉这二者中的一部分，在剩下至多 $7n/10$ 个元素中执行SELECT函数，继续下去。（$T(7n/10)$）
-上述这样的过程是 $T(n)=T(n/5)+T(7n/10)+O(n)$ 的。</p>
+2. 对这些约n/5个中位数执行SELECT函数，得到中位数的中位数 <span class="arithmatex">\(x\)</span> （红色）。（<span class="arithmatex">\(T(n/5)\)</span>）
+3. 如果 <span class="arithmatex">\(x\)</span> 就是要找的 top-k ，则停止。否则大于等于 <span class="arithmatex">\(x\)</span> 的元素至少有 <span class="arithmatex">\(3n/10\)</span> 个，小于等于 <span class="arithmatex">\(x\)</span> 的元素也至少有 <span class="arithmatex">\(3n/10\)</span> 个。我们只会排除掉这二者中的一部分，在剩下至多 <span class="arithmatex">\(7n/10\)</span> 个元素中执行SELECT函数，继续下去。（<span class="arithmatex">\(T(7n/10)\)</span>）
+上述这样的过程是 <span class="arithmatex">\(T(n)=T(n/5)+T(7n/10)+O(n)\)</span> 的。</p>
 <p><img alt="" src="post-images/20251229231014.png"/></p>
 <h3 id="top-k">顺序统计量和top-k问题总结</h3>
 <h4 id="_10">总结</h4>
@@ -442,17 +445,17 @@ SELECT函数过程：（$T(n)$）
 <p><img alt="" src="post-images/20251229155817.png"/>
 要基于比较找到前k个最大元素并使其排列好。
 这个用处太广泛了。事实上是为了比较排序、优先队列、“中位数的中位数”这几种算法。</p>
-<p>a. 使用归并排序，它的最坏情况是 $\Theta(n \lg n)$ 。（不能使用快速排序或随机快速排序是因为它的最坏情况是 $\Theta(n^2)$ ，而后者仍存在最坏情况，只是期望复杂度是 $\Theta(n \lg n)$）。
-然后再遍历取出前 $i$ 个最大数，这是 $\Theta(i)$ 的。
-综上，运行时间是 $\Theta(n \lg n + i)$ 。</p>
-<p>b. 建堆是 $\Theta(n)$ 的（一定要注意！这个还挺反直觉的，我在相关章节专门提过），
-从堆中取出一次最大元素是 $\Theta(\lg n)$ 的，执行 $i$ 次。
-故为 $\Theta(n + i \lg n)$ 。</p>
-<p>c. 这里的顺序统计量算法即找到第k大的元素，可以使用快速选择算法（平均 $\Theta(n)$ ，最坏 $\Theta(n^2)$）、或者BFPRT（中位数的中位数）算法（最坏 $\Theta(n)$）。为了最佳复杂度，这里选择后者。
+<p>a. 使用归并排序，它的最坏情况是 <span class="arithmatex">\(\Theta(n \lg n)\)</span> 。（不能使用快速排序或随机快速排序是因为它的最坏情况是 <span class="arithmatex">\(\Theta(n^2)\)</span> ，而后者仍存在最坏情况，只是期望复杂度是 <span class="arithmatex">\(\Theta(n \lg n)\)</span>）。
+然后再遍历取出前 <span class="arithmatex">\(i\)</span> 个最大数，这是 <span class="arithmatex">\(\Theta(i)\)</span> 的。
+综上，运行时间是 <span class="arithmatex">\(\Theta(n \lg n + i)\)</span> 。</p>
+<p>b. 建堆是 <span class="arithmatex">\(\Theta(n)\)</span> 的（一定要注意！这个还挺反直觉的，我在相关章节专门提过），
+从堆中取出一次最大元素是 <span class="arithmatex">\(\Theta(\lg n)\)</span> 的，执行 <span class="arithmatex">\(i\)</span> 次。
+故为 <span class="arithmatex">\(\Theta(n + i \lg n)\)</span> 。</p>
+<p>c. 这里的顺序统计量算法即找到第k大的元素，可以使用快速选择算法（平均 <span class="arithmatex">\(\Theta(n)\)</span> ，最坏 <span class="arithmatex">\(\Theta(n^2)\)</span>）、或者BFPRT（中位数的中位数）算法（最坏 <span class="arithmatex">\(\Theta(n)\)</span>）。为了最佳复杂度，这里选择后者。
 后者就是划分成5个一组、插入排序找中位数、然后找中位数的中位数之类的那个算法，在算法导论中有所介绍。 （<a href="https://zhuanlan.zhihu.com/p/291206708">BFPRT——Top k问题的终极解法 - 知乎</a> ）
-划分是 $\Theta(n)$ 的，扫一遍、把小于的放左边、大于的放右边就行。
-然后对前 $i$ 大的数执行归并排序，最坏是 $\Theta(i \lg i)$ 的。
-总之，最坏是 $\Theta(n+i\lg i)$ 。</p>
+划分是 <span class="arithmatex">\(\Theta(n)\)</span> 的，扫一遍、把小于的放左边、大于的放右边就行。
+然后对前 <span class="arithmatex">\(i\)</span> 大的数执行归并排序，最坏是 <span class="arithmatex">\(\Theta(i \lg i)\)</span> 的。
+总之，最坏是 <span class="arithmatex">\(\Theta(n+i\lg i)\)</span> 。</p>
 <h2 id="lec6">Lec6 动态规划太能用这个结构讲了，来讲讲讲讲</h2>
 <blockquote>
 <p>动态规划是为了<strong>解决分治中的重叠子问题</strong>引入的，通过记录子问题的解、或者优先计算子问题，来解决分治问题。要求<strong>问题的最优解由子问题的最优解组成</strong>。
@@ -460,29 +463,29 @@ SELECT函数过程：（$T(n)$）
 (1) <strong>转移变量</strong>。某个变量是从少往多计算、能够产生转移关系的吗？（“重叠子问题”）
 (2) <strong>选择（变量）</strong>。在做出选择后，原问题拆分成一个或多个子问题。为了计算函数，往往需要遍历选择变量，并且只选择其中的某一个特定值。
 (3) <strong>函数定义</strong>。函数有哪些变量根据(1)决定，函数的定义方式和初值条件由问题决定，函数的递推由(2)确定。
-~~哇我这3点总结得太精辟了~~
+<del>哇我这3点总结得太精辟了</del>
 edit time: 2025-12-23 11:10:36</p>
 </blockquote>
 <h3 id="_12">最优二分查找树</h3>
 <blockquote>
-<p>“做的选择”是以某个节点为根节点，即选择变量为 $k$ 。
-设区间 $[i,j]$ 的最优平均比较次数为 $m[i,j]$ 。</p>
+<p>“做的选择”是以某个节点为根节点，即选择变量为 <span class="arithmatex">\(k\)</span> 。
+设区间 <span class="arithmatex">\([i,j]\)</span> 的最优平均比较次数为 <span class="arithmatex">\(m[i,j]\)</span> 。</p>
 </blockquote>
 <ol>
 <li><strong>直觉</strong>：最优二分查找树由最优二分查找子树组成。</li>
 </ol>
 <p>关键是符号定义。</p>
 <p>最优二分查找树事实上形成了：
-n个端点（概率记为 $b_i$ ，从1到n）和n+1段区间（概率记为 $a_i$ ，从0到n）。</p>
+n个端点（概率记为 <span class="arithmatex">\(b_i\)</span> ，从1到n）和n+1段区间（概率记为 <span class="arithmatex">\(a_i\)</span> ，从0到n）。</p>
 <ol start="2">
 <li>递推<strong>过程</strong>：</li>
 </ol>
-<p>记 $[i,j]$ 中所有概率之和为 $w[i,j]$ ，
-<strong>结论：最终我们所求的是整个树的数值 $m[1,n]$ ，最优平均比较次数 $m[i,j]$ 满足：</strong>
-(1) $m[i,i-1]=0$
-(2) $m[i,j] = \min_k (m[i,k-1] + m[k+1,j] + w[i,j])$ 
-因此，我们应该先从长度较短的区间开始，直到得到 $m[1,n]$ 。
-区间的可能数为 $O(n^2)$ ，$k=O(n)$ ，故这一动态规划总复杂度为 $O(n^3)$ 。</p>
+<p>记 <span class="arithmatex">\([i,j]\)</span> 中所有概率之和为 <span class="arithmatex">\(w[i,j]\)</span> ，
+<strong>结论：最终我们所求的是整个树的数值 <span class="arithmatex">\(m[1,n]\)</span> ，最优平均比较次数 <span class="arithmatex">\(m[i,j]\)</span> 满足：</strong>
+(1) <span class="arithmatex">\(m[i,i-1]=0\)</span>
+(2) <span class="arithmatex">\(m[i,j] = \min_k (m[i,k-1] + m[k+1,j] + w[i,j])\)</span> 
+因此，我们应该先从长度较短的区间开始，直到得到 <span class="arithmatex">\(m[1,n]\)</span> 。
+区间的可能数为 <span class="arithmatex">\(O(n^2)\)</span> ，<span class="arithmatex">\(k=O(n)\)</span> ，故这一动态规划总复杂度为 <span class="arithmatex">\(O(n^3)\)</span> 。</p>
 <ol start="3">
 <li>伪代码</li>
 </ol>
@@ -490,7 +493,7 @@ n个端点（概率记为 $b_i$ ，从1到n）和n+1段区间（概率记为 $a_
 <h3 id="lcs">最长公共子序列 LCS</h3>
 <blockquote>
 <p>要求两个可能不等长的序列的最长公共子序列，注意不一定是最长连续元素。
-设第一个序列到元素 $i$ ，第二个序列到元素 $j$ 的最长公共子序列长度为 $C[i,j]$ 。</p>
+设第一个序列到元素 <span class="arithmatex">\(i\)</span> ，第二个序列到元素 <span class="arithmatex">\(j\)</span> 的最长公共子序列长度为 <span class="arithmatex">\(C[i,j]\)</span> 。</p>
 </blockquote>
 <ol>
 <li>
@@ -507,8 +510,8 @@ n个端点（概率记为 $b_i$ ，从1到n）和n+1段区间（概率记为 $a_
 如果这两个元素不同，其中仍然可能有一个元素能够为最长公共子序列贡献一个元素，需要把两个情况都取一下、取其最大值。
 - 边界：两个序列中任一个长度为0时，最长公共子序列为0。
 - 递推：
-    - $C[i,j]=C[i-1,j-1]+1,x[i]=y[j]$
-    - $C[i,j]=max(C[i-1,j],C[i,j-1]),x[i] \ne y[j]$
+    - <span class="arithmatex">\(C[i,j]=C[i-1,j-1]+1,x[i]=y[j]\)</span>
+    - <span class="arithmatex">\(C[i,j]=max(C[i-1,j],C[i,j-1]),x[i] \ne y[j]\)</span>
 <img alt="" src="post-images/20251222215053.png"/></p>
 <p><img alt="" src="post-images/20251222215145.png"/>
 <img alt="" src="post-images/20251222215301.png"/></p>
@@ -516,13 +519,13 @@ n个端点（概率记为 $b_i$ ，从1到n）和n+1段区间（概率记为 $a_
 <blockquote>
 <p>原始背包问题没有每种物品的个数要求。
 做的“选择”是拿或不拿。
-记<strong>拿了前 $k$ 个物品（反映遍历顺序是从前往后），总重量不超过 $y$ （反映重量填表顺序是从轻到重）的<em>最大价值</em>是 $F[k][y]$ 。</strong></p>
+记<strong>拿了前 <span class="arithmatex">\(k\)</span> 个物品（反映遍历顺序是从前往后），总重量不超过 <span class="arithmatex">\(y\)</span> （反映重量填表顺序是从轻到重）的<em>最大价值</em>是 <span class="arithmatex">\(F[k][y]\)</span> 。</strong></p>
 </blockquote>
 <ol>
 <li>直觉</li>
 </ol>
 <p><img alt="" src="post-images/20251222235457.png"/></p>
-<p>如果我们要追踪最终得到的解（选了哪些物品），只要建立一个指示变量 $i[k][y]$ ，看每次 $F$ 选了还是没选即可。
+<p>如果我们要追踪最终得到的解（选了哪些物品），只要建立一个指示变量 <span class="arithmatex">\(i[k][y]\)</span> ，看每次 <span class="arithmatex">\(F\)</span> 选了还是没选即可。
 <img alt="" src="post-images/20251222235622.png"/></p>
 <ol start="2">
 <li>过程</li>
@@ -536,12 +539,12 @@ n个端点（概率记为 $b_i$ ，从1到n）和n+1段区间（概率记为 $a_
 <h3 id="_14">投资问题</h3>
 <blockquote>
 <p>需要区分选择变量和转移变量。
-在投资问题中，<strong>投资前 $k$ 项、投入资金不超过 $x$ 是转移变量</strong>，前后具有转移性，
-但是在第k个投入 <strong>$x_k$ 是选择变量</strong>，$x_k$ 之间互相没有依赖和转移，我们只能选择其中的某一个特定值。
-定义 $f(k, x_k)$ 或者 <strong>$f_k(x)$ 是将𝑥元投入第i个项目的收益，最大收益为 $F_k(x)$。</strong></p>
+在投资问题中，<strong>投资前 <span class="arithmatex">\(k\)</span> 项、投入资金不超过 <span class="arithmatex">\(x\)</span> 是转移变量</strong>，前后具有转移性，
+但是在第k个投入 <strong><span class="arithmatex">\(x_k\)</span> 是选择变量</strong>，<span class="arithmatex">\(x_k\)</span> 之间互相没有依赖和转移，我们只能选择其中的某一个特定值。
+定义 <span class="arithmatex">\(f(k, x_k)\)</span> 或者 <strong><span class="arithmatex">\(f_k(x)\)</span> 是将𝑥元投入第i个项目的收益，最大收益为 <span class="arithmatex">\(F_k(x)\)</span>。</strong></p>
 </blockquote>
-<p>直觉：对k做转移，对 $x_k$ 做选择，总钱数不超过 $x$ 。 $O(nm^2)$ ，$m$ 行 $n$ 列。
-$F_k(x)=\max_{0 \le x_k \le x} (f_k(x_k) + F_k(x-x_k))$
+<p>直觉：对k做转移，对 <span class="arithmatex">\(x_k\)</span> 做选择，总钱数不超过 <span class="arithmatex">\(x\)</span> 。 <span class="arithmatex">\(O(nm^2)\)</span> ，<span class="arithmatex">\(m\)</span> 行 <span class="arithmatex">\(n\)</span> 列。
+<span class="arithmatex">\(F_k(x)=\max_{0 \le x_k \le x} (f_k(x_k) + F_k(x-x_k))\)</span>
 <img alt="" src="post-images/20251223001911.png"/></p>
 <p>过程：
 <img alt="" src="post-images/20251223001432.png"/>
@@ -552,14 +555,14 @@ $F_k(x)=\max_{0 \le x_k \le x} (f_k(x_k) + F_k(x-x_k))$
 <blockquote>
 <p><strong>新的任务是在已有的最大区间调度基础上添加的。</strong>
 则如果能够添加新的任务，已有的最大区间调度结尾一定在新的任务前或正好相连。</p>
-<p>转移变量：<strong>检查的区间序号 $i$</strong> ，先排序，然后从前往后检查。
+<p>转移变量：<strong>检查的区间序号 <span class="arithmatex">\(i\)</span></strong> ，先排序，然后从前往后检查。
 选择：添加新的任务或不添加。
-函数：当前最大区间调度的区间总权重 $OPT[i]$ 。</p>
+函数：当前最大区间调度的区间总权重 <span class="arithmatex">\(OPT[i]\)</span> 。</p>
 </blockquote>
-<p>直觉：$O(n \log n)$ ，因为这个递推是 $O(n)$ 的，找 $p(i)$ 需要先 $O(n \log n)$ 排序。</p>
-<p>$OPT(i) = max(OPT(i-1)，OPT(p(i)) + w_i)$
-其中 $p(i)$ 是在任务 $i$ 之前的所有任务里面离 $i$ 最近并且兼容的活动。
-（如果没有兼容的活动，则$𝑝(i) = 0$）</p>
+<p>直觉：<span class="arithmatex">\(O(n \log n)\)</span> ，因为这个递推是 <span class="arithmatex">\(O(n)\)</span> 的，找 <span class="arithmatex">\(p(i)\)</span> 需要先 <span class="arithmatex">\(O(n \log n)\)</span> 排序。</p>
+<p><span class="arithmatex">\(OPT(i) = max(OPT(i-1)，OPT(p(i)) + w_i)\)</span>
+其中 <span class="arithmatex">\(p(i)\)</span> 是在任务 <span class="arithmatex">\(i\)</span> 之前的所有任务里面离 <span class="arithmatex">\(i\)</span> 最近并且兼容的活动。
+（如果没有兼容的活动，则<span class="arithmatex">\(𝑝(i) = 0\)</span>）</p>
 <p>过程：
 <img alt="" src="post-images/20251223003233.png"/>
 <img alt="" src="post-images/20251223102910.png"/>
@@ -571,11 +574,11 @@ $F_k(x)=\max_{0 \le x_k \le x} (f_k(x_k) + F_k(x-x_k))$
 <blockquote>
 <p>这个题目约束设置有点绕，需要稍微读读题。
 放在一群算法导论的经典问题里还是稍微有点难了。</p>
-<p><strong>转移变量</strong>：数字串处理完前 $i$ 个字符，特殊题目处理完 $mask$ 。
-ps. 转移变量只要“多“的能从”少“的得到即可。 $mask$ 是第一次用，这个设置是因为我们可能跳着挑选特殊题目，我们挑选哪些特殊题目最少也得用一个二进制01串进行记录。但是前 $i$ 个字符我们就只需要记录一个边界 $i$ 即可。
+<p><strong>转移变量</strong>：数字串处理完前 <span class="arithmatex">\(i\)</span> 个字符，特殊题目处理完 <span class="arithmatex">\(mask\)</span> 。
+ps. 转移变量只要“多“的能从”少“的得到即可。 <span class="arithmatex">\(mask\)</span> 是第一次用，这个设置是因为我们可能跳着挑选特殊题目，我们挑选哪些特殊题目最少也得用一个二进制01串进行记录。但是前 <span class="arithmatex">\(i\)</span> 个字符我们就只需要记录一个边界 <span class="arithmatex">\(i\)</span> 即可。
 <strong>选择和选择变量</strong>：
-切分边界 $j$ ，$s[j:i-1]$ 为整个数字，$j$ 之前的作为子问题。
-普通题不改 $mask$ ，特殊题要改 $mask$ 。</p>
+切分边界 <span class="arithmatex">\(j\)</span> ，<span class="arithmatex">\(s[j:i-1]\)</span> 为整个数字，<span class="arithmatex">\(j\)</span> 之前的作为子问题。
+普通题不改 <span class="arithmatex">\(mask\)</span> ，特殊题要改 <span class="arithmatex">\(mask\)</span> 。</p>
 </blockquote>
 <p>直觉：</p>
 <p><img alt="" src="post-images/20251223103516.png"/>
@@ -586,15 +589,15 @@ ps. 转移变量只要“多“的能从”少“的得到即可。 $mask$ 是�
 <img alt="" src="post-images/20251223104617.png"/></p>
 <h3 id="_17">矩阵链乘法</h3>
 <blockquote>
-<p>要求 $A_1 \dots A_n$ 的矩阵链乘法。我们把问题建模成要求 $A_i \dots A_j$ 的矩阵乘法，并且记录矩阵维度是 $P_0 \dots P_n$ ，<strong>矩阵 $A_i$ 的维度是 $P_{i-1} \times P_i$ 。</strong> （注意左边小一个！）
-转移变量：边界 $i$ 和 $j$ 。
-选择变量：切分点 $k$ ，使得 $A_i \dots A_j$ 拆分为 $A_i \dots A_k$ 和 $A_{k+1} \dots A_j$ 两个子问题。即是最后一次矩阵相乘的发生位置。
-函数定义：$A_i \dots A_j$ 的最少乘法次数。</p>
+<p>要求 <span class="arithmatex">\(A_1 \dots A_n\)</span> 的矩阵链乘法。我们把问题建模成要求 <span class="arithmatex">\(A_i \dots A_j\)</span> 的矩阵乘法，并且记录矩阵维度是 <span class="arithmatex">\(P_0 \dots P_n\)</span> ，<strong>矩阵 <span class="arithmatex">\(A_i\)</span> 的维度是 <span class="arithmatex">\(P_{i-1} \times P_i\)</span> 。</strong> （注意左边小一个！）
+转移变量：边界 <span class="arithmatex">\(i\)</span> 和 <span class="arithmatex">\(j\)</span> 。
+选择变量：切分点 <span class="arithmatex">\(k\)</span> ，使得 <span class="arithmatex">\(A_i \dots A_j\)</span> 拆分为 <span class="arithmatex">\(A_i \dots A_k\)</span> 和 <span class="arithmatex">\(A_{k+1} \dots A_j\)</span> 两个子问题。即是最后一次矩阵相乘的发生位置。
+函数定义：<span class="arithmatex">\(A_i \dots A_j\)</span> 的最少乘法次数。</p>
 </blockquote>
 <ol>
 <li>直觉（递推）</li>
 </ol>
-<p>要把 $A_i \dots A_k$ （$P_{i-1} \times P_{k}$）和 $A_{k+1} \dots A_j$ （$P_k \times P_j$） 乘起来，需要进行的乘法次数是 $P_{i-1}P_{k}P_{j}$ 。注意左边界是 $i-1$ ！
+<p>要把 <span class="arithmatex">\(A_i \dots A_k\)</span> （<span class="arithmatex">\(P_{i-1} \times P_{k}\)</span>）和 <span class="arithmatex">\(A_{k+1} \dots A_j\)</span> （<span class="arithmatex">\(P_k \times P_j\)</span>） 乘起来，需要进行的乘法次数是 <span class="arithmatex">\(P_{i-1}P_{k}P_{j}\)</span> 。注意左边界是 <span class="arithmatex">\(i-1\)</span> ！
 因此有以下递推公式：
 <img alt="" src="post-images/20251223110237.png"/></p>
 <ol start="2">
@@ -604,8 +607,8 @@ ps. 转移变量只要“多“的能从”少“的得到即可。 $mask$ 是�
 <ol start="3">
 <li>伪代码
 对于上述问题，
-我们可以递归实现（自顶向下），空间小、时间大 $O(2^n)$（因为会重复计算相同子问题）；
-也可以迭代实现（自底向上），空间大、时间小 $O(n^3)$（因为重复子问题可以查表）。</li>
+我们可以递归实现（自顶向下），空间小、时间大 <span class="arithmatex">\(O(2^n)\)</span>（因为会重复计算相同子问题）；
+也可以迭代实现（自底向上），空间大、时间小 <span class="arithmatex">\(O(n^3)\)</span>（因为重复子问题可以查表）。</li>
 </ol>
 <p><img alt="" src="post-images/20251223110551.png"/>
 <img alt="" src="post-images/20251223110602.png"/>
@@ -614,8 +617,8 @@ ps. 转移变量只要“多“的能从”少“的得到即可。 $mask$ 是�
 <img alt="" src="post-images/20251223110651.png"/></p>
 <h3 id="_18">活动选择问题</h3>
 <blockquote>
-<p>$O(n^3)$ 。更好的贪心算法（见Lec7 贪心及其证明）是 $O(n \log n)$ 的。
-想法很简单，<strong>转移变量</strong>是左右边界，然后<strong>选择变量</strong>是中间的切分点，<strong>dp变量</strong>设这一段区间最多的活动数，然后追踪一下解就得到了。很容易看出来是 $O(n^3)$ 的。</p>
+<p><span class="arithmatex">\(O(n^3)\)</span> 。更好的贪心算法（见Lec7 贪心及其证明）是 <span class="arithmatex">\(O(n \log n)\)</span> 的。
+想法很简单，<strong>转移变量</strong>是左右边界，然后<strong>选择变量</strong>是中间的切分点，<strong>dp变量</strong>设这一段区间最多的活动数，然后追踪一下解就得到了。很容易看出来是 <span class="arithmatex">\(O(n^3)\)</span> 的。</p>
 </blockquote>
 <p><img alt="" src="post-images/20251223112646.png"/></p>
 <p><img alt="" src="post-images/20251223112757.png"/>
@@ -637,7 +640,7 @@ ps. 转移变量只要“多“的能从”少“的得到即可。 $mask$ 是�
 <li>上下文</li>
 </ol>
 <p><img alt="" src="post-images/20251223111444.png"/>
-$O(n \log n)+O(n)=O(n)$</p>
+<span class="arithmatex">\(O(n \log n)+O(n)=O(n)\)</span></p>
 <ol start="2">
 <li>证明</li>
 </ol>
@@ -645,7 +648,7 @@ $O(n \log n)+O(n)=O(n)$</p>
 <p><img alt="" src="post-images/20251223112321.png"/>
 <img alt="" src="post-images/20251223112330.png"/>
 说人话：
-<strong>假设最优解选到的第一个不满足贪心的是 $j$ ，把它替换成贪心得到的 $i_{k+1}$ ，不影响。</strong></p>
+<strong>假设最优解选到的第一个不满足贪心的是 <span class="arithmatex">\(j\)</span> ，把它替换成贪心得到的 <span class="arithmatex">\(i_{k+1}\)</span> ，不影响。</strong></p>
 <p>关于动态规划解法，见Lec6 动态规划部分。
 <img alt="" src="post-images/20251223112826.png"/></p>
 <h3 id="_20">最优装载问题</h3>
@@ -653,9 +656,9 @@ $O(n \log n)+O(n)=O(n)$</p>
 <p>很容易想到，
 贪心策略：取最轻的集装箱。
 证明：
-(1) 基础，如果只有一个集装箱， $w_1 \le C$ ，显然贪心最优。
-(2) 归纳，设 $k$ 个装箱<strong>贪心最优</strong>。对于 $k+1$ 个装箱，设贪心得到的序列是 $w_1 \le w_2 \le \dots \le w_{n+1}$ ，另设最优解得到的装箱集合是 $O_{n+1}$ 。
-取 $w_1$ 对应的箱子，若 $w_1 \in O_{n+1}$ ，$O_{n+1} - {w_1}$ 贪心最优，则整体最优。</p>
+(1) 基础，如果只有一个集装箱， <span class="arithmatex">\(w_1 \le C\)</span> ，显然贪心最优。
+(2) 归纳，设 <span class="arithmatex">\(k\)</span> 个装箱<strong>贪心最优</strong>。对于 <span class="arithmatex">\(k+1\)</span> 个装箱，设贪心得到的序列是 <span class="arithmatex">\(w_1 \le w_2 \le \dots \le w_{n+1}\)</span> ，另设最优解得到的装箱集合是 <span class="arithmatex">\(O_{n+1}\)</span> 。
+取 <span class="arithmatex">\(w_1\)</span> 对应的箱子，若 <span class="arithmatex">\(w_1 \in O_{n+1}\)</span> ，<span class="arithmatex">\(O_{n+1} - \{w_1\}\)</span> 贪心最优，则整体最优。</p>
 </blockquote>
 <p>对于归纳，可以打个比方：
 贪心装了 {1,2,3,5} （下标，不是重量），最优解是 {1,2,3,4}
@@ -676,19 +679,19 @@ $O(n \log n)+O(n)=O(n)$</p>
 <em>假设最优解中有两个问题逆序。将它们交换过来，它们之中延迟最大的那个问题是交换前后四个延迟中最大的。即交换后仍为最优解。</em></p>
 </blockquote>
 <p>符号：
-<strong>设 $f(i)$ 是我们所求的要调度的任务 $i$ 的开始时间，问题就是求最优的 $f$ 。</strong>
-<strong>给定的 $d_i$ 是任务 $i$ 的ddl，$t_i$ 是任务 $i$ 的服务时长，
-延迟是实际的服务完成时间 $f(i)+t_i$ 减去要求的服务完成时间 $d_i$ 。</strong></p>
+<strong>设 <span class="arithmatex">\(f(i)\)</span> 是我们所求的要调度的任务 <span class="arithmatex">\(i\)</span> 的开始时间，问题就是求最优的 <span class="arithmatex">\(f\)</span> 。</strong>
+<strong>给定的 <span class="arithmatex">\(d_i\)</span> 是任务 <span class="arithmatex">\(i\)</span> 的ddl，<span class="arithmatex">\(t_i\)</span> 是任务 <span class="arithmatex">\(i\)</span> 的服务时长，
+延迟是实际的服务完成时间 <span class="arithmatex">\(f(i)+t_i\)</span> 减去要求的服务完成时间 <span class="arithmatex">\(d_i\)</span> 。</strong></p>
 <p><img alt="" src="post-images/20251223120148.png"/>
 <img alt="" src="post-images/20251223120328.png"/></p>
 <blockquote>
 <p>说人话：
-假设i的ddl更迟但是先做了，即 $d_i &gt; d_j$ 且 $f(i) &lt; f(j)$ 。（<strong>延迟是实际完成时间减去要求完成时间</strong>）</p>
+假设i的ddl更迟但是先做了，即 <span class="arithmatex">\(d_i &gt; d_j\)</span> 且 <span class="arithmatex">\(f(i) &lt; f(j)\)</span> 。（<strong>延迟是实际完成时间减去要求完成时间</strong>）</p>
 <p>交换前：
-设 $i$ 的开始时间 $f(i)=s$ ，则此时 $i$ 的实际完成时间为 $s+t_i$ ， $j$ 的开始时间 $f(j)$ 也为 $s+t_i$ ， $j$ 的实际完成时间为 $s+t_i+t_j$ 。
-此时，$i$ 的延迟是 $s+t_i-d_i$ ，$j$ 的延迟是 $L_{max} = s+t_i+t_j-d_j$ 。（容易由 $d_i&gt;d_j$ 得到 $j$ 的延迟更大）</p>
+设 <span class="arithmatex">\(i\)</span> 的开始时间 <span class="arithmatex">\(f(i)=s\)</span> ，则此时 <span class="arithmatex">\(i\)</span> 的实际完成时间为 <span class="arithmatex">\(s+t_i\)</span> ， <span class="arithmatex">\(j\)</span> 的开始时间 <span class="arithmatex">\(f(j)\)</span> 也为 <span class="arithmatex">\(s+t_i\)</span> ， <span class="arithmatex">\(j\)</span> 的实际完成时间为 <span class="arithmatex">\(s+t_i+t_j\)</span> 。
+此时，<span class="arithmatex">\(i\)</span> 的延迟是 <span class="arithmatex">\(s+t_i-d_i\)</span> ，<span class="arithmatex">\(j\)</span> 的延迟是 <span class="arithmatex">\(L_{max} = s+t_i+t_j-d_j\)</span> 。（容易由 <span class="arithmatex">\(d_i&gt;d_j\)</span> 得到 <span class="arithmatex">\(j\)</span> 的延迟更大）</p>
 <p>交换后：
-$i$ 的延迟是 $s+t_j+t_i-d_i$ ， $j$ 的延迟是 $s + t_j - d_j$ ，我们可以证明这两个延迟都小于 $L_{max}$ 。
+<span class="arithmatex">\(i\)</span> 的延迟是 <span class="arithmatex">\(s+t_j+t_i-d_i\)</span> ， <span class="arithmatex">\(j\)</span> 的延迟是 <span class="arithmatex">\(s + t_j - d_j\)</span> ，我们可以证明这两个延迟都小于 <span class="arithmatex">\(L_{max}\)</span> 。
 故经过上述交换，<strong>所有的延迟中最大的延迟没有变得更大</strong>，原来的最优解仍为最优解。</p>
 </blockquote>
 <p><img alt="" src="post-images/20251223120337.png"/>
@@ -700,12 +703,12 @@ $i$ 的延迟是 $s+t_j+t_i-d_i$ ， $j$ 的延迟是 $s + t_j - d_j$ ，我们�
 <p>贪心策略：每次取两个权值最小的节点进行合并。</p>
 <p>证明：这里几个引理比较漂亮且并不平凡。
 (引理1) 对于两个频率最小的节点，它们一定位于树最深的位置，且它们恰好是两个兄弟叶子节点。
-(引理2) 将两个兄弟叶子节点的频率 $f(x)$ 和 $f(y)$ 加到一起、作为它们的父节点的频率（称为合并操作）。则总的权值$B$（频率*深度的求和）减少 $f(x)+f(y)$ 。</p>
+(引理2) 将两个兄弟叶子节点的频率 <span class="arithmatex">\(f(x)\)</span> 和 <span class="arithmatex">\(f(y)\)</span> 加到一起、作为它们的父节点的频率（称为合并操作）。则总的权值<span class="arithmatex">\(B\)</span>（频率*深度的求和）减少 <span class="arithmatex">\(f(x)+f(y)\)</span> 。</p>
 <p>(证明) 先对k个元素进行归纳。
-当k+1时，如果 $T_贪$ 不是最优的，反设存在更优的树 $T_优$ ，即有 $B(T_贪) &lt; B(T_优)$。</p>
-<p>把 $T_贪$ 两个频率最小的节点（记为 $x$ 和 $y$）进行合并，得到的树 $T_贪'$ 满足 $B(T_贪')=B(T_贪)-f(x)-f(y)$ ，且根据归纳假设，  $T_贪'$ 是最优的。
-把 $T_优$ 的 $x$ 和 $y$ 两个节点进行合并，得到的树 $T_优'$ 满足 $B(T_优')=B(T_优)-f(x)-f(y)$ ，且根据归纳假设， $T_优'$ 是最优的。</p>
-<p>但是，$T_贪'$ 是最优的且$T_优'$ 是最优的可得 $B(T_贪')=B(T_优')$ ，则有 $B(T_贪)=B(T_优)$ ，与我们的反设矛盾。</p>
+当k+1时，如果 <span class="arithmatex">\(T_贪\)</span> 不是最优的，反设存在更优的树 <span class="arithmatex">\(T_优\)</span> ，即有 <span class="arithmatex">\(B(T_贪) &lt; B(T_优)\)</span>。</p>
+<p>把 <span class="arithmatex">\(T_贪\)</span> 两个频率最小的节点（记为 <span class="arithmatex">\(x\)</span> 和 <span class="arithmatex">\(y\)</span>）进行合并，得到的树 <span class="arithmatex">\(T_贪'\)</span> 满足 <span class="arithmatex">\(B(T_贪')=B(T_贪)-f(x)-f(y)\)</span> ，且根据归纳假设，  <span class="arithmatex">\(T_贪'\)</span> 是最优的。
+把 <span class="arithmatex">\(T_优\)</span> 的 <span class="arithmatex">\(x\)</span> 和 <span class="arithmatex">\(y\)</span> 两个节点进行合并，得到的树 <span class="arithmatex">\(T_优'\)</span> 满足 <span class="arithmatex">\(B(T_优')=B(T_优)-f(x)-f(y)\)</span> ，且根据归纳假设， <span class="arithmatex">\(T_优'\)</span> 是最优的。</p>
+<p>但是，<span class="arithmatex">\(T_贪'\)</span> 是最优的且<span class="arithmatex">\(T_优'\)</span> 是最优的可得 <span class="arithmatex">\(B(T_贪')=B(T_优')\)</span> ，则有 <span class="arithmatex">\(B(T_贪)=B(T_优)\)</span> ，与我们的反设矛盾。</p>
 </blockquote>
 <p><img alt="" src="post-images/20251223135757.png"/>
 <img alt="" src="post-images/20251223135803.png"/>
@@ -720,18 +723,18 @@ $i$ 的延迟是 $s+t_j+t_i-d_i$ ， $j$ 的延迟是 $s + t_j - d_j$ ，我们�
 <p><img alt="" src="post-images/20251223135827.png"/></p>
 <h3 id="mst">最小生成树 MST</h3>
 <blockquote>
-<p>Prim算法：从已选集合 $S$ 开始，选择连接 $S$ 与 $V-S$ 的最短边。$O(n^2)$
-Kruskal算法：如果加入最短边后不构成回路，则加入。$O(m\log m)$
+<p>Prim算法：从已选集合 <span class="arithmatex">\(S\)</span> 开始，选择连接 <span class="arithmatex">\(S\)</span> 与 <span class="arithmatex">\(V-S\)</span> 的最短边。<span class="arithmatex">\(O(n^2)\)</span>
+Kruskal算法：如果加入最短边后不构成回路，则加入。<span class="arithmatex">\(O(m\log m)\)</span>
 Prim证明：对最优解copy-and-paste。</p>
 </blockquote>
 <h4 id="kruskal">Kruskal</h4>
 <p>这个麻烦一点，看看图上怎么归纳的（设G是顶点数为n+1的图）。
-首先短接图 $G$ 的边 $e$ ，得到 $G'$ ，$G'$ 比 $G$ 少一个顶点，可以得到最小生成树 $T'$ ，然后对 $T'$ 执行短接的逆运算放回边 $e$ ，得到G的一个生成树 $T$ ，后续证明 $T$ 是 $G$ 的最小生成树。</p>
-<p><strong>短接</strong>即是选取边 $e = (i,j)$ ，替换为点 $k$ ，将连到 $i$ 或 $j$ 上的边全部连到 $k$ 上。
-<strong>逆运算</strong>即是对点 $k$ ，替换为边 $e=(i,j)$ ，将连到 $k$ 上面的边任意地连到 $i$ 或 $j$ 上。
+首先短接图 <span class="arithmatex">\(G\)</span> 的边 <span class="arithmatex">\(e\)</span> ，得到 <span class="arithmatex">\(G'\)</span> ，<span class="arithmatex">\(G'\)</span> 比 <span class="arithmatex">\(G\)</span> 少一个顶点，可以得到最小生成树 <span class="arithmatex">\(T'\)</span> ，然后对 <span class="arithmatex">\(T'\)</span> 执行短接的逆运算放回边 <span class="arithmatex">\(e\)</span> ，得到G的一个生成树 <span class="arithmatex">\(T\)</span> ，后续证明 <span class="arithmatex">\(T\)</span> 是 <span class="arithmatex">\(G\)</span> 的最小生成树。</p>
+<p><strong>短接</strong>即是选取边 <span class="arithmatex">\(e = (i,j)\)</span> ，替换为点 <span class="arithmatex">\(k\)</span> ，将连到 <span class="arithmatex">\(i\)</span> 或 <span class="arithmatex">\(j\)</span> 上的边全部连到 <span class="arithmatex">\(k\)</span> 上。
+<strong>逆运算</strong>即是对点 <span class="arithmatex">\(k\)</span> ，替换为边 <span class="arithmatex">\(e=(i,j)\)</span> ，将连到 <span class="arithmatex">\(k\)</span> 上面的边任意地连到 <span class="arithmatex">\(i\)</span> 或 <span class="arithmatex">\(j\)</span> 上。
 <img alt="" src="post-images/20251223141236.png"/>
 <img alt="" src="post-images/20251223141248.png"/></p>
-<p>下述证明 $T$ 是 $G$ 的最小生成树。
+<p>下述证明 <span class="arithmatex">\(T\)</span> 是 <span class="arithmatex">\(G\)</span> 的最小生成树。
 <img alt="" src="post-images/20251223142612.png"/></p>
 <h4 id="prim">Prim</h4>
 <p><img alt="" src="post-images/20251223140231.png"/>
@@ -746,14 +749,14 @@ Prim证明：对最优解copy-and-paste。</p>
 <h2 id="lec9">Lec9 最短路径</h2>
 <blockquote>
 <p>关键是松弛操作。
-当 $d[j] &gt; d[i] + w(i,j)$ 时，执行松弛 $d[j] \leftarrow d[i] + w(i,j)$ 。</p>
+当 <span class="arithmatex">\(d[j] &gt; d[i] + w(i,j)\)</span> 时，执行松弛 <span class="arithmatex">\(d[j] \leftarrow d[i] + w(i,j)\)</span> 。</p>
 <p>单源最短路径：
-- 无负权：Dijkstra $|V|<em>ExtractMin+|E|</em>Relax$，数组是 $|V|^2$，堆是 $(|V|+|E|)\log|V|$
-- 无权：BFS，$O(|V|+|E|)$
-- 有负权：Bellman-Ford $O(|V||E|)$ 对一个源
+- 无负权：Dijkstra <span class="arithmatex">\(|V|*ExtractMin+|E|*Relax\)</span>，数组是 <span class="arithmatex">\(|V|^2\)</span>，堆是 <span class="arithmatex">\((|V|+|E|)\log|V|\)</span>
+- 无权：BFS，<span class="arithmatex">\(O(|V|+|E|)\)</span>
+- 有负权：Bellman-Ford <span class="arithmatex">\(O(|V||E|)\)</span> 对一个源
 多到多最短路径：
-- 无负权：Floyd-Warshall $O(|V|^3)$
-- 有负权：Johnson $O(|V||E|\log |V|)$</p>
+- 无负权：Floyd-Warshall <span class="arithmatex">\(O(|V|^3)\)</span>
+- 有负权：Johnson <span class="arithmatex">\(O(|V||E|\log |V|)\)</span></p>
 </blockquote>
 <h3 id="dijkstra">Dijkstra算法</h3>
 <blockquote>
@@ -766,10 +769,10 @@ Prim证明：对最优解copy-and-paste。</p>
 <p><img alt="" src="post-images/20251224204219.png"/></p>
 <h3 id="bellman-ford">Bellman-Ford算法</h3>
 <blockquote>
-<p>对所有边执行n-1次松弛操作，n是点数 $|V|$ ，得到全部最短距离。
+<p>对所有边执行n-1次松弛操作，n是点数 <span class="arithmatex">\(|V|\)</span> ，得到全部最短距离。
 再执行第n次松弛操作，如果最短距离仍能更新，则存在负权环。
-（正确性分析原理：图中最长的简单路径长度为 $|V|-1$ 。）
-解决负权环的问题， $O(|V||E|)$。</p>
+（正确性分析原理：图中最长的简单路径长度为 <span class="arithmatex">\(|V|-1\)</span> 。）
+解决负权环的问题， <span class="arithmatex">\(O(|V||E|)\)</span>。</p>
 </blockquote>
 <p>下图起点为A，希望得到最终到所有点的最短距离，并且存在负权边。
 <img alt="" src="post-images/20251224203920.png"/></p>
@@ -782,20 +785,20 @@ Prim证明：对最优解copy-and-paste。</p>
 <blockquote>
 <p>解决Floyd-Warshall算法的负权问题。
 思路：
-<strong>1. 添加源点，到所有边连一条，使用Bellman-Ford算法求得$h$</strong>
+<strong>1. 添加源点，到所有边连一条，使用Bellman-Ford算法求得<span class="arithmatex">\(h\)</span></strong>
 <em>类比重力势能：取一个势能零点</em>
-<strong>2. 得到新的边权，在所有顶点使用Dijkstra算法求得最短距离 $\delta_h$</strong>
-<strong>2. 将新的最短距离转化为原来的最短距离 $\delta$</strong></p>
+<strong>2. 得到新的边权，在所有顶点使用Dijkstra算法求得最短距离 <span class="arithmatex">\(\delta_h\)</span></strong>
+<strong>2. 将新的最短距离转化为原来的最短距离 <span class="arithmatex">\(\delta\)</span></strong></p>
 </blockquote>
-<p>原来的边权是 $w(u,v)$ 
-新的边权是 $w'(u,v)=w(u,v)+h(u)+h(v)$</p>
+<p>原来的边权是 <span class="arithmatex">\(w(u,v)\)</span> 
+新的边权是 <span class="arithmatex">\(w'(u,v)=w(u,v)+h(u)+h(v)\)</span></p>
 <p><img alt="" src="post-images/20251224210418.png"/></p>
 <p><img alt="" src="post-images/20251224210946.png"/></p>
 <h3 id="_23">差分约束系统</h3>
 <blockquote>
-<p>Bellman-Ford在满足 $d[j] &gt; d[i] + w(i,j)$ 时会执行松弛（$d[j] \leftarrow d[i] + w(i,j)$），
-因此最终得到的全部<strong>最短距离一定满足 $d[j] \le d[i] + w(i,j)$ ，</strong>
-<strong>这恰好与我们要求解的 $x_i-x_j \le b$ 形式相同。</strong></p>
+<p>Bellman-Ford在满足 <span class="arithmatex">\(d[j] &gt; d[i] + w(i,j)\)</span> 时会执行松弛（<span class="arithmatex">\(d[j] \leftarrow d[i] + w(i,j)\)</span>），
+因此最终得到的全部<strong>最短距离一定满足 <span class="arithmatex">\(d[j] \le d[i] + w(i,j)\)</span> ，</strong>
+<strong>这恰好与我们要求解的 <span class="arithmatex">\(x_i-x_j \le b\)</span> 形式相同。</strong></p>
 </blockquote>
 <p><img alt="" src="post-images/20251224200201.png"/></p>
 <p><img alt="" src="post-images/20251224200237.png"/>
@@ -807,8 +810,8 @@ Prim证明：对最优解copy-and-paste。</p>
 <p><strong>把多个子分配（及其约束）给汇总起来，</strong>
 <strong>让汇总最大，</strong>
 <strong>从而得到分开的子分配的方案。</strong></p>
-<p>Edmonds-Karp：BFS建分层图（$O(|E|)$），完成所有增广（$O(|V||E|)$）。 $O(|V||E|^2)$
-Dinic：BFS建分层图（$O(|E|)$）、DFS找阻塞流（$O(|V||E|)$），循环 $|V|$ 次。$O(|V|^2|E|)$</p>
+<p>Edmonds-Karp：BFS建分层图（<span class="arithmatex">\(O(|E|)\)</span>），完成所有增广（<span class="arithmatex">\(O(|V||E|)\)</span>）。 <span class="arithmatex">\(O(|V||E|^2)\)</span>
+Dinic：BFS建分层图（<span class="arithmatex">\(O(|E|)\)</span>）、DFS找阻塞流（<span class="arithmatex">\(O(|V||E|)\)</span>），循环 <span class="arithmatex">\(|V|\)</span> 次。<span class="arithmatex">\(O(|V|^2|E|)\)</span></p>
 </blockquote>
 <p>这一章只讲了几个用来解网络流的算法，没有讲怎么把问题建模成网络流问题。
 所以自己补了点例题。
@@ -835,7 +838,7 @@ Dinic：BFS建分层图（$O(|E|)$）、DFS找阻塞流（$O(|V||E|)$），循�
 <h3 id="3"><strong>例3：点容量问题 → 边容量</strong></h3>
 <p>（作业里就有这个题）</p>
 <p><strong>问题</strong>：每个路口（节点）有通过人数上限，道路（边）也有容量，求从起点到终点最大人流。
-<strong>技巧</strong>：把每个节点 $u$ 拆成 $u_{in}​$ 和 $u_{out}$：
+<strong>技巧</strong>：把每个节点 <span class="arithmatex">\(u\)</span> 拆成 <span class="arithmatex">\(u_{in}​\)</span> 和 <span class="arithmatex">\(u_{out}\)</span>：
 - 原进入 u 的边连到 uin​。
 - uin→uout 边容量 = 节点容量。
 - 原离开 u 的边从 uout 出发。</p>
@@ -858,8 +861,8 @@ Dinic：BFS建分层图（$O(|E|)$）、DFS找阻塞流（$O(|V||E|)$），循�
 <img alt="" src="post-images/20251224184900.png"/>
 在这个问题中做最大流（每条边容量都为1），
 我们找到的最大流使用的边包括：
-$(1,2'),(2,4')$ ，即对应1→2→4,3，
-$(1,3'),(2,4')$ ，即对应1→3,2→4，
+<span class="arithmatex">\((1,2'),(2,4')\)</span> ，即对应1→2→4,3，
+<span class="arithmatex">\((1,3'),(2,4')\)</span> ，即对应1→3,2→4，
 等等。</p>
 <h3 id="5"><strong>例5：最小割的应用 — 项目取舍</strong></h3>
 <p>之前讨论的都是最大流的建模。这里来一个最小割的建模。
@@ -898,26 +901,26 @@ $(1,3'),(2,4')$ ，即对应1→3,2→4，
 <blockquote>
 <p>思路：
 尽可能往轮船1装最多重量的集装箱。如果其余的集装箱能够装入轮船2，则该解存在，否则不是有效解。
-在直接暴力搜索（$O(2^n)$）的基础上，
+在直接暴力搜索（<span class="arithmatex">\(O(2^n)\)</span>）的基础上，
 1. <strong>通过约束条件、把一些无法满足条件的解提前结束掉，回溯尝试构造其他解</strong>。
 2. <strong>每个到达最深处的解都是有效解，构造出有效解后通过回溯尝试构造其他解。在本题目中我们要求有效解中的最优解。</strong>
-每次做2个选择中的一个，共要做n次选择，仍然为 $O(2^n)$ 。</p>
+每次做2个选择中的一个，共要做n次选择，仍然为 <span class="arithmatex">\(O(2^n)\)</span> 。</p>
 </blockquote>
 <p><img alt="" src="post-images/20251223150235.png"/></p>
 <p>首先从大到小排序。
-见下图，每个分支处即是是否选择当前第 $i$ 个货物。
-如果选择，分支向左下延伸（$x_i = 1$），记录当前增加权值。
-如果不选择，分支向右下延伸（$x_i = 0$），当前增加权值为0。
+见下图，每个分支处即是是否选择当前第 <span class="arithmatex">\(i\)</span> 个货物。
+如果选择，分支向左下延伸（<span class="arithmatex">\(x_i = 1\)</span>），记录当前增加权值。
+如果不选择，分支向右下延伸（<span class="arithmatex">\(x_i = 0\)</span>），当前增加权值为0。
 <img alt="" src="post-images/20251223151146.png"/></p>
 <p><img alt="" src="post-images/20251223152833.png"/>
 <img alt="" src="post-images/20251223152839.png"/>
-例如上图找到了第一个解 $(1,0,1,0,1,0,0)$ ，回溯即是找到最后一个 $1$ 的位置，然后把它改为 $0$ ，向下延伸，找到另一个解 $(1,0,1,0,0,1,1)$ 。</p>
+例如上图找到了第一个解 <span class="arithmatex">\((1,0,1,0,1,0,0)\)</span> ，回溯即是找到最后一个 <span class="arithmatex">\(1\)</span> 的位置，然后把它改为 <span class="arithmatex">\(0\)</span> ，向下延伸，找到另一个解 <span class="arithmatex">\((1,0,1,0,0,1,1)\)</span> 。</p>
 <h3 id="_26">图的着色问题</h3>
 <blockquote>
 <p>先为图上所有顶点从1到n编号。
-对于每个顶点，它可用的颜色为 $m$ 个，即有 $m$ 个子节点。但是该顶点的相邻顶点已经使用过的颜色不能再使用。</p>
+对于每个顶点，它可用的颜色为 <span class="arithmatex">\(m\)</span> 个，即有 <span class="arithmatex">\(m\)</span> 个子节点。但是该顶点的相邻顶点已经使用过的颜色不能再使用。</p>
 </blockquote>
-<p>举例：$n=7,m=3$
+<p>举例：<span class="arithmatex">\(n=7,m=3\)</span>
 三种颜色分别为1红、2蓝、3灰。
 对于顶点1，它有3种选择。假定选择1红。
 对于顶点2，它有2种选择。假定选择2蓝。
@@ -970,21 +973,21 @@ $(1,3'),(2,4')$ ，即对应1→3,2→4，
 （<em>节点中间不是分数线！！只是分割了一下！！</em>）</p>
 <blockquote>
 <p>我们先直观感受一下：<strong>黄色的节点是被分支限界剪掉的</strong>，蓝色的节点是被约束剪掉的，橙色的是最优解，绿色的是待扩展节点。
-我们完全没有考虑过 $x_4$ ，而是直接在考虑完 $x_3$ 甚至 $x_2$ 就完成剪枝了。不像回溯要么得靠约束，要么一直得判断到叶子节点。</p>
+我们完全没有考虑过 <span class="arithmatex">\(x_4\)</span> ，而是直接在考虑完 <span class="arithmatex">\(x_3\)</span> 甚至 <span class="arithmatex">\(x_2\)</span> 就完成剪枝了。不像回溯要么得靠约束，要么一直得判断到叶子节点。</p>
 <ul>
 <li>如果某个节点的<strong>界函数值 ≤ 当前界</strong>（即它最好也超不过已知最佳值），就<strong>剪枝</strong>（不再搜索它的子树）。</li>
 <li>否则继续搜索。</li>
 </ul>
 </blockquote>
 <p>详细地我们可以这么看：
-一开始，估算能达到的价值上界是 10 * 9/7，因为重量为10，$x_1$单价为 9/7。
-假如此时选择了 $x_1=1$ ，则能达到的价值上界是 9 + 3 * 5/4 ，因为剩余能用的重量是3，这里第二层要考虑的是 $x_2$ ，单价为 5/4。
-假如此时选择了 $x_2=2$ ，重量超了。剪枝。
+一开始，估算能达到的价值上界是 10 * 9/7，因为重量为10，<span class="arithmatex">\(x_1\)</span>单价为 9/7。
+假如此时选择了 <span class="arithmatex">\(x_1=1\)</span> ，则能达到的价值上界是 9 + 3 * 5/4 ，因为剩余能用的重量是3，这里第二层要考虑的是 <span class="arithmatex">\(x_2\)</span> ，单价为 5/4。
+假如此时选择了 <span class="arithmatex">\(x_2=2\)</span> ，重量超了。剪枝。
 ...
-$x_1=1,x_2=0,x_3=1$ 是已有的最大价值，是12。
+<span class="arithmatex">\(x_1=1,x_2=0,x_3=1\)</span> 是已有的最大价值，是12。
 ...
-假如选择了 $x_1=1,x_2=0,x_3=0$ 看看行不行。价值上界是 9 + 3 * 1/2 ，都不到已有的最大价值12，所以不需要继续往下判断了。这就是分支限界利用界函数的剪枝。
-还有一个更好的例子：$x_1=0,x_2=2$ ，这里都不用选择 $x_3$ 和 $x_4$ ，我们拿 $x_3$ 估算以下上界为 10 + 2 * 3/3 ，也就只是跟已有的最大价值12恰好相等。那就不用往下看了。</p>
+假如选择了 <span class="arithmatex">\(x_1=1,x_2=0,x_3=0\)</span> 看看行不行。价值上界是 9 + 3 * 1/2 ，都不到已有的最大价值12，所以不需要继续往下判断了。这就是分支限界利用界函数的剪枝。
+还有一个更好的例子：<span class="arithmatex">\(x_1=0,x_2=2\)</span> ，这里都不用选择 <span class="arithmatex">\(x_3\)</span> 和 <span class="arithmatex">\(x_4\)</span> ，我们拿 <span class="arithmatex">\(x_3\)</span> 估算以下上界为 10 + 2 * 3/3 ，也就只是跟已有的最大价值12恰好相等。那就不用往下看了。</p>
 <p><img alt="" src="post-images/20251224171058.png"/></p>
 <h3 id="_28">最大团</h3>
 <p>用分支限界求解最大团，用一个例子说清楚。</p>
@@ -999,11 +1002,11 @@ $x_1=1,x_2=0,x_3=1$ 是已有的最大价值，是12。
 </blockquote>
 <p>这个好玩。
 首先扫一遍所有节点，记录从该节点出发的边的最小长度。
-例如下图对节点 $1,2,3,4$ ，要记录的权值即是 $4,2,7,2$ 。
+例如下图对节点 <span class="arithmatex">\(1,2,3,4\)</span> ，要记录的权值即是 <span class="arithmatex">\(4,2,7,2\)</span> 。
 <img alt="" src="post-images/20251224173630.png"/>
 界函数：已走过的长度 + 其余节点的最小长度之和。</p>
 <p>例如：
-对于路线$&lt;1,3,2&gt;$，已走过的长度是9+13，其余要加的是节点2的2和节点4的2，也就是界函数 $L=9+13+2+2$ 。</p>
+对于路线<span class="arithmatex">\(&lt;1,3,2&gt;\)</span>，已走过的长度是9+13，其余要加的是节点2的2和节点4的2，也就是界函数 <span class="arithmatex">\(L=9+13+2+2\)</span> 。</p>
 <p><img alt="" src="post-images/20251224174033.png"/>
 <img alt="" src="post-images/20251224174043.png"/>
 <img alt="" src="post-images/20251224174056.png"/></p>
@@ -1011,8 +1014,8 @@ $x_1=1,x_2=0,x_3=1$ 是已有的最大价值，是12。
 <p>注意问题是“如何设计面值”，使得连续邮资的区间达到最大。</p>
 <blockquote>
 <p>直觉：“不能断档”：分支限界的界。
-<strong>当你已经确定了前 i-1 种面值，且它们能连续贴到 $r_{i−1}$​ 元时，</strong><br/>
-<strong>第 i 种面值 $x_i​$ 不能超过 $r_{i−1}+1$</strong>。</p>
+<strong>当你已经确定了前 i-1 种面值，且它们能连续贴到 <span class="arithmatex">\(r_{i−1}\)</span>​ 元时，</strong><br/>
+<strong>第 i 种面值 <span class="arithmatex">\(x_i​\)</span> 不能超过 <span class="arithmatex">\(r_{i−1}+1\)</span></strong>。</p>
 </blockquote>
 <p><img alt="" src="post-images/20251224175111.png"/>
 <img alt="" src="post-images/20251224175117.png"/></p>
@@ -1026,10 +1029,10 @@ $x_1=1,x_2=0,x_3=1$ 是已有的最大价值，是12。
 <p>一定要注意输入是<em>一系列事件的序列</em>。</p>
 <p><strong>竞争分析：分类讨论，和“最优解”比较。这里“最优解”甚至可以看到未来。
 要求最坏情况：对抗构造。</strong>
-$C_{opt}(s)$ ：最优算法的最小成本
-$C_A(s)$ ：算法的成本
-如果对于所有输入 $s$ 都有：
-$C_A(s) \le k \cdot C_{opt}(s) + O(1)$ ，则称竞争比为 $k$ ，即 $k-$竞争。</p>
+<span class="arithmatex">\(C_{opt}(s)\)</span> ：最优算法的最小成本
+<span class="arithmatex">\(C_A(s)\)</span> ：算法的成本
+如果对于所有输入 <span class="arithmatex">\(s\)</span> 都有：
+<span class="arithmatex">\(C_A(s) \le k \cdot C_{opt}(s) + O(1)\)</span> ，则称竞争比为 <span class="arithmatex">\(k\)</span> ，即 <span class="arithmatex">\(k-\)</span>竞争。</p>
 </blockquote>
 <p><img alt="" src="post-images/20251225221820.png"/></p>
 <h3 id="bltn">滑雪问题（BLTN算法）</h3>
@@ -1044,8 +1047,8 @@ $C_A(s) \le k \cdot C_{opt}(s) + O(1)$ ，则称竞争比为 $k$ ，即 $k-$竞�
 <img alt="" src="post-images/20251225221909.png"/>
 输入小于等于9：最优解，竞争比为1
 输入大于等于10：竞争比为19/10&lt;=2</p>
-<p>一般地，设租赁rent价格为 $r$ ，购买purchase价格为 $p$ 。不妨设 $r | p$ 。
-BLTN：<strong>在第 $p/r$ 次买，前 $p/r - 1$ 次租。</strong>
+<p>一般地，设租赁rent价格为 <span class="arithmatex">\(r\)</span> ，购买purchase价格为 <span class="arithmatex">\(p\)</span> 。不妨设 <span class="arithmatex">\(r | p\)</span> 。
+BLTN：<strong>在第 <span class="arithmatex">\(p/r\)</span> 次买，前 <span class="arithmatex">\(p/r - 1\)</span> 次租。</strong>
 定理：BLTN的竞争比 &lt;= 2-r/p。</p>
 <p><strong>竞争分析</strong>：
 <em>对于给定的序列，</em>
@@ -1053,12 +1056,12 @@ BLTN：<strong>在第 $p/r$ 次买，前 $p/r - 1$ 次租。</strong>
 次数大于等于p/r次，最优花销是p（一开始就买），而我们花销是p+(p/r - 1)*r=2p-r。
 所以竞争比小于等于 (2p-r)/p=2-r/p。</p>
 <p><strong>最优证明</strong>：没有确定的算法竞争比<strong>上界</strong>比BLTN更低。</p>
-<p>假设我们的算法在滑雪x次之后购买，则成本 $C_A=xr+p$ 。不妨设输入是滑雪x+1次。直觉上，
-如果买迟了、x大于等于BLTN的在第 $p/r$ 次买（$x \ge p/r$），那么一定会此时多付了额外的租的价钱，竞争比就比2-r/p大了。多付一次，也就是至少为2。
-严格地，$C_A=xr+p \ge 2p \ge 2p-r$ ，$C_{opt}=r$ ，则 $C_A/C_{opt} \ge 2-r/p$ 。</p>
-<p>如果买早了、x小于等于在第 $p/r-1$ 次买，那么一定会此时多付了额外的买的价钱，竞争比至少比BLTN此时的1大。
+<p>假设我们的算法在滑雪x次之后购买，则成本 <span class="arithmatex">\(C_A=xr+p\)</span> 。不妨设输入是滑雪x+1次。直觉上，
+如果买迟了、x大于等于BLTN的在第 <span class="arithmatex">\(p/r\)</span> 次买（<span class="arithmatex">\(x \ge p/r\)</span>），那么一定会此时多付了额外的租的价钱，竞争比就比2-r/p大了。多付一次，也就是至少为2。
+严格地，<span class="arithmatex">\(C_A=xr+p \ge 2p \ge 2p-r\)</span> ，<span class="arithmatex">\(C_{opt}=r\)</span> ，则 <span class="arithmatex">\(C_A/C_{opt} \ge 2-r/p\)</span> 。</p>
+<p>如果买早了、x小于等于在第 <span class="arithmatex">\(p/r-1\)</span> 次买，那么一定会此时多付了额外的买的价钱，竞争比至少比BLTN此时的1大。
 买的价钱显著到竞争比直接大于等于2-r/p：因为我们多付的买的价钱太显著了，最优解表示明明可以一直租的。
-严格地，$C_A=xr+p$ ，$C_{opt}=(x+1)r$ ，则 $C_A / C_{opt} = {{xr+p} \over {(x+1)r}}$ 。为了方便用 $x$ 放缩得到上界，分离一下变量，得到 $1+{{p-r} \over {xr+r}}$ ，放缩并化简得到 $C_A / C_{opt} \ge 2-r/p$ 。</p>
+严格地，<span class="arithmatex">\(C_A=xr+p\)</span> ，<span class="arithmatex">\(C_{opt}=(x+1)r\)</span> ，则 <span class="arithmatex">\(C_A / C_{opt} = {{xr+p} \over {(x+1)r}}\)</span> 。为了方便用 <span class="arithmatex">\(x\)</span> 放缩得到上界，分离一下变量，得到 <span class="arithmatex">\(1+{{p-r} \over {xr+r}}\)</span> ，放缩并化简得到 <span class="arithmatex">\(C_A / C_{opt} \ge 2-r/p\)</span> 。</p>
 <h3 id="_31">电梯问题</h3>
 <p><img alt="" src="post-images/20251225225235.png"/>
 对于给定的序列，
@@ -1071,17 +1074,17 @@ y+E&lt;=S时，最优解和BLTN都是等着乘电梯，时间成本为y+E。竞�
 y&gt;S-E时，最优解是一开始就爬楼梯即时间成本为S，BLTN时间成本为(S-E)+S=2S-E，竞争比为2-E/S。
 所以竞争比上界为2-E/S。</p>
 <h3 id="_32">约会问题</h3>
-<p>~~我记得我在网上看到的什么面试算法是先把前面一些人挂掉，
-后面如果碰到比前面挂掉的人优秀的就立刻录用~~</p>
+<p><del>我记得我在网上看到的什么面试算法是先把前面一些人挂掉，
+后面如果碰到比前面挂掉的人优秀的就立刻录用</del></p>
 <p>算法：总共n个人，挂掉前n/e个人，然后看是否有大于前n/e个的元素。
 这个算法有1/e的概率选到<strong>最大元素</strong>。</p>
-<p>选到最大元素的概率设为 $P$ 。
-通过优化下述$P(t)$ ，得出应该令 $t = {n \over e}$，此时 $P={1 \over e}$ 。
+<p>选到最大元素的概率设为 <span class="arithmatex">\(P\)</span> 。
+通过优化下述<span class="arithmatex">\(P(t)\)</span> ，得出应该令 <span class="arithmatex">\(t = {n \over e}\)</span>，此时 <span class="arithmatex">\(P={1 \over e}\)</span> 。
 <img alt="" src="post-images/20251225232604.png"/>
 <strong>竞争分析</strong>：
 此算法选择的要么是相对前t个人较好的人，要么是最后一个人。
-最后一个人的排名是$C_A=O(𝑛)$，不一定好。
-对排名计算竞争比，$C_{opt}=1$ ，则竞争比为 $O(n)$ ，不好。</p>
+最后一个人的排名是<span class="arithmatex">\(C_A=O(𝑛)\)</span>，不一定好。
+对排名计算竞争比，<span class="arithmatex">\(C_{opt}=1\)</span> ，则竞争比为 <span class="arithmatex">\(O(n)\)</span> ，不好。</p>
 <p><img alt="" src="post-images/20251225232946.png"/></p>
 <p>得出上述P的详细过程：
 <img alt="" src="post-images/20251225232649.png"/>
@@ -1189,9 +1192,9 @@ y&gt;S-E时，最优解是一开始就爬楼梯即时间成本为S，BLTN时间�
 <p>当离线算法删除一个页面时，<strong>下一个删除操作至少在k步之后发生</strong>。
 例如上述删除3、删除2恰好差了k步。</p>
 <p>故把开头的三个请求排除掉，后面稳定状态下，
-$C_{opt} = m/k$ （例如9/3=3，因为每差3步删除一次，总共只需要这3次删除开销）
-$C_A=m$ （例如9）
-综上，竞争比 $C_A / C_{opt} \ge k$ 。</p>
+<span class="arithmatex">\(C_{opt} = m/k\)</span> （例如9/3=3，因为每差3步删除一次，总共只需要这3次删除开销）
+<span class="arithmatex">\(C_A=m\)</span> （例如9）
+综上，竞争比 <span class="arithmatex">\(C_A / C_{opt} \ge k\)</span> 。</p>
 <p>（ps. 关于“至少”，步数更多的可以找一个不均匀的序列。直觉上，由于我们对其他的元素多次命中，某个元素两次删除之间的间隔会拉得更长一些。上述案例没有体现“至少”，而是一个恰好为k的情况。）</p>
 <h4 id="_35">随机标记算法</h4>
 <p>把构造最坏案例时“请求不在的页面”这个条件干掉了。</p>
@@ -1208,11 +1211,11 @@ $C_A=m$ （例如9）
 由于所给出的信息仅有是否找到了目标；解决方案也比较容易想到，就是折返跑：<strong>首先从原点向右走出单位长度，随后返回原点，向左直至到达原点右侧两倍单位长度，如此反复，每次探索距原点的长度都加倍。这种策略叫做倍增（doubling）</strong>。</p>
 <p><a href="https://zhuanlan.zhihu.com/p/711591099">数学规划与运筹学 (14) 算法专题之在线算法 - 知乎</a></p>
 <p><strong>引理</strong>：<strong>使用倍增策略求解直线上的在线搜索问题是 9-竞争的。</strong></p>
-<p><strong>证明</strong>：考虑最差的情况，设目标位于距离原点距离为 $n$ 的位置，且对某 $j \in \mathbb{N}$ 有<br/>
-$2^j &lt; n \leq 2^{j+1}$，那么倍增策略的前 $j$ 步都不会找到目标，此时共走的路程为 $2 \times \sum_{i=1}^{j} 2^i$。
-（$\times 2$ 是因为往返）。接下来的第 $j + 1$ 步，假定我们不幸选错了方向，于是在错误的方向上又走了 $2 \times 2^{j+1}$ 路程。接下来，我们向着正确的方向走了 $n$ 路程，终于找到了目标。算下来一共走的路程为<br/>
-$2 \sum_{i=1}^{j+1} 2^i + n = 2(2^{j+2} - 1) + n \leq 8n - 2 + n \leq 9n$</p>
-<p>而最优情况显然是 $n$，因此倍增方案是 9-竞争的。</p>
+<p><strong>证明</strong>：考虑最差的情况，设目标位于距离原点距离为 <span class="arithmatex">\(n\)</span> 的位置，且对某 <span class="arithmatex">\(j \in \mathbb{N}\)</span> 有<br/>
+<span class="arithmatex">\(2^j &lt; n \leq 2^{j+1}\)</span>，那么倍增策略的前 <span class="arithmatex">\(j\)</span> 步都不会找到目标，此时共走的路程为 <span class="arithmatex">\(2 \times \sum_{i=1}^{j} 2^i\)</span>。
+（<span class="arithmatex">\(\times 2\)</span> 是因为往返）。接下来的第 <span class="arithmatex">\(j + 1\)</span> 步，假定我们不幸选错了方向，于是在错误的方向上又走了 <span class="arithmatex">\(2 \times 2^{j+1}\)</span> 路程。接下来，我们向着正确的方向走了 <span class="arithmatex">\(n\)</span> 路程，终于找到了目标。算下来一共走的路程为<br/>
+<span class="arithmatex">\(2 \sum_{i=1}^{j+1} 2^i + n = 2(2^{j+2} - 1) + n \leq 8n - 2 + n \leq 9n\)</span></p>
+<p>而最优情况显然是 <span class="arithmatex">\(n\)</span>，因此倍增方案是 9-竞争的。</p>
 <p>可以证明，9 是最好的结果，没有其它算法的竞争比能比 9 更低；这一结论的证明较困难，请见 Baezayates, R. A., Culberson, J. C., &amp; Rawlins, G. J. (1993). <em>Searching in the plane</em>. Information and computation,106(2), 234-252. 的 Theorem 2.1。</p>
 <h4 id="2_1">习题2：在线独立集</h4>
 <p><img alt="" src="post-images/20251226113409.png"/>
@@ -1247,7 +1250,7 @@ $2 \sum_{i=1}^{j+1} 2^i + n = 2(2^{j+2} - 1) + n \leq 8n - 2 + n \leq 9n$</p>
 <p>总之，上述的对抗构造，<strong>让任何的在线算法都只能剩1个点</strong>。
 但是假如我们可以预知未来，一开始就知道对抗构造最终得到的树的所有边，树一定是二分图，所以可以只删二分图中点比较少的那部分。<strong>剩下的点数至少为n/2</strong>。
 因此：
-${OPT \over ALG} \ge {n/2 \over 1}={n \over 2}$ 。
+<span class="arithmatex">\({OPT \over ALG} \ge {n/2 \over 1}={n \over 2}\)</span> 。
 即没有任何确定性算法能保证竞争比小于n/2得证。</p>
 </blockquote>
 <h2 id="lec16-pnp">Lec16 P和NP未完成</h2>
@@ -1312,7 +1315,7 @@ NP-hard是所有NP问题可规约到的问题，
 <p><img alt="" src="post-images/20251209115342.png"/></p>
 <p>规约当然是传递的。
 如果左边的难解，则右边的难解。
-如果右边的$\in P$，则左边的$\in P$。</p>
+如果右边的<span class="arithmatex">\(\in P\)</span>，则左边的<span class="arithmatex">\(\in P\)</span>。</p>
 <h4 id="hphc">哈密顿路径问题HP规约到哈密顿回路问题HC</h4>
 <p><img alt="" src="post-images/20251223233314.png"/></p>
 <h4 id="hctsp">哈密顿回路问题HC规约到旅行商问题TSP</h4>
@@ -1320,8 +1323,8 @@ NP-hard是所有NP问题可规约到的问题，
 ps. 这里“否则”只要取任意大于1的数即可，保证TSP的解一定不选G中不存在的边。</p>
 <h4 id="_37">最大生成树判定规约到最小生成树判定</h4>
 <p><img alt="" src="post-images/20251223234843.png"/></p>
-<p>取值 $M=\max_i{w(e_i)} + 1$ ，将所有边的权值 $w(e)$ 改成 $M - w(e)$ 。
-例如下述最大边权是7，取 $M=8$ ，用$M$减去所有原来的权值得到新权值。</p>
+<p>取值 <span class="arithmatex">\(M=\max_i{w(e_i)} + 1\)</span> ，将所有边的权值 <span class="arithmatex">\(w(e)\)</span> 改成 <span class="arithmatex">\(M - w(e)\)</span> 。
+例如下述最大边权是7，取 <span class="arithmatex">\(M=8\)</span> ，用<span class="arithmatex">\(M\)</span>减去所有原来的权值得到新权值。</p>
 <p>最大生成树：有权不小于12的生成树。
 最小生成树：有权不大于36的生成树。
 <img alt="" src="post-images/20251223234550.png"/>
@@ -1335,14 +1338,14 @@ ps. 这里“否则”只要取任意大于1的数即可，保证TSP的解一定
 <blockquote>
 <ol>
 <li>NP
-课程安排问题很显然是NP的，对每门课程 $C_i$ ，收集其所选方案的所有时间段，可以在多项式时间内验证时间段是否有重合。</li>
+课程安排问题很显然是NP的，对每门课程 <span class="arithmatex">\(C_i\)</span> ，收集其所选方案的所有时间段，可以在多项式时间内验证时间段是否有重合。</li>
 <li>规约
-<strong>同样的边e 和 同样的颜色c =&gt; 同样的时间段，所以时间段设为 $B_{e,c}$ 。</strong>
+<strong>同样的边e 和 同样的颜色c =&gt; 同样的时间段，所以时间段设为 <span class="arithmatex">\(B_{e,c}\)</span> 。</strong>
 这样就可以将k着色问题的实例转化为课程安排问题的实例。</li>
 </ol>
 </blockquote>
-<p>问题即是否存在这样的函数 $col: V -&gt; {1, \dots, k}$ ，
-使得对任意边 $(u,v) \in E$ ，都有 $col(u) \ne col(v)$ 。</p>
+<p>问题即是否存在这样的函数 <span class="arithmatex">\(col: V -&gt; \{1, \dots, k\}\)</span> ，
+使得对任意边 <span class="arithmatex">\((u,v) \in E\)</span> ，都有 <span class="arithmatex">\(col(u) \ne col(v)\)</span> 。</p>
 <p>直觉：如果两个顶点 u 和 v 之间有边 e，那么对于同一种颜色 c，时间段 Be,c​ 会同时出现在 Su,c​ 和 Sv,c 里。<br/>
 这意味着：如果两门课选了同一种颜色 c 的方案，它们都会占用 Be,c​ 这个时间段 → 在同一个教室就会冲突。</p>
 <p>从k着色实例到课程安排实例：假设是合法着色，反设。
@@ -1381,7 +1384,7 @@ Circuit-SAT可以规约到3-SAT，因为可以把二元逻辑蕴含改成三元�
 <p>最优解用到的顶点很少。
 近似解是找匹配（差不多是匹配），删顶点。
 通过这个近似算法，给出的解的顶点数至多是最优解的2倍。
-<strong>近似比证明</strong>：假设它删了$k$条边，即MVC(I)=2k个顶点；
+<strong>近似比证明</strong>：假设它删了<span class="arithmatex">\(k\)</span>条边，即MVC(I)=2k个顶点；
 覆盖k条互不关联的边至少需要k个顶点，OPT(I)&gt;=k；
 从而有 MVC(I)/OPT(I) &lt;= 2k/k = 2。
 <strong>紧实例</strong>：当图G由k条互不关联的边构成时，近似比=2。故MVC是2-近似算法。</p>
@@ -1457,6 +1460,9 @@ Circuit-SAT可以规约到3-SAT，因为可以把二元逻辑蕴含改成三元�
     window.PILOG_ROOT = "../../";
     window.PILOG_DEFAULT_VIEW = "cards";
   </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+          onload="try{if(window.renderMathInElement){renderMathInElement(document.body,{delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});}}catch(e){}"></script>
   <script src="../../js/search.js" defer></script>
   
 </body>

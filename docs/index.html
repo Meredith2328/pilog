@@ -22,6 +22,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
   
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   <link rel="stylesheet" href="css/style.css">
   
 </head>
@@ -188,7 +189,7 @@
           </div>
           <h3 class="card-title">Markdown 速查表</h3>
           
-          <p class="card-preview">这份速查表展示了本博客支持的 Markdown 能力，同时也用于演示引用关系： 更多能力（目录、表格、代码高亮等）由 pilog 框架说明 介绍。</p>
+          <p class="card-preview">这份速查表展示了本博客支持的 Markdown 能力，同时也用于演示引用关系： 行内公式用单个 $ 包裹：$E = mc^2$。 整行公式用双 $ 包裹，由 KaTeX 渲染： \int0^1 x^2\,dx = \frac{1}{3} 更多能力（目录、表格、代码高亮等）由 pilog 框架说明 介绍。</p>
           
           <div class="card-tags">
             
@@ -345,7 +346,7 @@
         </div>
         
         <div class="card-thumb">
-          <img src="assets/.thumbs/c30cc768b897.jpg" alt="" loading="lazy">
+          <img src="posts/migrated/post-images/notegotya.gif" alt="" loading="lazy">
         </div>
         
       </a>
@@ -405,58 +406,6 @@
       </a>
     </article>
     
-    <article class="card" data-tags="" data-folder="posts/migrated" data-date="2026-03-18">
-      <a class="card-link" href="posts/migrated/xiang-zuo-kairui-na-ge-shui-ping-de-dong-xi-zhe-li-de-yao-qiu-zhi-neng-gao-bu-neng-di.html">
-        <div class="card-body">
-          <div class="card-meta">
-            <time datetime="2026-03-18">2026-03-18</time>
-            
-            
-            
-            <span class="card-folder" title="点击目录片段筛选">
-              <button class="folder-part" type="button" data-folder="posts">posts</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/migrated">migrated</button>
-            </span>
-            
-          </div>
-          <h3 class="card-title">想做kairui那个水平的东西，这里的要求只能高不能低</h3>
-          
-          <p class="card-preview"></p>
-          
-          <div class="card-tags">
-            
-          </div>
-        </div>
-        
-      </a>
-    </article>
-    
-    <article class="card" data-tags="CS相关 " data-folder="posts/migrated" data-date="2026-03-14">
-      <a class="card-link" href="posts/migrated/TensorZero-6949.html">
-        <div class="card-body">
-          <div class="card-meta">
-            <time datetime="2026-03-14">2026-03-14</time>
-            
-            
-            
-            <span class="card-folder" title="点击目录片段筛选">
-              <button class="folder-part" type="button" data-folder="posts">posts</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/migrated">migrated</button>
-            </span>
-            
-          </div>
-          <h3 class="card-title">Pull Request 6949</h3>
-          
-          <p class="card-preview">Allow env::... for objectstorage.endpoint by Meredith2328 · Pull Request #6949 · tensorzero/tensorzero 感悟：对ai工作流的优化 codex用于处理环境配置等耗时的问题，并且负责整理整体代码结构（慢）， deepseek用于快速问答、给我讲解我要做什么（快）。 crates/tensorzero-core/src/config/mod.rs 这里从原来的 config 必须字面写出 endpoint…</p>
-          
-          <div class="card-tags">
-            
-            <button class="tag-chip" type="button" data-tag="CS相关">#CS相关</button>
-            
-          </div>
-        </div>
-        
-      </a>
-    </article>
-    
     <article class="card" data-tags="CS相关 " data-folder="posts/migrated" data-date="2026-03-12">
       <a class="card-link" href="posts/migrated/LLMestimate2.html">
         <div class="card-body">
@@ -483,6 +432,68 @@
         
         <div class="card-thumb">
           <img src="assets/.thumbs/31abc74ea940.jpg" alt="" loading="lazy">
+        </div>
+        
+      </a>
+    </article>
+    
+    <article class="card" data-tags="CS相关 " data-folder="posts/migrated" data-date="2026-03-11">
+      <a class="card-link" href="posts/migrated/optimizer.html">
+        <div class="card-body">
+          <div class="card-meta">
+            <time datetime="2026-03-11">2026-03-11</time>
+            
+            
+            
+            <span class="card-folder" title="点击目录片段筛选">
+              <button class="folder-part" type="button" data-folder="posts">posts</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/migrated">migrated</button>
+            </span>
+            
+          </div>
+          <h3 class="card-title">从SGD到AdamW，优化器怎么发展过来的？</h3>
+          
+          <p class="card-preview">Adam = Momentum + RMSProp 本文可以省流成以下几句话： SGD往梯度下降的方向更新权重。 SGD+Momentum把梯度累积起来、得到了方向，一直同向就更新快一点，变向就慢一点。 AdaGrad把梯度的平方累积起来，让出现得频繁却梯度值很小的步长更大。 RMSProp给AdaGrad加了一个衰减系数，不看整个历史、只看近期历史，防止学习率消失。 Adam = Momentum + RMSProp。 AdamW解决了在使用Adam时应该怎么做权重衰减。 $$ \theta{t+1} =…</p>
+          
+          <div class="card-tags">
+            
+            <button class="tag-chip" type="button" data-tag="CS相关">#CS相关</button>
+            
+          </div>
+        </div>
+        
+        <div class="card-thumb">
+          <img src="assets/.thumbs/55ae0c01ded5.jpg" alt="" loading="lazy">
+        </div>
+        
+      </a>
+    </article>
+    
+    <article class="card" data-tags="CS相关 " data-folder="posts/migrated" data-date="2026-03-10">
+      <a class="card-link" href="posts/migrated/CS336-hw1-1.html">
+        <div class="card-body">
+          <div class="card-meta">
+            <time datetime="2026-03-10">2026-03-10</time>
+            
+            
+            
+            <span class="card-folder" title="点击目录片段筛选">
+              <button class="folder-part" type="button" data-folder="posts">posts</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/migrated">migrated</button>
+            </span>
+            
+          </div>
+          <h3 class="card-title">CS336 Assignment 1 前半段记录：架构</h3>
+          
+          <p class="card-preview">从分词开始，搭建起Transformer架构。 BPE tokenizer Transformer LM The cross-entropy loss function and the AdamW optimizer The training loop (support: serilizing, loading model, optimizer state) 4.1 Cross-entropy loss 实现交叉熵损失。 4.2 The SGD Optimizer 基础的随机梯度下降优化器的原理。 4.3…</p>
+          
+          <div class="card-tags">
+            
+            <button class="tag-chip" type="button" data-tag="CS相关">#CS相关</button>
+            
+          </div>
+        </div>
+        
+        <div class="card-thumb">
+          <img src="assets/.thumbs/c5919d2aaec2.jpg" alt="" loading="lazy">
         </div>
         
       </a>
@@ -808,28 +819,6 @@
           
         
           
-          <li class="tree-file" data-path="posts/migrated/gridea-de-bug">
-            <a class="tree-row" href="posts/migrated/gridea-de-bug.html">
-              <span class="tree-toggle tree-toggle-empty"></span>
-              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
-              <span class="tree-name">Gridea的bug</span>
-              <span class="tree-date">2026-03-02</span>
-            </a>
-          </li>
-          
-        
-          
-          <li class="tree-file" data-path="posts/migrated/hao-xiang-wo-xu-yao-tian-yi-tian-keng">
-            <a class="tree-row" href="posts/migrated/hao-xiang-wo-xu-yao-tian-yi-tian-keng.html">
-              <span class="tree-toggle tree-toggle-empty"></span>
-              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
-              <span class="tree-name">好像我需要填一填坑</span>
-              <span class="tree-date">2024-06-14</span>
-            </a>
-          </li>
-          
-        
-          
           <li class="tree-file" data-path="posts/migrated/ieee754">
             <a class="tree-row" href="posts/migrated/ieee754.html">
               <span class="tree-toggle tree-toggle-empty"></span>
@@ -951,34 +940,12 @@
           
         
           
-          <li class="tree-file" data-path="posts/migrated/TensorZero-6949">
-            <a class="tree-row" href="posts/migrated/TensorZero-6949.html">
-              <span class="tree-toggle tree-toggle-empty"></span>
-              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
-              <span class="tree-name">Pull Request 6949</span>
-              <span class="tree-date">2026-03-14</span>
-            </a>
-          </li>
-          
-        
-          
           <li class="tree-file" data-path="posts/migrated/wandb">
             <a class="tree-row" href="posts/migrated/wandb.html">
               <span class="tree-toggle tree-toggle-empty"></span>
               <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
               <span class="tree-name">WanDB基础使用教程总结</span>
               <span class="tree-date">2026-03-08</span>
-            </a>
-          </li>
-          
-        
-          
-          <li class="tree-file" data-path="posts/migrated/xiang-zuo-kairui-na-ge-shui-ping-de-dong-xi-zhe-li-de-yao-qiu-zhi-neng-gao-bu-neng-di">
-            <a class="tree-row" href="posts/migrated/xiang-zuo-kairui-na-ge-shui-ping-de-dong-xi-zhe-li-de-yao-qiu-zhi-neng-gao-bu-neng-di.html">
-              <span class="tree-toggle tree-toggle-empty"></span>
-              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
-              <span class="tree-name">想做kairui那个水平的东西，这里的要求只能高不能低</span>
-              <span class="tree-date">2026-03-18</span>
             </a>
           </li>
           
@@ -1165,6 +1132,9 @@
     window.PILOG_ROOT = "";
     window.PILOG_DEFAULT_VIEW = "cards";
   </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+          onload="try{if(window.renderMathInElement){renderMathInElement(document.body,{delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});}}catch(e){}"></script>
   <script src="js/search.js" defer></script>
   
 <script src="js/graph.js" defer></script>

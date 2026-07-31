@@ -23,6 +23,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
   
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   <link rel="stylesheet" href="../../css/style.css">
   
 </head>
@@ -97,6 +98,8 @@
       <span class="post-folder">▣ posts/migrated</span>
     </div>
   </header>
+
+  
 
   <div class="post-body markdown-body">
     <blockquote>
@@ -205,7 +208,7 @@
     <span class="k">yield from</span> <span class="n">generatorUsed</span><span class="p">()</span>
 </code></pre></div>
 <p>仅此还不够直观，不妨了解一个词语：“<strong>委派</strong>”：上述的<code>generatorUser</code>在第一次<code>__next__()</code>时产生<code>233</code>（“自己负责的”），而在后续<code>__next__()</code>时，就“交给<code>generatorUsed</code>来负责了”，<code>generatorUsed</code>负责处理后续的三次<code>__next__()</code>。
-~~おまかせ~~</p>
+<del>おまかせ</del></p>
 <p>这件事和我们所学的<strong>过程-抽象</strong>其实是很类似的，以一道递归题目（disc03中Q3: Skip Factorial）为例：</p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">skip_factorial</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Return the product of positive integers n * (n - 2) * (n - 4) * ...</span>
@@ -268,42 +271,42 @@
 <h2 id="q6-bonk">Q6: Bonk</h2>
 <p><a href="https://cs61a.org/study-guide/orders-of-growth/">Study Guide: Orders of Growth | CS 61A Summer 2024</a></p>
 <blockquote>
-<p>Q6-Q8仅凭自己理解大概写的，没有系统了解 <em>Big O</em> ($O$) 和 <em>Big Theta</em> ($\Theta$)，可能有明显的符号使用不规范或过程中的错误，还望不吝赐教。</p>
+<p>Q6-Q8仅凭自己理解大概写的，没有系统了解 <em>Big O</em> (<span class="arithmatex">\(O\)</span>) 和 <em>Big Theta</em> (<span class="arithmatex">\(\Theta\)</span>)，可能有明显的符号使用不规范或过程中的错误，还望不吝赐教。</p>
 </blockquote>
 <ul>
 <li>Logarithmic</li>
 </ul>
-<p>记 $bonk(i)$ 为该函数在参数为$i$的执行次数，
-设 $bonk(1)=C$ ，
+<p>记 <span class="arithmatex">\(bonk(i)\)</span> 为该函数在参数为<span class="arithmatex">\(i\)</span>的执行次数，
+设 <span class="arithmatex">\(bonk(1)=C\)</span> ，
 注意到
-$$bonk(n)=1+ \lfloor bonk(n / 2) \rfloor$$
+$<span class="arithmatex">\(bonk(n)=1+ \lfloor bonk(n / 2) \rfloor\)</span>$
 故
-$$bonk(2^n)=n \times C$$
+$<span class="arithmatex">\(bonk(2^n)=n \times C\)</span>$
 即为Logarithmic.</p>
 <h2 id="q7-boom">Q7: Boom</h2>
 <p><a href="https://cs61a.org/study-guide/orders-of-growth/">Study Guide: Orders of Growth | CS 61A Summer 2024</a></p>
 <blockquote>
-<p>Q6-Q8仅凭自己理解大概写的，没有系统了解 <em>Big O</em> ($O$) 和 <em>Big Theta</em> ($\Theta$)，可能有明显的符号使用不规范或过程中的错误，还望不吝赐教。</p>
+<p>Q6-Q8仅凭自己理解大概写的，没有系统了解 <em>Big O</em> (<span class="arithmatex">\(O\)</span>) 和 <em>Big Theta</em> (<span class="arithmatex">\(\Theta\)</span>)，可能有明显的符号使用不规范或过程中的错误，还望不吝赐教。</p>
 </blockquote>
-<p>$\Theta(n^4)$</p>
-<p>因为是$\Theta(n^2) \times \Theta(n^2)$。</p>
+<p><span class="arithmatex">\(\Theta(n^4)\)</span></p>
+<p>因为是<span class="arithmatex">\(\Theta(n^2) \times \Theta(n^2)\)</span>。</p>
 <h2 id="q8-boink">Q8: Boink</h2>
 <p><a href="https://cs61a.org/study-guide/orders-of-growth/">Study Guide: Orders of Growth | CS 61A Summer 2024</a></p>
 <blockquote>
-<p>Q6-Q8仅凭自己理解大概写的，没有系统了解 <em>Big O</em> ($O$) 和 <em>Big Theta</em> ($\Theta$)，可能有明显的符号使用不规范或过程中的错误，还望不吝赐教。</p>
+<p>Q6-Q8仅凭自己理解大概写的，没有系统了解 <em>Big O</em> (<span class="arithmatex">\(O\)</span>) 和 <em>Big Theta</em> (<span class="arithmatex">\(\Theta\)</span>)，可能有明显的符号使用不规范或过程中的错误，还望不吝赐教。</p>
 </blockquote>
-<p>$O(2^n)$</p>
-<p>记 $boink(i)$ 为该函数在参数为$i$的执行次数，设 $boink(1)=C$ ，注意到 n = k 时，执行次数为
-$$boink(k) = boink(1) + boink(2) + ... + boink(k - 1)$$
+<p><span class="arithmatex">\(O(2^n)\)</span></p>
+<p>记 <span class="arithmatex">\(boink(i)\)</span> 为该函数在参数为<span class="arithmatex">\(i\)</span>的执行次数，设 <span class="arithmatex">\(boink(1)=C\)</span> ，注意到 n = k 时，执行次数为
+$<span class="arithmatex">\(boink(k) = boink(1) + boink(2) + ... + boink(k - 1)\)</span>$
 上述类似于数列中的
-$$a(n)=S(n - 1)$$
+$<span class="arithmatex">\(a(n)=S(n - 1)\)</span>$
 又根据前n项和的定义有
-$$a(n)=S(n)-S(n - 1)$$
+$<span class="arithmatex">\(a(n)=S(n)-S(n - 1)\)</span>$
 故
-$$S(n)=2S(n-1)=2^nS(1)=C \times 2^n$$
+$<span class="arithmatex">\(S(n)=2S(n-1)=2^nS(1)=C \times 2^n\)</span>$
 则
-$$a(n)=S(n-1)=C\times2^{n-1}$$
-即为$O(2^n)$。</p>
+$<span class="arithmatex">\(a(n)=S(n-1)=C\times2^{n-1}\)</span>$
+即为<span class="arithmatex">\(O(2^n)\)</span>。</p>
   </div>
 
   
@@ -360,6 +363,9 @@ $$a(n)=S(n-1)=C\times2^{n-1}$$
     window.PILOG_ROOT = "../../";
     window.PILOG_DEFAULT_VIEW = "cards";
   </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+          onload="try{if(window.renderMathInElement){renderMathInElement(document.body,{delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});}}catch(e){}"></script>
   <script src="../../js/search.js" defer></script>
   
 </body>

@@ -69,6 +69,8 @@ a{color:var(--accent)}
 .pv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:18px}
 .pv-card{display:flex;background:var(--paper);border:2px solid var(--ink);box-shadow:4px 4px 0 var(--shadow);cursor:grab;position:relative;transition:opacity .12s}
 .pv-card.is-highlight{border-color:var(--hl);outline:3px solid var(--hl);outline-offset:-3px}
+.pv-card.is-hidden{opacity:.6}
+.pv-hidden{background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:9.5px;padding:1px 5px}
 .pv-card.is-dragging{opacity:.35}
 .pv-card:hover{box-shadow:6px 6px 0 var(--shadow)}
 .pv-card .card-body{flex:1;padding:12px 14px;min-width:0}
@@ -397,6 +399,8 @@ a{color:var(--accent)}
       <div class="checks">
         <label><input type="checkbox" id="m-pin"> 置顶</label>
         <label><input type="checkbox" id="m-highlight"> 高亮（黄色描边）</label>
+        <label><input type="checkbox" id="m-hidden"> 隐藏（不发布，不出现在站点）</label>
+        <label><input type="checkbox" id="m-feature"> 全局封面（文章顶部大图，调浅显示）</label>
       </div>
       <div class="field">
         <label>预览图（拖入卡片右侧图片也可设置）</label>
@@ -637,6 +641,7 @@ function cardHtml(p, pin) {
     '<div class="card-body">' +
       '<div class="card-meta"><time>' + esc(p.date) + "</time>" +
       (pin ? '<span class="pin-badge">置顶</span>' : "") +
+      (p.hidden ? '<span class="pv-hidden">已隐藏</span>' : "") +
       '<span style="margin-left:auto">' + esc(p.folder) + "</span></div>" +
       "<h3>" + esc(p.title) + "</h3>" +
       '<p class="card-pre">' + esc(p.preview || "") + "</p>" +
@@ -653,7 +658,8 @@ function renderGrid(box, posts, pin) {
   box.innerHTML = "";
   posts.forEach(p => {
     const el = document.createElement("article");
-    el.className = "pv-card" + (p.highlight ? " is-highlight" : "");
+    el.className = "pv-card" + (p.highlight ? " is-highlight" : "") +
+      (p.hidden ? " is-hidden" : "");
     el.dataset.rel = p.rel;
     el.dataset.pin = pin ? "1" : "0";
     el.innerHTML = cardHtml(p, pin);
@@ -687,6 +693,7 @@ function renderTree() {
       li.className = "file" + (node.post.highlight ? " is-hl" : "");
       li.innerHTML = '<div class="tr"><span class="toggle"></span><span>▤</span>' +
         '<span class="name">' + esc(node.name) + "</span>" +
+        (node.post.hidden ? '<span class="pv-hidden">隐藏</span>' : "") +
         '<span class="date">' + esc(node.post.date) + "</span></div>";
       li.dataset.rel = node.rel;
       li.addEventListener("dblclick", () => openEditor(node.rel));
@@ -838,6 +845,8 @@ async function openEditor(rel) {
   $("#m-tags").value = (p.tags || []).join(", ");
   $("#m-pin").checked = p.pin;
   $("#m-highlight").checked = p.highlight;
+  $("#m-hidden").checked = p.hidden;
+  $("#m-feature").checked = !!p.feature;
   $("#m-image").value = p.image || "";
   const src = await api("/api/post/source?rel=" + encodeURIComponent(rel));
   $("#m-source").value = src.source;
@@ -861,12 +870,15 @@ async function loadImagePicker() {
 }
 
 async function saveEditor() {
+  const origFeature = (state.posts.find(x => x.rel === editingRel) || {}).feature;
   const updates = {
     title: $("#m-title").value.trim(),
     preview: $("#m-preview").value.trim() || null,
     tags: $("#m-tags").value.split(",").map(s => s.trim()).filter(Boolean),
     pin: $("#m-pin").checked,
     highlight: $("#m-highlight").checked,
+    hidden: $("#m-hidden").checked,
+    feature: $("#m-feature").checked ? (origFeature || true) : false,
     preview_image: $("#m-image").value.trim() || null,
   };
   const files = [];

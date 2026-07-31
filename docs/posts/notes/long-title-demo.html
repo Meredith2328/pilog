@@ -23,6 +23,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
   
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   <link rel="stylesheet" href="../../css/style.css">
   
 </head>
@@ -100,6 +101,8 @@
     </div>
   </header>
 
+  
+
   <div class="post-body markdown-body">
     <h1 id="_1">一篇用来演示超长标题在卡片与图谱节点中如何显示与自动截断的示例文章</h1>
 <p>图谱节点已经加大，可以容纳更长的标题；当标题仍然超出节点宽度时，末尾会用 <code>...</code> 截断，悬停节点可以看到完整标题。</p>
@@ -160,6 +163,9 @@
     window.PILOG_ROOT = "../../";
     window.PILOG_DEFAULT_VIEW = "cards";
   </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+          onload="try{if(window.renderMathInElement){renderMathInElement(document.body,{delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});}}catch(e){}"></script>
   <script src="../../js/search.js" defer></script>
   
 </body>

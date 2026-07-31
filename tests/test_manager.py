@@ -40,7 +40,13 @@ def main() -> None:
         pg.on("pageerror", lambda e: errs.append(str(e)))
         pg.on("dialog", lambda d: d.accept())
         pg.goto("http://127.0.0.1:8195/manager", wait_until="networkidle")
-        pg.wait_for_timeout(1200)
+        # wait until the manager has actually loaded posts/preview (with many
+        # posts this can take several seconds)
+        pg.wait_for_function(
+            "document.querySelector('#pv-title') && "
+            "document.querySelector('#pv-title').textContent.length > 0",
+            timeout=30000,
+        )
 
         check("logo preview uses assets path (not blogs/)",
               "blogs/assets" not in pg.locator("#pv-logo-img").get_attribute("src"))
@@ -61,7 +67,10 @@ def main() -> None:
 
         # graph preview
         pg.click('.pv-tab[data-pvview="graph"]')
-        pg.wait_for_timeout(4000)
+        pg.wait_for_function(
+            "document.querySelectorAll('#pv-pane-graph .graph-node').length >= 8",
+            timeout=40000,
+        )
         check("graph preview renders", pg.locator("#pv-pane-graph .graph-node").count() >= 8)
 
         # drawer open/close
@@ -103,8 +112,15 @@ def main() -> None:
         cfg = json.loads((ROOT / "config.json").read_text(encoding="utf-8"))
         check("default view saved to config", cfg["site"]["default_view"] == "tree")
         pg.click("#btn-rebuild")
-        pg.wait_for_timeout(2500)
+        # wait for the rebuild to start and finish (can take ~6s+ with many posts)
+        pg.wait_for_function(
+            "document.querySelector('#btn-rebuild').disabled", timeout=10000
+        )
+        pg.wait_for_function(
+            "!document.querySelector('#btn-rebuild').disabled", timeout=60000
+        )
         pg.goto("http://127.0.0.1:8195/", wait_until="networkidle")
+        pg.wait_for_selector("#view-tree", state="visible", timeout=15000)
         check("homepage honors default view",
               pg.locator("#view-tree").evaluate("el => !el.hidden"))
         pg.goto("http://127.0.0.1:8195/manager", wait_until="networkidle")

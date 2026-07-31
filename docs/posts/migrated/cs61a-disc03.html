@@ -23,6 +23,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
   
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   <link rel="stylesheet" href="../../css/style.css">
   
 </head>
@@ -97,6 +98,8 @@
       <span class="post-folder">▣ posts/migrated</span>
     </div>
   </header>
+
+  
 
   <div class="post-body markdown-body">
     <blockquote>
@@ -309,7 +312,7 @@
 <p>一种树状图思路如下：</p>
 <p><img alt="" src="post-images/1724983148922.jpg"/></p>
 <p>我们从上往下考虑。对于每一个金额（节点），分支上的数字是小于该金额的所有金币，并且要求下面的分支的金币面额不能大于上面的分支。则题目所示的所有情况就是从根节点（值为总金额）到叶节点（值为0）路径的总数。</p>
-<p>观察发现以下命题 ~~规则类怪谈~~ ：
+<p>观察发现以下命题 <del>规则类怪谈</del> ：
 1. 如果减到剩余的值恰为0，则计数为一。
 2. （可以合并到 1. 中，用于提升计算效率）如果用到的金币面额为1，仅有后面一直用面额为1的一种情况，计数为一。
 3. 可以把单个节点连接三个、四个及以上的分支拆解成两个分支的情况，即图中的最小单元，且这两个分支用到的金额关系是较大和较小相邻的。两个分支总共的可能性是两个分支各自的可能性之和。</p>
@@ -397,6 +400,9 @@
     window.PILOG_ROOT = "../../";
     window.PILOG_DEFAULT_VIEW = "cards";
   </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+          onload="try{if(window.renderMathInElement){renderMathInElement(document.body,{delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});}}catch(e){}"></script>
   <script src="../../js/search.js" defer></script>
   
 </body>

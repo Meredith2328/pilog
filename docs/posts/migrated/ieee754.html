@@ -23,6 +23,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
   
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   <link rel="stylesheet" href="../../css/style.css">
   
 </head>
@@ -98,9 +99,11 @@
     </div>
   </header>
 
+  
+
   <div class="post-body markdown-body">
     <p>原来只是精度、数量级，再加上偏移量这个从无符号数到有符号数的工程实现。
-~~浮点数从未如此简单。~~ （不是）</p>
+<del>浮点数从未如此简单。</del> （不是）</p>
 <!-- more -->
 <blockquote>
 <p>edit time: 2025-06-17 01:43:17
@@ -112,20 +115,20 @@ s取1就是给正数前面添个负号。
 <h2 id="_1">十进制数转浮点数、浮点数转十进制数步骤</h2>
 <p><strong>十进制数转浮点数步骤：</strong></p>
 <ol>
-<li>十进制转二进制，如$10.001_{2}$。</li>
-<li>二进制转二进制的科学计数法表示（$1.xxx_2 \times 2^{yyy}$），如$1.001_{2} \times 2^1$，根据指数$yyy$参考下述“规格化和非规格化判断”。</li>
+<li>十进制转二进制，如<span class="arithmatex">\(10.001_{2}\)</span>。</li>
+<li>二进制转二进制的科学计数法表示（<span class="arithmatex">\(1.xxx_2 \times 2^{yyy}\)</span>），如<span class="arithmatex">\(1.001_{2} \times 2^1\)</span>，根据指数<span class="arithmatex">\(yyy\)</span>参考下述“规格化和非规格化判断”。</li>
 <li>根据二进制的科学计数法表示，参考下述“M和E是多少”，写出s, exp, frac。</li>
 </ol>
 <p><strong>浮点数转十进制数步骤</strong>：反过来
 根据exp判断为规格化、非规格化、无穷大、NaN中的哪一种，
 如果为规格化和非规格化，则将exp和frac按照对应规则转化为E和M，
-进而得到表示的数 $V=(-1)^s \times M \times 2^E$。</p>
+进而得到表示的数 <span class="arithmatex">\(V=(-1)^s \times M \times 2^E\)</span>。</p>
 <h2 id="_2">规格化和非规格化判断</h2>
 <blockquote>
 <p>省流：看要表示的数的二进制科学计数法的指数是否在规格化可提供的E范围内。</p>
 </blockquote>
 <p>以s, exp, frac三个二进制段长度为1, 4, 3为例：
-根据浮点数表示给出的exp段长度k=4，可以得到$Bias = 2^{k - 1} - 1=7$。
+根据浮点数表示给出的exp段长度k=4，可以得到<span class="arithmatex">\(Bias = 2^{k - 1} - 1=7\)</span>。
 <strong>非规格化数</strong>是形如 0 0000 xxx 等的形式，即中间exp段全0。
 <strong>规格化数</strong>是形如 0 0011 xxx 等的形式，即中间exp段既不全0、也不全1。
 <strong>无穷大</strong>是 0 1111 000，即中间exp段全1且frac段全0。
@@ -134,11 +137,11 @@ s取1就是给正数前面添个负号。
 <strong>最小的规格化数</strong>为 0 <strong>0001</strong> 000，即exp为0001。
 <strong>最大的规格化数</strong>为 0 <strong>1110</strong> 111，即exp为1110。
 ps. 可以记住：右边的frac从000到111对应的数逐渐增大，从而推得最小和最大的规格化数。</p>
-<p>对于规格化数，满足$E = exp - Bias$，
+<p>对于规格化数，满足<span class="arithmatex">\(E = exp - Bias\)</span>，
 所以最小的规格化数对应的E=1-7=<strong>-6</strong>（<strong>0001</strong>对应1），
 最大的规格化数对应的E=14-7=<strong>7</strong>（<strong>1110</strong>对应14）。
 关键：
-<strong>要表示的数的二进制科学计数法的指数在规格化能提供的$[-6, 7]$范围内，就一律为规格化数。</strong>
+<strong>要表示的数的二进制科学计数法的指数在规格化能提供的<span class="arithmatex">\([-6, 7]\)</span>范围内，就一律为规格化数。</strong>
 <strong>如果指数小于-6，则为非规格化数。</strong>
 <strong>如果指数大于7，则为无穷大。</strong></p>
 <h2 id="me">M和E是多少</h2>
@@ -149,17 +152,17 @@ ps. 可以记住：右边的frac从000到111对应的数逐渐增大，从而推
 </blockquote>
 <p>eg. 下面表示里s, exp, frac三个二进制段长度为1, 4, 3</p>
 <p>总结：还是以这个例子为例，
-<strong>要表示的数的二进制科学计数法的指数在规格化能提供的$[-6, 7]$范围内，就一律为规格化数，E即为指数，M=$1.xxx_2$。</strong>
-<strong>如果指数小于-6，则为非规格化数，E取-6，把科学计数法表示拆成 $1.xxx_2 \times 2^{yyy-E} \times 2^{E}$ 的形式。M=$1.xxx_2 \times 2^{yyy-E}$，从而M是$0.zzz$的形式，以表示更小的指数。如果指数实在太小（见备注），则直接用0表示。</strong>
+<strong>要表示的数的二进制科学计数法的指数在规格化能提供的<span class="arithmatex">\([-6, 7]\)</span>范围内，就一律为规格化数，E即为指数，M=<span class="arithmatex">\(1.xxx_2\)</span>。</strong>
+<strong>如果指数小于-6，则为非规格化数，E取-6，把科学计数法表示拆成 <span class="arithmatex">\(1.xxx_2 \times 2^{yyy-E} \times 2^{E}\)</span> 的形式。M=<span class="arithmatex">\(1.xxx_2 \times 2^{yyy-E}\)</span>，从而M是<span class="arithmatex">\(0.zzz\)</span>的形式，以表示更小的指数。如果指数实在太小（见备注），则直接用0表示。</strong>
 <strong>如果指数大于7，则用无穷大表示，不需要E和M。</strong></p>
 <p>在根据要表示的数的二进制科学计数法得到M和E之后，就能得到exp和frac字段：</p>
 <ol>
 <li>
 <p><strong>M和frac字段</strong>
-   非规格化数frac字段对应的$M$是 <strong>0.frac</strong>，即0.连上frac部分。
-   eg. 0 0000 <strong>010</strong>对应的小数是$0.010_{2}$ * 2^(-6) （为什么是-6后面说）
+   非规格化数frac字段对应的<span class="arithmatex">\(M\)</span>是 <strong>0.frac</strong>，即0.连上frac部分。
+   eg. 0 0000 <strong>010</strong>对应的小数是<span class="arithmatex">\(0.010_{2}\)</span> * 2^(-6) （为什么是-6后面说）
    规格化数frac字段对应的M是 <strong>1.frac</strong>，即1.连上frac部分。
-   eg. 0 0111 <strong>001</strong>对应的小数是$1.001_2$ * 2^0（为什么是0后面说）</p>
+   eg. 0 0111 <strong>001</strong>对应的小数是<span class="arithmatex">\(1.001_2\)</span> * 2^0（为什么是0后面说）</p>
 </li>
 <li>
 <p><strong>E和exp字段</strong>
@@ -170,10 +173,10 @@ ps. 可以记住：右边的frac从000到111对应的数逐渐增大，从而推
 </li>
 </ol>
 <p>注意exp和frac字段补0的方式不同，就像是它们之间有一个小数点一样。
-exp是往前补0，比如$10_2$补0变成$0010$，
-frac是往后补0，比如$01_2$补0变成$010$。</p>
+exp是往前补0，比如<span class="arithmatex">\(10_2\)</span>补0变成<span class="arithmatex">\(0010\)</span>，
+frac是往后补0，比如<span class="arithmatex">\(01_2\)</span>补0变成<span class="arithmatex">\(010\)</span>。</p>
 <p>备注. “指数实在太小”是多小？
-最小的非规格化数，上例即0 0000 001，此时E=1-7=-6，M=$0.001_2=2^{-3}$，这个数是$2^{-9}$。
+最小的非规格化数，上例即0 0000 001，此时E=1-7=-6，M=<span class="arithmatex">\(0.001_2=2^{-3}\)</span>，这个数是<span class="arithmatex">\(2^{-9}\)</span>。
 如果再小一些、且不能舍入到最小的非规格化数，就只能舍入到0 0000 000即0了。</p>
 <h2 id="_3">例题</h2>
 <p>以下例子不小心只有规格化和NaN，非规格化、指数太大、指数太小再找点例子练练。</p>
@@ -193,7 +196,7 @@ frac是往后补0，比如$01_2$补0变成$010$。</p>
 </blockquote>
 <ol start="0">
 <li>Bias = 2^(4-1)-1=7。</li>
-<li>1.75 = $1.11_{(2)} \times 2^0$</li>
+<li>1.75 = <span class="arithmatex">\(1.11_{(2)} \times 2^0\)</span></li>
 <li>M=1.11，E=0，E&gt;1-7=-6，所以规格化表示。</li>
 <li>frac表示为110（注意往<strong>后</strong>补0），exp=0+7=7，表示为0111。</li>
 </ol>
@@ -202,16 +205,16 @@ frac是往后补0，比如$01_2$补0变成$010$。</p>
 <p>例题3：浮点表示转换为十进制。0 0111 110表示的数是多少？s, exp, frac分别为1, 4, 3位。</p>
 </blockquote>
 <p>exp段是0111，不是全0、不是全1，所以是规格化。
-M=$1.110_{(2)}$，
+M=<span class="arithmatex">\(1.110_{(2)}\)</span>，
 E=exp-Bias=7-7=0。
 s=0。
-所以表示的数 $V=(-1)^s \times M \times 2^E = (-1)^0 \times 1.11_{(2)} \times 2^0 = 1.11_{2}=1.75$</p>
+所以表示的数 <span class="arithmatex">\(V=(-1)^s \times M \times 2^E = (-1)^0 \times 1.11_{(2)} \times 2^0 = 1.11_{2}=1.75\)</span></p>
 <blockquote>
 <p>例题4：十进制转换为浮点表示。0.375表示成多少？s, exp, frac分别为1, 4, 3位。</p>
 </blockquote>
 <ol start="0">
 <li>Bias = 7。</li>
-<li>0.375 = $0.011_{(2)}$，图省事口算转换也可以想0.375 = 1/4 + 1/8，然后1/4和1/8对应的那两位为1。再转换成科学计数法就是$1.1 \times 2^{-2}$</li>
+<li>0.375 = <span class="arithmatex">\(0.011_{(2)}\)</span>，图省事口算转换也可以想0.375 = 1/4 + 1/8，然后1/4和1/8对应的那两位为1。再转换成科学计数法就是<span class="arithmatex">\(1.1 \times 2^{-2}\)</span></li>
 <li>M=1.1，E=-2，则frac为100，exp为E+Bias=5就是0101，故表示为 0 0101 100。</li>
 </ol>
 <blockquote>
@@ -277,6 +280,9 @@ ps. 建议从上表格任选位表示和十进制，练习从十进制推位表�
     window.PILOG_ROOT = "../../";
     window.PILOG_DEFAULT_VIEW = "cards";
   </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+          onload="try{if(window.renderMathInElement){renderMathInElement(document.body,{delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});}}catch(e){}"></script>
   <script src="../../js/search.js" defer></script>
   
 </body>

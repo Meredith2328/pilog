@@ -23,6 +23,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
   
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   <link rel="stylesheet" href="../../css/style.css">
   
 </head>
@@ -97,6 +98,8 @@
       <span class="post-folder">▣ posts/migrated</span>
     </div>
   </header>
+
+  
 
   <div class="post-body markdown-body">
     <p>从分词开始，搭建起Transformer架构。</p>
@@ -173,7 +176,7 @@ edit time: 2026-03-10 09:03:18 补完训练部分√ 不管干什么，都先在
 具体而言，先整体exp，然后在<code>vocab_size</code>维上做sum，最后再log。</p>
 <p>再接下来，我们根据targets提供的标签知道了inputs中哪些是正确的，把正确的取出。</p>
 <p>总之，其实就是算了这两部分：
-$$CrossEntropy(x,y)=-\log(\frac{e^{x_y}}{\sum_j e^{x_j}})=\log(\sum_j e^{x_j})-x_y$$</p>
+$<span class="arithmatex">\(CrossEntropy(x,y)=-\log(\frac{e^{x_y}}{\sum_j e^{x_j}})=\log(\sum_j e^{x_j})-x_y\)</span>$</p>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">CrossEntropyLoss</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
@@ -586,7 +589,7 @@ F_adamw ≈ 12 × 2.046B = 24.55B FLOPs
 <p>语言模型接收 <code>(batch_size, sequence_length)</code> （相当于接收一个序列），
 生成对下一个token的归一化的概率分布 <code>(batch_size, sequence_length, vocab_size)</code> 。
 训练语言模型时，优化预测得到的下一个token和实际下一个token的交叉熵损失。</p>
-<p>~~连接主义！~~</p>
+<p><del>连接主义！</del></p>
 <h3 id="resource-accounting">知识：Resource accounting</h3>
 <blockquote>
 <p>这一部分本来在3 Training a Transformer LM最后，挪到了最前面方便查阅。
@@ -600,7 +603,7 @@ F_adamw ≈ 12 × 2.046B = 24.55B FLOPs
 <h3 id="linear">Linear</h3>
 <p><img alt="" src="post-images/20260211223733.png"/></p>
 <p>Linear是一个对输入向量 <code>x</code> 执行 <code>y = xW^T</code> 操作，得到输出向量 <code>y</code> 的层。</p>
-<p>ps.   $xW^T$  而不是  $Wx$  是因为尽管我们在数学上的向量往往是列向量（ $Wx$ ），但NumPy和PyTorch的内部实现通常优先使用行向量。原因很好猜到：内存的局部性。</p>
+<p>ps.   <span class="arithmatex">\(xW^T\)</span>  而不是  <span class="arithmatex">\(Wx\)</span>  是因为尽管我们在数学上的向量往往是列向量（ <span class="arithmatex">\(Wx\)</span> ），但NumPy和PyTorch的内部实现通常优先使用行向量。原因很好猜到：内存的局部性。</p>
 <p>注意首先使用 <code>super().__init__()</code> ，这是接下来使用 <code>load_state_dict</code> 手动加载权重的基础。</p>
 <p>首先利用 <code>torch.empty</code> 创建 <code>(out_features, in_features)</code> 的 <code>W</code> ，然后将它用 <code>nn.Parameter</code> 包装，再然后使用文档Parameter Initialization部分提到的 <code>trunc_normal_</code> 进行截断处理。 
 对于 <code>forward</code> 的实际实现，这里不使用einops时应该写作 <code>x @ W^T</code> ，因为考虑到空间局部性， <code>x</code> 这样的向量一般是行向量。当然，如果我们直接使用einops.einsum，就很方便了。把那些用于并行的<code>batch</code>之类的维度写成 <code>...</code> 即可。</p>
@@ -793,12 +796,12 @@ F_adamw ≈ 12 × 2.046B = 24.55B FLOPs
     <span class="k">return</span> <span class="n">rmsnorm</span><span class="p">(</span><span class="n">in_features</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="rope">RoPE</h3>
-<p>RoPE 将query向量 $q=W_qx$ 利用矩阵 $R$ 进行旋转，得到了新的向量 $q'$ 。
-矩阵 $R_k^i$ 是由角度 $\theta_{i,k}$ 构造得到的旋转矩阵。角度满足以下性质：
-- 当dim_position $k$ 相同时，角度 $\theta_{i,k}=\frac{i}{\Theta^{(2k-2)/d}}$ 随着位置 $i$ 线性变化。这保证了无论 token_position的绝对数值大还是小，得到的注意力分数都只依赖于相对位置的差值 $i-j$ 。
-- 当token_position $i$ 相同时，角度 $\theta_{i,k}=\frac{i}{\Theta^{(2k-2)/d}}$ 变化量随着 $k$ 的增加而减少，即 $k$ 比较小时，角度变化很快，频率很高； $k$ 比较大时，角度变化很慢，频率很低。
-（其中 $\Theta$ 是常数超参数， $d$ 是维度大小，即max_seq_len）</p>
-<p>我们可以预先计算矩阵 $R_k^i$ ，在使用时再传入query向量和token_positions。</p>
+<p>RoPE 将query向量 <span class="arithmatex">\(q=W_qx\)</span> 利用矩阵 <span class="arithmatex">\(R\)</span> 进行旋转，得到了新的向量 <span class="arithmatex">\(q'\)</span> 。
+矩阵 <span class="arithmatex">\(R_k^i\)</span> 是由角度 <span class="arithmatex">\(\theta_{i,k}\)</span> 构造得到的旋转矩阵。角度满足以下性质：
+- 当dim_position <span class="arithmatex">\(k\)</span> 相同时，角度 <span class="arithmatex">\(\theta_{i,k}=\frac{i}{\Theta^{(2k-2)/d}}\)</span> 随着位置 <span class="arithmatex">\(i\)</span> 线性变化。这保证了无论 token_position的绝对数值大还是小，得到的注意力分数都只依赖于相对位置的差值 <span class="arithmatex">\(i-j\)</span> 。
+- 当token_position <span class="arithmatex">\(i\)</span> 相同时，角度 <span class="arithmatex">\(\theta_{i,k}=\frac{i}{\Theta^{(2k-2)/d}}\)</span> 变化量随着 <span class="arithmatex">\(k\)</span> 的增加而减少，即 <span class="arithmatex">\(k\)</span> 比较小时，角度变化很快，频率很高； <span class="arithmatex">\(k\)</span> 比较大时，角度变化很慢，频率很低。
+（其中 <span class="arithmatex">\(\Theta\)</span> 是常数超参数， <span class="arithmatex">\(d\)</span> 是维度大小，即max_seq_len）</p>
+<p>我们可以预先计算矩阵 <span class="arithmatex">\(R_k^i\)</span> ，在使用时再传入query向量和token_positions。</p>
 <p>第28行的 <code>rearrange</code> 是这样的作用：
 <img alt="" src="post-images/20260212175652.png"/></p>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">RoPE</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
@@ -1525,7 +1528,7 @@ F_adamw ≈ 12 × 2.046B = 24.55B FLOPs
 <p>不直接使用Unicode：词汇表太大，太稀疏，而且需要处理词汇表外的词。
 (原始字符串) -<code>.encode("utf-8")</code> -&gt; (bytes) - <code>list()</code> -&gt; (list of bytes)</p>
 <p>连着几个byte表示一个Unicode字符，那逐byte转utf-8肯定有问题了。
-~~玩个meme~~</p>
+<del>玩个meme</del></p>
 <div class="highlight"><pre><span></span><code>&gt;&gt;&gt; decode_utf8_bytes_to_str_wrong("锟斤拷".encode("utf-8"))    
 Traceback (most recent call last):
   File "&lt;stdin&gt;", line 1, in &lt;module&gt;
@@ -1625,7 +1628,7 @@ Saved tokenizer artifacts:
 </code></pre></div>
 <p>估算一下，总计 <code>2226845268 bytes</code> ，训练BPE tokenizer总计11m42.2s， 大约就是 <code>2226845268/702.2=3171240.76901 bytes/sec</code> ，即大约3MB/s。
 这个表现我觉得挺好了。根据 <a href="https://github.com/openai/tiktoken">openai/tiktoken: tiktoken is a fast BPE tokeniser for use with OpenAI's models.</a> 的说明，他们的tiktoken在同样单线程的情况下目测大约是6MB/s，在只使用了有限数量的工程优化的前提下达成这样的效果挺振奋人心的。
-尽管许多工程优化的实现细节并不是完全我自己一行一行敲的 ~~甚至low level的大部分实现几乎都不是自己一行一行敲的~~ ，仍然收获良多。</p>
+尽管许多工程优化的实现细节并不是完全我自己一行一行敲的 <del>甚至low level的大部分实现几乎都不是自己一行一行敲的</del> ，仍然收获良多。</p>
 <p><img alt="" src="post-images/20260310093341.png"/></p>
 <blockquote>
 <p>(c) tokenizer吞吐量估算</p>
@@ -1639,8 +1642,8 @@ Saved tokenizer artifacts:
 - tokenizer实现（BPE算法效率）
 - 并行化程度
 - 硬件（CPU/GPU）</p>
-<p>其实这个题是要我估算，我一开始没反应过来。 ~~感谢GPT，差点真去训了。~~ 
-825GB按我的3MB/s大约就是281600s，约为78小时。 ~~差点浪费78小时的算力。~~</p>
+<p>其实这个题是要我估算，我一开始没反应过来。 <del>感谢GPT，差点真去训了。</del> 
+825GB按我的3MB/s大约就是281600s，约为78小时。 <del>差点浪费78小时的算力。</del></p>
 <blockquote>
 <p>(d) 为什么用uint16？</p>
 </blockquote>
@@ -1721,6 +1724,9 @@ Saved tokenizer artifacts:
     window.PILOG_ROOT = "../../";
     window.PILOG_DEFAULT_VIEW = "cards";
   </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+          onload="try{if(window.renderMathInElement){renderMathInElement(document.body,{delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});}}catch(e){}"></script>
   <script src="../../js/search.js" defer></script>
   
 </body>

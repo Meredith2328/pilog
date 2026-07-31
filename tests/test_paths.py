@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import json
 import shutil
 import sys
 import threading
@@ -15,6 +16,9 @@ from util import block_external
 
 ROOT = Path(__file__).resolve().parents[1]
 PORT = 8130
+OUT_DIR = ROOT / json.loads(
+    (ROOT / "config.json").read_text(encoding="utf-8")
+)["site"]["out_dir"]
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -29,7 +33,7 @@ def main() -> None:
     deploy = ROOT / "_deploy_test"
     if deploy.exists():
         shutil.rmtree(deploy)
-    shutil.copytree(ROOT / "site", deploy / "blogtest")
+    shutil.copytree(OUT_DIR, deploy / "blogtest")
 
     srv = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
     threading.Thread(target=srv.serve_forever, daemon=True).start()

@@ -23,6 +23,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
   
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   <link rel="stylesheet" href="../../css/style.css">
   
 </head>
@@ -98,6 +99,8 @@
     </div>
   </header>
 
+  
+
   <div class="post-body markdown-body">
     <p>本部分适合于知道AdamW更新流程、但没有尝试推导过peak memory和计算量、计算时间的朋友。
 省流：
@@ -106,8 +109,8 @@ C ≈ 6 × P × D</p>
 <!-- more -->
 <blockquote>
 <p>上接前文： <a href="https://meredith2328.github.io/post/LLMestimate/">怎么估算LLM的参数量和FLOPs？推一推、测一测 | 十派的玩具箱</a>
-本部分推导与验证的公式基于<strong>激活值不会提前释放、而是全部保留</strong>的假设，得到了 $A_{per_layer} \approx 16BLd+2BhL^2$ 的结论，后续实测也是基于这个结论。另外引言中的 $C \approx 6 × P × D$ 指计算量约等于六倍的参数量乘以训练token数。
-事实上，许多中间值通常在后续层进行计算时就已经释放了，相关讨论在 (a) 的“如果会提前释放，不同时保存所有激活值？”部分，结论应为 $A_{per_layer}=9BLd+2BhL^2$ 。
+本部分推导与验证的公式基于<strong>激活值不会提前释放、而是全部保留</strong>的假设，得到了 <span class="arithmatex">\(A_{per\_layer} \approx 16BLd+2BhL^2\)</span> 的结论，后续实测也是基于这个结论。另外引言中的 <span class="arithmatex">\(C \approx 6 × P × D\)</span> 指计算量约等于六倍的参数量乘以训练token数。
+事实上，许多中间值通常在后续层进行计算时就已经释放了，相关讨论在 (a) 的“如果会提前释放，不同时保存所有激活值？”部分，结论应为 <span class="arithmatex">\(A_{per\_layer}=9BLd+2BhL^2\)</span> 。
 撰写过程中借助了DeepSeek v3.2生成相关代码、以及处理一部分计算工作。
 另外，本篇只是个人基于现在已知的知识做的具有阶段性、一定合理性的推测，不代表真正的事实：不代表PyTorch、CUDA的实际工程实现。后者还需要更多的调查研究才能得出更好的结论。
 edit time: 2026-03-13 11:12:50</p>
@@ -123,7 +126,7 @@ edit time: 2026-03-13 11:12:50</p>
 只考虑以下部分：
 • Transformer block
 – RMSNorm(s)
-– Multi-head self-attention sublayer: QKV projections, $Q^TK$ matrix multiply, softmax, weighted sum of values, output projection.
+– Multi-head self-attention sublayer: QKV projections, <span class="arithmatex">\(Q^TK\)</span> matrix multiply, softmax, weighted sum of values, output projection.
 – Position-wise feed-forward: W1 matrix multiply, SiLU, W2 matrix multiply
 • final RMSNorm
 • output embedding
@@ -137,8 +140,8 @@ edit time: 2026-03-13 11:12:50</p>
 peak memory由参数+激活值+梯度+优化器状态四部分组成： <code>M_total = M_params + M_acts + M_grads + M_opt</code> 。
 所有tensor都是float32，所以每个元素应为4 bytes。</p>
 <h3 id="_2">参数量</h3>
-<p><strong>参数量</strong>如果按 <a href="https://meredith2328.github.io/post/LLMestimate/">以前推导过的参数量估算公式</a> 来，则有：（假设embedding层和LM Head参数共享，$d_{ff}=4d$ ，RMS Norm的参数量忽略不计）
-$$P=12Nd^2+Vd$$
+<p><strong>参数量</strong>如果按 <a href="https://meredith2328.github.io/post/LLMestimate/">以前推导过的参数量估算公式</a> 来，则有：（假设embedding层和LM Head参数共享，<span class="arithmatex">\(d_{ff}=4d\)</span> ，RMS Norm的参数量忽略不计）
+$<span class="arithmatex">\(P=12Nd^2+Vd\)</span>$
 用上面的记号就是：</p>
 <div class="highlight"><pre><span></span><code>P=12LD^2+VD
 </code></pre></div>
@@ -212,18 +215,18 @@ M_opt    = 8P
 <p>在机器学习系统的课程上，有这样一个PPT引起了我的疑惑。
 <img alt="" src="post-images/20260312234704.png"/></p>
 <p>把它的内容转写下来：
-$d = 2048$ (hidden dimension), $N = 24$ (layers), $V = 50,000$ (vocab size),
-$B = 8$ (batch size), $L = 1024$ (sequence length), $h = 16$ (attention heads).
-- Parameters: $12Nd^2+Vd$
-- Forward activations: $9BLd+2BhL^2$ per layer
+<span class="arithmatex">\(d = 2048\)</span> (hidden dimension), <span class="arithmatex">\(N = 24\)</span> (layers), <span class="arithmatex">\(V = 50,000\)</span> (vocab size),
+<span class="arithmatex">\(B = 8\)</span> (batch size), <span class="arithmatex">\(L = 1024\)</span> (sequence length), <span class="arithmatex">\(h = 16\)</span> (attention heads).
+- Parameters: <span class="arithmatex">\(12Nd^2+Vd\)</span>
+- Forward activations: <span class="arithmatex">\(9BLd+2BhL^2\)</span> per layer
 - Backpropagation: ~ 2-3× activations + gradients + optimizer states
 Example (d=2048, N=24, L=1024, B=8, h=16, V=50k):
 - Parameters: ≈ 1.31B (≈ 2.4 GB in FP16, ≈ 21 GB with Adam states)
 - Forward activations: ≈ 18.7 GB
 - Backprop: ≈ 40-75 GB</p>
 <p>它为什么是以下两个公式呢？
-$$P=12Nd^2+Vd$$
-$$A_{per_layer}=9BLd+2BhL^2$$
+$<span class="arithmatex">\(P=12Nd^2+Vd\)</span>$
+$<span class="arithmatex">\(A_{per\_layer}=9BLd+2BhL^2\)</span>$
 注意到，这里与我们推得的公式唯一区别就在于这个 <strong>9</strong> 。
 恰好我对数字很敏感，意识到它是4+4+1——峰值激活值只计入了FFN里面的。
 我们知道，Transformer块里面一层一层是顺序执行的，按理说计算到后面的时候，前面的就可以释放了。所以就有了这样的公式。</p>
@@ -245,7 +248,7 @@ D_ff = 4D
         ≈ (24.88 + 15.51 batch_size) GB
 </code></pre></div>
 <p>即最终的结论：（单位为GB）
-$$M_{total}(batch_size)=24.88+15.51 \times batch_size$$</p>
+$<span class="arithmatex">\(M_{total}(batch\_size)=24.88+15.51 \times batch\_size\)</span>$</p>
 <p>这么看来，在80GB内存的前提下，最大可用的batch_size不超过 (80-24.88)/15.51≈3.55 。在单卡条件下，最大的batch_size为3。</p>
 <h3 id="gpt2-small">使用GPT2-small实际环境验证上述公式</h3>
 <blockquote>
@@ -686,6 +689,9 @@ LARGE    772.1M   12.56      21.83      42.4%
     window.PILOG_ROOT = "../../";
     window.PILOG_DEFAULT_VIEW = "cards";
   </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+          onload="try{if(window.renderMathInElement){renderMathInElement(document.body,{delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});}}catch(e){}"></script>
   <script src="../../js/search.js" defer></script>
   
 </body>

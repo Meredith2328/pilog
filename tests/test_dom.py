@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import json
 import sys
 import threading
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -15,6 +16,9 @@ from PIL import Image, ImageStat
 
 ROOT = Path(__file__).resolve().parents[1]
 PORT = 8132
+OUT_DIR = ROOT / json.loads(
+    (ROOT / "config.json").read_text(encoding="utf-8")
+)["site"]["out_dir"]
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -22,7 +26,7 @@ class Handler(SimpleHTTPRequestHandler):
         pass
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=str(ROOT / "site"), **kwargs)
+        super().__init__(*args, directory=str(OUT_DIR), **kwargs)
 
 
 def check(name, cond, detail=""):
@@ -161,7 +165,13 @@ def main() -> None:
 
         # graph view
         page.click('[data-view="graph"]')
-        page.wait_for_timeout(2000)
+        page.wait_for_function(
+            "document.querySelector('#graph-stats') && "
+            "document.querySelector('#graph-stats').textContent.includes('篇文章')",
+            timeout=20000,
+        )
+        page.click("#graph-expand-all")
+        page.wait_for_timeout(600)
         node_count = page.locator(".graph-node").count()
         link_count = page.locator(".graph-link").count()
         ref_count = page.locator(".graph-link.ref").count()
@@ -220,6 +230,8 @@ def main() -> None:
         ok &= check("footnotes", page.locator(".footnote").count() >= 1)
         ok &= check("table rendered", page.locator("table").count() >= 1)
         ok &= check("task list", page.locator('li input[type="checkbox"]').count() >= 2)
+        ok &= check("strikethrough renders", page.locator("del").count() >= 1)
+        ok &= check("latex math markup present", page.locator(".arithmatex").count() >= 2)
         ok &= check("cross ref link to pixel-blog", page.locator('a[href*="pixel-blog"]').count() >= 1)
 
         # screenshots sanity

@@ -68,6 +68,7 @@ def cmd_list(args) -> None:
                         "tags": p.tags,
                         "pin": p.pin,
                         "highlight": p.highlight,
+                        "hidden": p.hidden,
                     }
                     for p in posts
                 ],
@@ -76,9 +77,12 @@ def cmd_list(args) -> None:
             )
         )
         return
-    print("date         pin  path")
+    print("date         pin  hid  path")
     for p in posts:
-        print(f"{p.date_str:<12} {'yes' if p.pin else '-':<4} {p.rel}  {p.title}")
+        print(
+            f"{p.date_str:<12} {'yes' if p.pin else '-':<4} "
+            f"{'hid' if p.hidden else '-':<4} {p.rel}  {p.title}"
+        )
 
 
 def _collect_paths(paths: list[str]) -> tuple[list, list]:

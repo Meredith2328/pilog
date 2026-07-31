@@ -22,6 +22,12 @@
     </div>
   </header>
 
+  {% if post.feature_url %}
+  <div class="post-hero" role="img" aria-label="{{ post.title }}">
+    <img class="post-hero-img" src="{{ root }}{{ post.feature_url }}" alt="">
+  </div>
+  {% endif %}
+
   <div class="post-body markdown-body">
     {{ post.html|safe }}
   </div>

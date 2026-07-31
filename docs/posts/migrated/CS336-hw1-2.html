@@ -23,6 +23,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
   
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   <link rel="stylesheet" href="../../css/style.css">
   
 </head>
@@ -97,6 +98,8 @@
       <span class="post-folder">▣ posts/migrated</span>
     </div>
   </header>
+
+  
 
   <div class="post-body markdown-body">
     <p>已经搭建起了训练循环，接下来做一些实验。训得有多快？有多好？</p>
@@ -193,10 +196,10 @@ Count pass done: lines=15,600,057, tokens=540,796,778, elapsed=320.67s
 <p>6 Generating Text
 使用训练出的模型进行next token prediction，从而实现生成文本。</p>
 <h3 id="dataloader">DataLoader</h3>
-<p>tokenized data是一个token序列 $x=(x_1,x_2, \dots, x_n)$ ，
+<p>tokenized data是一个token序列 <span class="arithmatex">\(x=(x_1,x_2, \dots, x_n)\)</span> ，
 DataLoader把它变成batch流，
-每个batch包含 $B$ 个 (sequence, next_tokens)  ，其中 sequence 和 next_tokens 的长度均为 $m$ 。
-例如一个 $B=1,m=3$ 的batch可以为 $([x_2,x_3,x_4],[x_3,x_4,x_5])$ 。用于next token prediction的原始序列是 $[x_2,x_3,x_4]$ ，它需要预测出的 token 是 $[x_3,x_4,x_5]$ ，正好是原始序列整体往后一个的窗口。
+每个batch包含 <span class="arithmatex">\(B\)</span> 个 (sequence, next_tokens)  ，其中 sequence 和 next_tokens 的长度均为 <span class="arithmatex">\(m\)</span> 。
+例如一个 <span class="arithmatex">\(B=1,m=3\)</span> 的batch可以为 <span class="arithmatex">\(([x_2,x_3,x_4],[x_3,x_4,x_5])\)</span> 。用于next token prediction的原始序列是 <span class="arithmatex">\([x_2,x_3,x_4]\)</span> ，它需要预测出的 token 是 <span class="arithmatex">\([x_3,x_4,x_5]\)</span> ，正好是原始序列整体往后一个的窗口。
 具体而言，这个任务是masked的：
 - 看到 <code>x₂</code>，预测 <code>x₃</code>
 - 看到 <code>x₂, x₃</code>，预测 <code>x₄</code>
@@ -450,6 +453,9 @@ bs较大时瓶颈在GPU的算力。</p>
     window.PILOG_ROOT = "../../";
     window.PILOG_DEFAULT_VIEW = "cards";
   </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+          onload="try{if(window.renderMathInElement){renderMathInElement(document.body,{delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});}}catch(e){}"></script>
   <script src="../../js/search.js" defer></script>
   
 </body>

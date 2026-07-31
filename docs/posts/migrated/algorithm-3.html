@@ -23,6 +23,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
   
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   <link rel="stylesheet" href="../../css/style.css">
   
 </head>
@@ -98,6 +99,8 @@
     </div>
   </header>
 
+  
+
   <div class="post-body markdown-body">
     <p>参考：《深入浅出程序设计竞赛（基础篇）（汪楚奇）》。</p>
 <!-- more -->
@@ -128,7 +131,7 @@ edit time: 2026-01-27 22:18:25 排列组合专题
 edit time: 2026-01-27 23:41:42 整除理论专题、暴力枚举专题暂略</p>
 </blockquote>
 <p>整本书粗略地学习了一遍，框架已经搭起来了，之后就是提熟练度了。完结撒花！！
-~~基础篇跟进阶篇看起来有这么多东西，为什么甚至没有网络流~~</p>
+<del>基础篇跟进阶篇看起来有这么多东西，为什么甚至没有网络流</del></p>
 <p>排错：</p>
 <p>另外思考：算法题的测试（边界、功能）是怎么快速出出来的？
 你现在已经掌握了估算数值的方法、思考递推的方法等等，还需要掌握的是：如何给自己出一些测试、从而帮助自己调出一些边界条件，而不是每次都需要全部打印出来？
@@ -669,11 +672,11 @@ edit time: 2026-01-27 23:41:42 整除理论专题、暴力枚举专题暂略</p>
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
 </code></pre></div>
-<p>当然，我们也可以利用之前的选择排序或插入排序，只迭代五次， $O(kn)$：
+<p>当然，我们也可以利用之前的选择排序或插入排序，只迭代五次， <span class="arithmatex">\(O(kn)\)</span>：
 <img alt="" src="post-images/20260119194158.png"/></p>
 <p><img alt="" src="post-images/20260119194228.png"/>
 原来已经统计完毕，直接输入的就是票数。
-~~（我还寻思着让我计票计到100位怕是有点那什么。~~
+<del>（我还寻思着让我计票计到100位怕是有点那什么。</del>
 可以使用高精度。不过因为输入就是字符串、而字符串自带字典序比较，所以我们可以直接复用字符串的逻辑。
 但是，需要注意，<strong>字典序只能用于位数相同的数字大小比较</strong>。</p>
 <div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
@@ -734,8 +737,8 @@ count[N] = count[N - 1] + count[N - 2]
 count[1] = 1
 count[2] = 2
 </code></pre></div>
-<p>这个递推很显然在 $a^n$ 的数量级，因此需要高精度。</p>
-<p>首先，$count[n] \le 2^n$ 是显然的。粗略估算，$2^{10} \approx 10^3$ ，那么 $2^{5000} \approx 10^{1500}$ 。保险起见高精度内的数组开个1600位什么的就足够了。</p>
+<p>这个递推很显然在 <span class="arithmatex">\(a^n\)</span> 的数量级，因此需要高精度。</p>
+<p>首先，<span class="arithmatex">\(count[n] \le 2^n\)</span> 是显然的。粗略估算，<span class="arithmatex">\(2^{10} \approx 10^3\)</span> ，那么 <span class="arithmatex">\(2^{5000} \approx 10^{1500}\)</span> 。保险起见高精度内的数组开个1600位什么的就足够了。</p>
 <div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cstdio&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cmath&gt;</span>
@@ -868,7 +871,7 @@ count[2] = 2
 </code></pre></div>
 <p><img alt="" src="post-images/20260119224913.png"/>
 分析：
-~~卡特兰数这个递推虽然很经典，但是看到一次还是会很震撼（~~</p>
+<del>卡特兰数这个递推虽然很经典，但是看到一次还是会很震撼（</del></p>
 <blockquote>
 <p>等会，如果抛去栈进出的动态画面，单纯观察序列（子问题）本身，好像有说法的。</p>
 </blockquote>
@@ -878,8 +881,8 @@ count[2] = 2
 <p>总而言之，子问题不仅包括某个元素入栈后的那些元素 <code>h[n - k]</code>，还包括该元素入栈前的那些元素 <code>h[k - 1]</code> 。</p>
 <p><img alt="" src="post-images/20260119232743.png"/>
 ps. 递推还要顺手分析一下数值大小。（可以朴素地用求和式相减推一下通项。）
-结论上，$h(n)=\frac{C_{2n}^{n}}{n+1}$，这是指数级的，大约是 $O(4^n/n^{3/2})$ 。
-那么n=18对应 $4^{18} / 18^{3/2} &lt; 2^{36} / 2^{4 \times 3/2} = 2^{30}$ ，用 <code>int</code> 装结果就行。</p>
+结论上，<span class="arithmatex">\(h(n)=\frac{C_{2n}^{n}}{n+1}\)</span>，这是指数级的，大约是 <span class="arithmatex">\(O(4^n/n^{3/2})\)</span> 。
+那么n=18对应 <span class="arithmatex">\(4^{18} / 18^{3/2} &lt; 2^{36} / 2^{4 \times 3/2} = 2^{30}\)</span> ，用 <code>int</code> 装结果就行。</p>
 <div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cstdio&gt;</span>
 <span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">std</span><span class="p">;</span>
@@ -898,8 +901,8 @@ ps. 递推还要顺手分析一下数值大小。（可以朴素地用求和式�
 </code></pre></div>
 <p><img alt="" src="post-images/20260120110235.png"/></p>
 <p>思路容易乱，做一个整理：从没有子问题、到有子问题。
-1. 放松条件：不考虑递归，只有前面两个条件，则为 $n/2 + 1$ 。例如 $n = 6$ 时，其本身计数为1，在它后面可以添加 $n=3,2,1$ 三种情况，故计数为 $3+1=4$ 。
-2. 添加条件：考虑递归。例如 $n = 6$ 时，之前是在 $n = 6$ 基础上添加了 $n=3,2,1$ 三个计数；现在把 $n=3,2,1$ 不看成每个问题计数为1（<code>result += 1</code>），而是<strong>每个问题为需要调用函数计算的子问题</strong>（<code>result += generate(i)</code>）。
+1. 放松条件：不考虑递归，只有前面两个条件，则为 <span class="arithmatex">\(n/2 + 1\)</span> 。例如 <span class="arithmatex">\(n = 6\)</span> 时，其本身计数为1，在它后面可以添加 <span class="arithmatex">\(n=3,2,1\)</span> 三种情况，故计数为 <span class="arithmatex">\(3+1=4\)</span> 。
+2. 添加条件：考虑递归。例如 <span class="arithmatex">\(n = 6\)</span> 时，之前是在 <span class="arithmatex">\(n = 6\)</span> 基础上添加了 <span class="arithmatex">\(n=3,2,1\)</span> 三个计数；现在把 <span class="arithmatex">\(n=3,2,1\)</span> 不看成每个问题计数为1（<code>result += 1</code>），而是<strong>每个问题为需要调用函数计算的子问题</strong>（<code>result += generate(i)</code>）。
 3. 在写好原始递归后，将其升级为备忘录。
 （ps. 下述这个树的每个节点代表一次函数调用）
 <img alt="" src="post-images/20260120112909.png"/></p>
@@ -1086,10 +1089,10 @@ ps. 递推还要顺手分析一下数值大小。（可以朴素地用求和式�
 <p><img alt="" src="post-images/20260120151617.png"/>
 对于等待问题，画图出来会特别清晰。
 <img alt="" src="post-images/20260120151908.png"/>
-等待总时长$$s=(n-1)t_1+(n-2)t_2 + \dots + 1 \cdot t_{n-1} + 0 \cdot t_n$$贪心策略：前面的时间段系数大、后面的小。从而应当让接水时间较短的人先接。
-贪心证明：调度类的问题使用交换论证。贪心得到的应该是接水时间的升序序列。反设最优解中有两者逆序（$t_i&gt;t_j$ 但 $i &lt; j$ ，则由前述可知系数 $a&gt;b$），它们对等待总时长的贡献为 $at_i+bt_j$ 。将这两者交换后，贡献变为 $at_j+bt_i$ 。
-后者减前者得到 $a(t_j-t_i)+b(t_i-t_j)=(a-b)(t_j-t_i)&lt;0$ ，即交换后贡献的等待时长更少，矛盾。</p>
-<p>另外需要估算结果大小：$n \le 1000$ ，$t_i \le 10^6$ ，则最大情况下是 $(999 + 998 + \dots + 1) \times 10^6 = 999/2 \times 10^9 \approx 5 \times 10^{11}$ ，这铁定是不能用 <code>int</code> （$2 \times 10^9$）了。</p>
+等待总时长$<span class="arithmatex">\(s=(n-1)t_1+(n-2)t_2 + \dots + 1 \cdot t_{n-1} + 0 \cdot t_n\)</span><span class="arithmatex">\(贪心策略：前面的时间段系数大、后面的小。从而应当让接水时间较短的人先接。
+贪心证明：调度类的问题使用交换论证。贪心得到的应该是接水时间的升序序列。反设最优解中有两者逆序（\)</span>t_i&gt;t_j$ 但 <span class="arithmatex">\(i &lt; j\)</span> ，则由前述可知系数 <span class="arithmatex">\(a&gt;b\)</span>），它们对等待总时长的贡献为 <span class="arithmatex">\(at_i+bt_j\)</span> 。将这两者交换后，贡献变为 <span class="arithmatex">\(at_j+bt_i\)</span> 。
+后者减前者得到 <span class="arithmatex">\(a(t_j-t_i)+b(t_i-t_j)=(a-b)(t_j-t_i)&lt;0\)</span> ，即交换后贡献的等待时长更少，矛盾。</p>
+<p>另外需要估算结果大小：<span class="arithmatex">\(n \le 1000\)</span> ，<span class="arithmatex">\(t_i \le 10^6\)</span> ，则最大情况下是 <span class="arithmatex">\((999 + 998 + \dots + 1) \times 10^6 = 999/2 \times 10^9 \approx 5 \times 10^{11}\)</span> ，这铁定是不能用 <code>int</code> （<span class="arithmatex">\(2 \times 10^9\)</span>）了。</p>
 <div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cstdio&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;algorithm&gt;</span>
@@ -1288,7 +1291,7 @@ ps. 递推还要顺手分析一下数值大小。（可以朴素地用求和式�
 例如：找到所有A=B+C的个数，假设C=4。当我们遍历到元素B=3时，B和C都是确定的，所以A=B+C也是一个确定值（7=4+3），这个确定值一定是连续出现的一整段（如图中下标6~7）。
 因此，对于每个数B，问题转化成了统计B+C的出现次数，即找到相同值连续段的左右端点。
 <img alt="" src="post-images/20260120212003.png"/></p>
-<p>统计有序数列中某个数的出现次数，一种方法是利用二分查找、找到左端点和右端点。这是 $O(\log n)$ 的。
+<p>统计有序数列中某个数的出现次数，一种方法是利用二分查找、找到左端点和右端点。这是 <span class="arithmatex">\(O(\log n)\)</span> 的。
 这里介绍 <code>lower_bound</code> 和 <code>upper_bound</code> ：</p>
 <div class="highlight"><pre><span></span><code>[Begin, end) 左闭右开.
 lower_bound(begin, end, val); // 找到出现的第一个位置, 返回地址
@@ -1318,8 +1321,8 @@ ps. lower_bound(a, a+n, val + 1)等价于upper_bound(a, a+n, val).
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
 </code></pre></div>
-<p>另一种 $O(n)$ 的思路是，我们可以维护双指针手动实现类似lower_bound和upper_bound的效果：随着我们要查询的 <code>a[i] + c</code> 逐渐增大，它所在的段也逐渐右移。因此我们可以维护双指针指向它的左右端点，始终右移。
-两个指针移动的距离不超过 <code>n</code> ，所以是 $O(n)$ 的。</p>
+<p>另一种 <span class="arithmatex">\(O(n)\)</span> 的思路是，我们可以维护双指针手动实现类似lower_bound和upper_bound的效果：随着我们要查询的 <code>a[i] + c</code> 逐渐增大，它所在的段也逐渐右移。因此我们可以维护双指针指向它的左右端点，始终右移。
+两个指针移动的距离不超过 <code>n</code> ，所以是 <span class="arithmatex">\(O(n)\)</span> 的。</p>
 <div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cstdio&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;algorithm&gt;</span>
@@ -1347,14 +1350,14 @@ ps. lower_bound(a, a+n, val + 1)等价于upper_bound(a, a+n, val).
 <span class="p">}</span>
 </code></pre></div>
 <p>“具有单调性判定”的问题：
-例如升序数组 <code>[l, r)</code>，条件是大于等于 $k$ 。
+例如升序数组 <code>[l, r)</code>，条件是大于等于 <span class="arithmatex">\(k\)</span> 。
 当 <code>a[mid]</code> 满足条件时，查找范围是 <code>[l, mid]</code> 或者 <code>[l, mid + 1)</code> ；
 当 <code>a[mid]</code> 不满足条件时，查找范围是 <code>[mid + 1, r)</code> 。
 <img alt="" src="post-images/20260120214210.png"/>
 很巧妙：我们找到了单调性。二分查找一定是朴素查找的优化。
-朴素查找：<strong>从低往高依次遍历高度 $x$ ，收集到的木材数量单调递减。</strong> 取得最大的 $x$ 使得条件成立，且此时 $x + 1$ 不成立。
-二分查找：设定条件为 “当砍树高度为 $x$ 时，可以获取数量大于等于 $m$ 的木材” ，
-以上述题目为例、$x \le 36$ 时条件满足，大于时不满足。</p>
+朴素查找：<strong>从低往高依次遍历高度 <span class="arithmatex">\(x\)</span> ，收集到的木材数量单调递减。</strong> 取得最大的 <span class="arithmatex">\(x\)</span> 使得条件成立，且此时 <span class="arithmatex">\(x + 1\)</span> 不成立。
+二分查找：设定条件为 “当砍树高度为 <span class="arithmatex">\(x\)</span> 时，可以获取数量大于等于 <span class="arithmatex">\(m\)</span> 的木材” ，
+以上述题目为例、<span class="arithmatex">\(x \le 36\)</span> 时条件满足，大于时不满足。</p>
 <blockquote>
 <p>二分模板说明：
 这里的二分是定义在闭区间 <code>[l, r]</code> 上的，
@@ -1404,9 +1407,9 @@ ps. lower_bound(a, a+n, val + 1)等价于upper_bound(a, a+n, val).
 <span class="p">}</span>
 </code></pre></div>
 <p><img alt="" src="post-images/20260120214536.png"/>
-~~这个也能二分？我觉得二分题目就是题面上一眼完全看不出来，~~
+<del>这个也能二分？我觉得二分题目就是题面上一眼完全看不出来，</del>
 二分条件：单调性是随着距离增大，是否能够安置。可见，距离较小时这个条件满足，距离超过某个阈值后一定不满足。
-贪心：从最左端开始，每隔大于等于 $x$ 的距离，能安置就安置。
+贪心：从最左端开始，每隔大于等于 <span class="arithmatex">\(x\)</span> 的距离，能安置就安置。
 贪心证明：copy-and-paste。从前往后遍历最优解序列，找到第一个不满足贪心给出的位置的牛，将它替换为贪心给出的位置（更靠前），则该牛剩余的距离不减少，且不影响其余牛的安置。如是反复。</p>
 <div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cstdio&gt;</span>
@@ -1455,8 +1458,8 @@ ps. lower_bound(a, a+n, val + 1)等价于upper_bound(a, a+n, val).
 <p><img alt="" src="post-images/20260120214549.png"/>
 如果没有什么数学性质，我会想到比较暴力的在200个区间内每个都二分一下。
 补兑，答案就是这么做的。
-~~但是毕竟我们还是知道一元三次方程长什么样，比如↗↘↗。它是有三段单调的。
-因此，可以考虑首先找到一个根（局部单调所以我觉得应该可以收敛？），然后在它的两侧探索，然后再根据已经找到的两个根、再在三段内探索，总共需要对六段区间执行二分，比上面200个还是好点。~~
+<del>但是毕竟我们还是知道一元三次方程长什么样，比如↗↘↗。它是有三段单调的。
+因此，可以考虑首先找到一个根（局部单调所以我觉得应该可以收敛？），然后在它的两侧探索，然后再根据已经找到的两个根、再在三段内探索，总共需要对六段区间执行二分，比上面200个还是好点。</del>
 根据零点存在性定理，如果中点和某端点正负相同，则零点一定在中点的另一侧。</p>
 <div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cstdio&gt;</span>
@@ -2312,7 +2315,7 @@ stack在追求极致运行速度时，需要打开-O2优化。否则需要自己
 <span class="w">    </span><span class="n">s</span><span class="p">[</span><span class="n">nxt</span><span class="p">].</span><span class="k">pre</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">pre</span><span class="p">;</span>
 <span class="p">}</span>
 </code></pre></div>
-<p>以上是一个使用数组而非指针实现的双向链表。最好把 <code>find</code> 换成一个数组或者 <code>unordered_map</code> ，这样的话根据某个元素值找到它的节点就是 $O(1)$ 的。不然每次都要 $O(n)$ 遍历。</p>
+<p>以上是一个使用数组而非指针实现的双向链表。最好把 <code>find</code> 换成一个数组或者 <code>unordered_map</code> ，这样的话根据某个元素值找到它的节点就是 <span class="arithmatex">\(O(1)\)</span> 的。不然每次都要 <span class="arithmatex">\(O(n)\)</span> 遍历。</p>
 <p><img alt="" src="post-images/20260122123625.png"/>
 前后插、维护index数组都很平常，
 但是易错的是初始化。注意要初始化置空的前提是存在无参的构造函数。</p>
@@ -2565,7 +2568,7 @@ stack在追求极致运行速度时，需要打开-O2优化。否则需要自己
 <p><img alt="" src="post-images/20260122182400.png"/>
 <img alt="" src="post-images/20260122182845.png"/>
 上图n=3，有8个国家参加，需要3轮比赛，高度为4。
-下述知识包括完全二叉树的填表：<strong>如果叶子节点数量有 $2^n$ 个，则叶子节点从 $2^n$ 开始。</strong></p>
+下述知识包括完全二叉树的填表：<strong>如果叶子节点数量有 <span class="arithmatex">\(2^n\)</span> 个，则叶子节点从 <span class="arithmatex">\(2^n\)</span> 开始。</strong></p>
 <div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cstdio&gt;</span>
 <span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">std</span><span class="p">;</span>
@@ -2914,7 +2917,7 @@ value: 值，size: 子树的节点个数，num: 该节点权值出现的次数�
 根左右，左右根：左右连一块了，有对称性；而左根右没有这样的对称性。
 在知道前序后序的情况下有不同的中序遍历，当且仅当这个节点只有一个儿子，于是可以将问题转化为找只有一个儿子的节点个数。
 如果在前序中出现AB、后序中出现BA，则这个节点一定只有一个儿子（因为前序后序只有根的位置不同，而且AB和BA当中必有一个是根），于是只要比较前序和后序序列，找满足AB和BA的个数即可。
-假设有x个节点只有一个儿子，则它可能是左儿子或右儿子，也就是说共计有 $2^x$ 种情况。于是答案是 $2^x$ 种可能的二叉树，对应 $2^x$ 种可能的中序遍历序列。</p>
+假设有x个节点只有一个儿子，则它可能是左儿子或右儿子，也就是说共计有 <span class="arithmatex">\(2^x\)</span> 种情况。于是答案是 <span class="arithmatex">\(2^x\)</span> 种可能的二叉树，对应 <span class="arithmatex">\(2^x\)</span> 种可能的中序遍历序列。</p>
 <div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;string&gt;</span>
 <span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">std</span><span class="p">;</span>
@@ -2943,7 +2946,7 @@ value: 值，size: 子树的节点个数，num: 该节点权值出现的次数�
 <img alt="" src="post-images/20260124211151.png"/></p>
 <h3 id="_25">举例</h3>
 <p>并查集仅仅只是一个 <code>fa</code> 数组和两个函数。
-其中最关键的是：<strong>路径压缩</strong>。（查询降低至 $O(\log n)$ ）
+其中最关键的是：<strong>路径压缩</strong>。（查询降低至 <span class="arithmatex">\(O(\log n)\)</span> ）
 即<code>find</code>除了找到根，还要把一路上每一个节点的<code>fa</code>都设成根。</p>
 <p><img alt="" src="post-images/20260123205939.png"/>
 路径压缩的两种写法：</p>
@@ -3184,7 +3187,7 @@ eg. 输入#1分下述的四组，每组开头是 <code>n</code> 和 <code>m</cod
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
 </code></pre></div>
-<p>当然，~~如果不想好好练习哈希，~~ 也可以使用 <code>&lt;set&gt;</code> 实现。</p>
+<p>当然，<del>如果不想好好练习哈希，</del> 也可以使用 <code>&lt;set&gt;</code> 实现。</p>
 <div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;set&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;string&gt;</span>
@@ -3727,7 +3730,7 @@ bfs：注意bfs中的vis是指是否入队，所以<strong>vis要在入队前标
 <span class="p">}</span>
 </code></pre></div>
 <p><img alt="" src="post-images/20260127215619.png"/></p>
-<p>打组合数表。方法是借助递推： $C_n^m=C_{n-1}^{m-1}+C_{n-1}^m$ ， $C_i^0=1$ 。</p>
+<p>打组合数表。方法是借助递推： <span class="arithmatex">\(C_n^m=C_{n-1}^{m-1}+C_{n-1}^m\)</span> ， <span class="arithmatex">\(C_i^0=1\)</span> 。</p>
 <div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
 <span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">std</span><span class="p">;</span>
 <span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">c</span><span class="p">[</span><span class="mi">25</span><span class="p">][</span><span class="mi">25</span><span class="p">];</span>
@@ -3756,7 +3759,7 @@ bfs：注意bfs中的vis是指是否入队，所以<strong>vis要在入队前标
 <span class="p">}</span>
 </code></pre></div>
 <p><img alt="" src="post-images/20260127215630.png"/>
-在杨辉三角打表的同时，对 $k$ 取模。
+在杨辉三角打表的同时，对 <span class="arithmatex">\(k\)</span> 取模。
 <img alt="" src="post-images/20260127221517.png"/>
 <img alt="" src="post-images/20260127221550.png"/></p>
 <div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
@@ -3787,13 +3790,13 @@ bfs：注意bfs中的vis是指是否入队，所以<strong>vis要在入队前标
 </code></pre></div>
 <h2 id="_30">整除理论专题</h2>
 <h3 id="_31">知识</h3>
-<p>$a_1$ 和 $a_2$ 的最大公约数记为 $(a_1,a_2)$ ，最小公倍数记为 $[a_1,a_2]$ 。
+<p><span class="arithmatex">\(a_1\)</span> 和 <span class="arithmatex">\(a_2\)</span> 的最大公约数记为 <span class="arithmatex">\((a_1,a_2)\)</span> ，最小公倍数记为 <span class="arithmatex">\([a_1,a_2]\)</span> 。
 <img alt="" src="post-images/20260127232119.png"/>
 <img alt="" src="post-images/20260127233229.png"/>
 <img alt="" src="post-images/20260127233247.png"/></p>
 <h3 id="_32">举例</h3>
 <p>添加了新的工具：枚举<strong>约数</strong>。
-方法是从 $1$ 枚举到 $\sqrt{n}$ 。
+方法是从 <span class="arithmatex">\(1\)</span> 枚举到 <span class="arithmatex">\(\sqrt{n}\)</span> 。
 <img alt="" src="post-images/20260127222207.png"/></p>
 <div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
 <span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">std</span><span class="p">;</span>
@@ -3824,12 +3827,12 @@ bfs：注意bfs中的vis是指是否入队，所以<strong>vis要在入队前标
 <span class="p">}</span>
 </code></pre></div>
 <p><img alt="" src="post-images/20260127222719.png"/>
-例如原长度为12，则找约数是 $O(\sqrt{n})$ 的，枚举检验长度为1, 2, 3, 4, 6, 12的字符串是 $O(Pn)$ 的，其中 $P$ 是约数个数6。
+例如原长度为12，则找约数是 <span class="arithmatex">\(O(\sqrt{n})\)</span> 的，枚举检验长度为1, 2, 3, 4, 6, 12的字符串是 <span class="arithmatex">\(O(Pn)\)</span> 的，其中 <span class="arithmatex">\(P\)</span> 是约数个数6。
 <img alt="" src="post-images/20260127222847.png"/></p>
 <p><img alt="" src="post-images/20260127222858.png"/>
-如果枚举每对数， $O(n^2)$ 。
-如果枚举约数，找每个数的约数是 $O(\sqrt A)$ 的（$A$ 代表数组 $a$ 中所有数中约数最多的数），在找的同时对每个数是否存在进行确认是 $O(1)$ 的（哈希），总共 $n$ 个数，所以是 $O(n\sqrt{A})$ 。
-如果枚举倍数，每个数出现的次数相当于它对每个倍数做的贡献。事实上，是 $O(n \log n)$ 的，因为外层循环的变量大小会影响内层循环的步长，使得时间复杂度为 $O(\sum^n_{i=1} \frac{n}{i})=O(n \log n)$。</p>
+如果枚举每对数， <span class="arithmatex">\(O(n^2)\)</span> 。
+如果枚举约数，找每个数的约数是 <span class="arithmatex">\(O(\sqrt A)\)</span> 的（<span class="arithmatex">\(A\)</span> 代表数组 <span class="arithmatex">\(a\)</span> 中所有数中约数最多的数），在找的同时对每个数是否存在进行确认是 <span class="arithmatex">\(O(1)\)</span> 的（哈希），总共 <span class="arithmatex">\(n\)</span> 个数，所以是 <span class="arithmatex">\(O(n\sqrt{A})\)</span> 。
+如果枚举倍数，每个数出现的次数相当于它对每个倍数做的贡献。事实上，是 <span class="arithmatex">\(O(n \log n)\)</span> 的，因为外层循环的变量大小会影响内层循环的步长，使得时间复杂度为 <span class="arithmatex">\(O(\sum^n_{i=1} \frac{n}{i})=O(n \log n)\)</span>。</p>
 <div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cstdio&gt;</span>
 <span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">std</span><span class="p">;</span>
 <span class="cp">#define MAXN 1000010</span>
@@ -3886,7 +3889,7 @@ bfs：注意bfs中的vis是指是否入队，所以<strong>vis要在入队前标
 </code></pre></div>
 <p>对于P3383，已更新为查第k小的素数。
 变式很简单，在打表的同时，用另外一个数组存下第k小的素数。
-注意大小增大到了 $10^8$ 。下述两个数组经过O2优化之后，实际开下来大概110M，在题目限制的512M范围内。</p>
+注意大小增大到了 <span class="arithmatex">\(10^8\)</span> 。下述两个数组经过O2优化之后，实际开下来大概110M，在题目限制的512M范围内。</p>
 <div class="highlight"><pre><span></span><code><span class="c1">// 这是P3383</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cstdio&gt;</span>
 <span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">std</span><span class="p">;</span>
@@ -4127,6 +4130,9 @@ bfs：注意bfs中的vis是指是否入队，所以<strong>vis要在入队前标
     window.PILOG_ROOT = "../../";
     window.PILOG_DEFAULT_VIEW = "cards";
   </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+          onload="try{if(window.renderMathInElement){renderMathInElement(document.body,{delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});}}catch(e){}"></script>
   <script src="../../js/search.js" defer></script>
   
 </body>

@@ -196,6 +196,8 @@ def _post_payload(post) -> dict:
         "folder": post.folder,
         "pin": post.pin,
         "highlight": post.highlight,
+        "hidden": post.hidden,
+        "feature": post.feature or "",
         "order": post.order,
         "preview": post.preview_plain[:160],
         "image": _first_image(post),

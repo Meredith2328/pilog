@@ -68,6 +68,9 @@ def _md_instance() -> md_lib.Markdown:
             "toc",
             "sane_lists",
             "attr_list",
+            # ~~删除线~~ and $...$ / $$...$$ LaTeX (rendered client-side by KaTeX)
+            "pymdownx.tilde",
+            "pymdownx.arithmatex",
         ],
         extension_configs={
             "codehilite": {
@@ -76,6 +79,8 @@ def _md_instance() -> md_lib.Markdown:
                 "linenums": False,
             },
             "toc": {"permalink": False, "toc_depth": "1-6"},
+            "pymdownx.tilde": {"subscript": False},
+            "pymdownx.arithmatex": {"generic": True},
         },
     )
 

@@ -23,6 +23,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
   
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   <link rel="stylesheet" href="../../css/style.css">
   
 </head>
@@ -97,6 +98,12 @@
       <span class="post-folder">▣ posts/migrated</span>
     </div>
   </header>
+
+  
+  <div class="post-hero" role="img" aria-label="CSAPP: cachelab">
+    <img class="post-hero-img" src="../../posts/migrated/post-images/csapp-cachelab.png" alt="">
+  </div>
+  
 
   <div class="post-body markdown-body">
     <blockquote>
@@ -184,7 +191,7 @@ Skipping performance evaluation for this function.
 <p>查询源码可以发现valgrind本身使用了3次miss，即得下述Function 1的misses:1183。</p>
 <h4 id="8-8"><strong>第一次改进：使用8 * 8分块</strong></h4>
 <p>我们在理解了为什么会发生冲突之后，分块的作用就显而易见了。</p>
-<p>首先利用分块解决影响最大的问题：B按列读取，每读入8块时即驱逐之前的缓存。为了解决这个问题，我们可以考虑 $8 \times 8$​的分块，在下一次驱逐缓存行之前先完成所有缓存行的传入。</p>
+<p>首先利用分块解决影响最大的问题：B按列读取，每读入8块时即驱逐之前的缓存。为了解决这个问题，我们可以考虑 <span class="arithmatex">\(8 \times 8\)</span>​的分块，在下一次驱逐缓存行之前先完成所有缓存行的传入。</p>
 <div class="highlight"><pre><span></span><code><span class="kt">void</span><span class="w"> </span><span class="nf">transpose_submit</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">M</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">N</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">A</span><span class="p">[</span><span class="n">N</span><span class="p">][</span><span class="n">M</span><span class="p">],</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">B</span><span class="p">[</span><span class="n">M</span><span class="p">][</span><span class="n">N</span><span class="p">])</span>
 <span class="p">{</span>
 <span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="n">d</span><span class="p">,</span><span class="w"> </span><span class="n">e</span><span class="p">,</span><span class="w"> </span><span class="n">f</span><span class="p">,</span><span class="w"> </span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">h</span><span class="p">;</span>
@@ -227,7 +234,7 @@ Skipping performance evaluation for this function.
 <li><code>B[i][i + 1]</code>处出现Conflict Miss（上述标号<strong><code>(2)</code></strong>），这是因为写<code>B[i][i + 1]</code>时本应使用上一部分提到的写<code>B[i][i]</code>缓存的行，但它被上一部分读<code>A[i][i + 1]</code>时驱逐了。</li>
 <li><code>B[i][i]</code>处出现Conflict Miss（上述标号<strong><code>(3)</code></strong>），这是因为我们在写<code>B[i][i]</code>之前一定会先读<code>A[i][i]</code>导致驱逐。</li>
 </ol>
-<p>上述1、2可以归类为<strong>对角块冲突</strong>造成的影响 ~~相爱相杀~~ ，而3可以归类为<strong>对角线元素冲突</strong>造成的影响。</p>
+<p>上述1、2可以归类为<strong>对角块冲突</strong>造成的影响 <del>相爱相杀</del> ，而3可以归类为<strong>对角线元素冲突</strong>造成的影响。</p>
 <p>由这三部分影响、连同无法避免的Cold Miss造成的所有miss对应A、B矩阵见下两图：</p>
 <p><img alt="" src="post-images/1717570641850.png"/>
 <img alt="" src="post-images/1717570634679.png"/></p>
@@ -502,6 +509,9 @@ Skipping performance evaluation for this function.
     window.PILOG_ROOT = "../../";
     window.PILOG_DEFAULT_VIEW = "cards";
   </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+          onload="try{if(window.renderMathInElement){renderMathInElement(document.body,{delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});}}catch(e){}"></script>
   <script src="../../js/search.js" defer></script>
   
 </body>

@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import json
 import sys
 import threading
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -13,6 +14,9 @@ from util import block_external
 
 ROOT = Path(__file__).resolve().parents[1]
 PORT = 8140
+OUT_DIR = ROOT / json.loads(
+    (ROOT / "config.json").read_text(encoding="utf-8")
+)["site"]["out_dir"]
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -20,7 +24,7 @@ class Handler(SimpleHTTPRequestHandler):
         pass
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=str(ROOT / "site"), **kwargs)
+        super().__init__(*args, directory=str(OUT_DIR), **kwargs)
 
 
 def check(name, cond, detail=""):
@@ -43,7 +47,11 @@ def main() -> None:
         page.on("pageerror", lambda e: failures.append(str(e)))
         page.goto(base + "/", wait_until="networkidle")
         page.click('[data-view="graph"]')
-        page.wait_for_timeout(2400)
+        page.wait_for_function(
+            "document.querySelector('#graph-stats') && "
+            "document.querySelector('#graph-stats').textContent.includes('篇文章')",
+            timeout=20000,
+        )
 
         ok = True
         # 1. no JS errors
@@ -144,6 +152,10 @@ def main() -> None:
         ok &= check("snake toggle shows", on_visible >= 5, str(on_visible))
 
         # 8. single-click a dir node toggles its subtree
+        # (measure against the fully-expanded count: with many posts the
+        # default view already folds large leaf folders)
+        page.click("#graph-expand-all")
+        page.wait_for_timeout(600)
         total_before = page.locator(".graph-node").count()
         page.evaluate("""
             () => {

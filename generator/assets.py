@@ -88,21 +88,68 @@ def _is_pixel_art(img: Image.Image) -> bool:
 
 
 def make_thumbnail(src: Path, dst_dir: Path, width: int = 400) -> Path | None:
-    """Generate a fixed-width thumbnail (nearest-neighbor for pixel art)."""
+    """Generate a fixed-width thumbnail (nearest-neighbor for pixel art).
+
+    Animated GIF covers keep their animation (each frame resized); everything
+    else is saved as a JPEG thumbnail.
+    """
     try:
         img = Image.open(src)
-        img = img.convert("RGB")
-        resample = Image.NEAREST if _is_pixel_art(img) else Image.LANCZOS
         if img.width <= width:
             return None  # original is small enough
         ratio = width / img.width
-        img = img.resize((width, max(1, round(img.height * ratio))), resample)
+        new_size = (width, max(1, round(img.height * ratio)))
+
+        n_frames = getattr(img, "n_frames", 1)
+        if src.suffix.lower() == ".gif" and n_frames > 120:
+            # huge animated GIFs (e.g. notegotya's 746-frame cover): keep the
+            # original file so the animation stays intact in cards
+            return None
+        if src.suffix.lower() == ".gif" and 1 < n_frames <= 120:
+            frames = _resize_gif_frames(img, new_size)
+            if frames:
+                dst = dst_dir / f"{hashlib.sha1(src.read_bytes()).hexdigest()[:12]}.gif"
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                durations = [
+                    frame.info.get("duration", 80) or 80 for frame in frames
+                ]
+                frames[0].save(
+                    dst,
+                    "GIF",
+                    save_all=True,
+                    append_images=frames[1:],
+                    duration=durations,
+                    loop=0,
+                    disposal=2,
+                )
+                return dst
+
+        img = img.convert("RGB")
+        resample = Image.NEAREST if _is_pixel_art(img) else Image.LANCZOS
+        img = img.resize(new_size, resample)
         dst = dst_dir / f"{hashlib.sha1(src.read_bytes()).hexdigest()[:12]}.jpg"
         dst.parent.mkdir(parents=True, exist_ok=True)
         img.save(dst, "JPEG", quality=84, optimize=True)
         return dst
     except OSError:
         return None
+
+
+def _resize_gif_frames(img, new_size: tuple) -> list | None:
+    """Resize every frame of an animated GIF, preserving per-frame palettes."""
+    frames: list = []
+    try:
+        for i in range(img.n_frames):
+            img.seek(i)
+            frame = img.copy()
+            if frame.mode not in ("P", "L", "RGB", "RGBA"):
+                frame = frame.convert("RGBA")
+            frames.append(frame.resize(new_size, Image.NEAREST))
+        if len(frames) < 2 or img.n_frames > 120:
+            return None
+    except Exception:
+        return None
+    return frames
 
 
 def make_pixel_placeholder(dst_dir: Path, seed: str, size: int = 8) -> Path:

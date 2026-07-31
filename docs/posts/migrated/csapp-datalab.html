@@ -23,6 +23,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
   
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   <link rel="stylesheet" href="../../css/style.css">
   
 </head>
@@ -98,6 +99,12 @@
     </div>
   </header>
 
+  
+  <div class="post-hero" role="img" aria-label="CSAPP: datalab">
+    <img class="post-hero-img" src="../../posts/migrated/post-images/csapp-datalab.png" alt="">
+  </div>
+  
+
   <div class="post-body markdown-body">
     <blockquote>
 <p>最近没写什么其他好玩的东西，拿课堂作业报告水一水blog。</p>
@@ -120,7 +127,7 @@
 <li>解法一</li>
 </ul>
 <p>直接考虑所求的两种情况。</p>
-<p>利用对称差公式：x ^ y = (x&amp;\~y) | (y&amp;\~x)，</p>
+<p>利用对称差公式：x ^ y = (x&amp;~y) | (y&amp;~x)，</p>
 <p>我们需要取这两种情况，所以取两次反，</p>
 <p>并将其中一次取反运用于<em>狄·摩根律</em>完成从|到&amp;的转换，即得所求为</p>
 <p><code>~(~(x &amp; ~y) &amp; ~(y &amp; ~x))</code>。</p>
@@ -128,20 +135,20 @@
 <li>解法二</li>
 </ul>
 <p>考虑反面的另外两种情况。</p>
-<p>x和y均为1或0时，x^y返回0。单独取这两种情况即为 (x &amp; y) | (\~x &amp; \~y)。</p>
-<p>取其反面即为~( (x &amp; y) | (\~x &amp; \~y) )。</p>
-<p>再运用<em>狄·摩根律</em>：\~(a|b)=(\~a)&amp;(\~b) 完成从|到&amp;的转换，即得所求为</p>
+<p>x和y均为1或0时，x^y返回0。单独取这两种情况即为 (x &amp; y) | (~x &amp; ~y)。</p>
+<p>取其反面即为~( (x &amp; y) | (~x &amp; ~y) )。</p>
+<p>再运用<em>狄·摩根律</em>：~(a|b)=(~a)&amp;(~b) 完成从|到&amp;的转换，即得所求为</p>
 <p><code>~(~(x &amp; y)) &amp; ~(~x &amp; ~y))</code>。</p>
 <h3 id="tmin">tmin</h3>
-<p>32位的Two's complement范围为 $-2^{31}$到$2^{31}-1$，</p>
-<p>其中$T_{min}=-2^{31}=(1&lt;&lt;31)$，即为首位为1、其余全0。</p>
+<p>32位的Two's complement范围为 <span class="arithmatex">\(-2^{31}\)</span>到<span class="arithmatex">\(2^{31}-1\)</span>，</p>
+<p>其中<span class="arithmatex">\(T_{min}=-2^{31}=(1&lt;&lt;31)\)</span>，即为首位为1、其余全0。</p>
 <h3 id="istmax">isTmax</h3>
-<p>$T_{max}=2^{31}-1$，即为首位为0、其余全1，</p>
+<p><span class="arithmatex">\(T_{max}=2^{31}-1\)</span>，即为首位为0、其余全1，</p>
 <ol>
-<li>正常思路是比较其取反是否为$T_{min}$，即返回值为 <code>~Tmax == Tmin</code>。</li>
+<li>正常思路是比较其取反是否为<span class="arithmatex">\(T_{min}\)</span>，即返回值为 <code>~Tmax == Tmin</code>。</li>
 </ol>
 <p>但本题中不允许使用左移，也不能直接构造<code>Tmin = 0x80000000</code>，</p>
-<p>所以$T_{min}$要通过$T_{max}+1$得到，即<code>~x == x + 1</code>。</p>
+<p>所以<span class="arithmatex">\(T_{min}\)</span>要通过<span class="arithmatex">\(T_{max}+1\)</span>得到，即<code>~x == x + 1</code>。</p>
 <p>根据课本习题，<code>a==b</code>可以表示为 <code>!(a^b)</code> （因为a是自身的加法逆元，a\^a=0，取非!即得1），</p>
 <p>符合题目中返回值只有1和0的条件。所以返回值改写为<code>!(~x ^ (x + 1))</code>。</p>
 <ol start="2">
@@ -154,7 +161,7 @@
 <h3 id="alloddbits">allOddBits</h3>
 <p>因为所给符号与位数关联的只有左右移，需要人为构造，</p>
 <p>考虑使用掩码(BitMask)，即<code>x &amp; BitMask</code>某一位为1当且仅当x和BitMask该位同时为1。</p>
-<p>由于允许使用的常数范围为$0x00$到$0xFF$​，首先考虑长为8 bits的奇数x位置为1，相应掩码为[1010 1010]即<code>int bitMask = 0xAA</code>。其满足的条件应为 <code>x &amp; bitMask == bitMask</code>，即<code>!((x &amp; bitMask) ^ 0xbitMask)</code>。</p>
+<p>由于允许使用的常数范围为<span class="arithmatex">\(0x00\)</span>到<span class="arithmatex">\(0xFF\)</span>​，首先考虑长为8 bits的奇数x位置为1，相应掩码为[1010 1010]即<code>int bitMask = 0xAA</code>。其满足的条件应为 <code>x &amp; bitMask == bitMask</code>，即<code>!((x &amp; bitMask) ^ 0xbitMask)</code>。</p>
 <p>如果对x的所有8 Byte均判断，结果需要大量符号，所以构造所需的32 bits掩码即可。即</p>
 <p><code>int bitMask = (0xAA &lt;&lt; 24) | (0xAA &lt;&lt; 16) | (0xAA &lt;&lt; 8) | 0xAA</code>。</p>
 <h3 id="negate">negate</h3>
@@ -245,9 +252,9 @@ return sameSign ^ 0x1;
 <p>掩码取<code>x &gt;&gt; 31</code>，类似于前述<em>conditional</em>，置<code>y=x, z=~x</code>。</p>
 <p>之后利用二分思想，将判断区间划分为16、8、4、2、1。</p>
 <p>这基于以下事实：如果高16位不全为0（<code>!!(x &gt;&gt; 16) == 1</code>），则低16位需要被表示出来，即答案加16。</p>
-<p>同理，如果 <code>!!(x &gt;&gt; power) == 1</code>，则答案加$power=2^m=(1 &lt;&lt; m)$，</p>
+<p>同理，如果 <code>!!(x &gt;&gt; power) == 1</code>，则答案加<span class="arithmatex">\(power=2^m=(1 &lt;&lt; m)\)</span>，</p>
 <p>即加 <code>bPower = !!(x &gt;&gt; power) &lt;&lt; m</code>。</p>
-<p>其中写作$power$而非<code>1 &lt;&lt; m</code>是为了节省符号数。分别取$power=16,8,4,2,1,0$判断、再将x右移<code>bPower</code>位即可。</p>
+<p>其中写作<span class="arithmatex">\(power\)</span>而非<code>1 &lt;&lt; m</code>是为了节省符号数。分别取<span class="arithmatex">\(power=16,8,4,2,1,0\)</span>判断、再将x右移<code>bPower</code>位即可。</p>
 <h3 id="floatscale2">floatScale2</h3>
 <p>终于解锁了条件判断和大常数。首先将浮点数拆分得到s, exp, frac分别占1, 8, 23位。</p>
 <p>特判NaN情况，除此之外：</p>
@@ -256,19 +263,19 @@ return sameSign ^ 0x1;
 <h3 id="floatfloat2int">floatFloat2Int</h3>
 <p>特判：<code>exp == 0xFF</code> 时返回 0x80000000u即<code>1&lt;&lt;31</code>。</p>
 <p>其他情况不妨首先考虑非负数情况，如果为负数则在最后取负。</p>
-<p>非规格化：<code>exp == 0</code>，其表示值范围为 $0 \le x &lt; 1$，强制类型转换为<code>int</code>则直接向0取整返回0。可以合并到下述E&lt;0的情况。</p>
-<p>规格化：$V=(-1)^s \times M \times 2^E$，其中$E=e-Bias=e-127$。</p>
-<p>当<code>E&lt;0</code>时，$V&lt;1$，直接返回0；</p>
-<p>当<code>E&gt;=31</code>时，$V&gt;Tmax=2^{31}-1$，特判返回0x80000000u即<code>1&lt;&lt;31</code>。</p>
+<p>非规格化：<code>exp == 0</code>，其表示值范围为 <span class="arithmatex">\(0 \le x &lt; 1\)</span>，强制类型转换为<code>int</code>则直接向0取整返回0。可以合并到下述E&lt;0的情况。</p>
+<p>规格化：<span class="arithmatex">\(V=(-1)^s \times M \times 2^E\)</span>，其中<span class="arithmatex">\(E=e-Bias=e-127\)</span>。</p>
+<p>当<code>E&lt;0</code>时，<span class="arithmatex">\(V&lt;1\)</span>，直接返回0；</p>
+<p>当<code>E&gt;=31</code>时，<span class="arithmatex">\(V&gt;Tmax=2^{31}-1\)</span>，特判返回0x80000000u即<code>1&lt;&lt;31</code>。</p>
 <p>接下来处理其他情况。</p>
 <p>在相乘之前给M补回隐含的1，即 <code>frac |= 0x800000;</code>，则包含一开始的掩码操作在内，我们此时取得的<code>unsigned frac</code> 是一个以1开头的24位的unsigned，相当于已经给规格化公式所需的值<code>M(1 &lt;= M &lt; 2)</code> 左移了23位。</p>
-<p>即当<code>E &gt;= 24</code>时，我们已左移的23位还需继续左移，即再左移<code>E - 23</code>位，总共左移了<code>E</code>位，满足$M \times 2^E$，</p>
-<p>当<code>E &lt;= 23</code>时，我们将已左移的23位回退<code>23 - E</code>位，相当于实际左移了<code>E</code>位，满足$M \times 2^E$。</p>
+<p>即当<code>E &gt;= 24</code>时，我们已左移的23位还需继续左移，即再左移<code>E - 23</code>位，总共左移了<code>E</code>位，满足<span class="arithmatex">\(M \times 2^E\)</span>，</p>
+<p>当<code>E &lt;= 23</code>时，我们将已左移的23位回退<code>23 - E</code>位，相当于实际左移了<code>E</code>位，满足<span class="arithmatex">\(M \times 2^E\)</span>。</p>
 <p>最后根据符号s返回相应正负值即可。</p>
 <h3 id="floatpower2">floatPower2</h3>
-<p>要注意到答案$2^x$的值一定大于0，则它能取到的最小值是非规格化数表示的最小正值，最大值是规格化数表示的最大正值。</p>
-<p>先考虑非规格化数。考虑除0之外最小的非规格化数，即$E=1-127=-126$，$frac=2^{-23}$， 此时$V=2^{-126} \times 2^{-23}=2^{-149}$即为可以表示的最小值。因此如果<code>x &lt; -149</code>，则精度太高、无法表示，直接返回<code>0</code>。</p>
-<p>其余非规格化数的情况在精度范围内，<code>frac = x + 149</code>，此时要表示成float串，只有frac部分，表示的值恰好为实际值$V$，$V=2^{-126} \times 2^{-23} \times 2^x=2^{x-149} $，故返回 <code>1 &lt;&lt; (x + 149)</code> 。直到左移至exp不为0，所以这种情况的边界条件是<code>x &lt;= -127</code>。</p>
+<p>要注意到答案<span class="arithmatex">\(2^x\)</span>的值一定大于0，则它能取到的最小值是非规格化数表示的最小正值，最大值是规格化数表示的最大正值。</p>
+<p>先考虑非规格化数。考虑除0之外最小的非规格化数，即<span class="arithmatex">\(E=1-127=-126\)</span>，<span class="arithmatex">\(frac=2^{-23}\)</span>， 此时<span class="arithmatex">\(V=2^{-126} \times 2^{-23}=2^{-149}\)</span>即为可以表示的最小值。因此如果<code>x &lt; -149</code>，则精度太高、无法表示，直接返回<code>0</code>。</p>
+<p>其余非规格化数的情况在精度范围内，<code>frac = x + 149</code>，此时要表示成float串，只有frac部分，表示的值恰好为实际值<span class="arithmatex">\(V\)</span>，$V=2^{-126} \times 2^{-23} \times 2^x=2^{x-149} $，故返回 <code>1 &lt;&lt; (x + 149)</code> 。直到左移至exp不为0，所以这种情况的边界条件是<code>x &lt;= -127</code>。</p>
 <p>当<code>x + 149 &gt;= 23</code>即<code>x &gt;= -126</code>时，开始规格化表示。对于规格化数，能表示的最大数的数量级应为exp除了第一位以外全为1、即<code>exp==127</code>，因此当<code>x &gt; 127</code>时返回+INF即<code>0xFF &lt;&lt; 23</code>。</p>
 <p>其余规格化数的情况是<code>-126 &lt;= x &lt;= 127</code>，此时要表示成float串，<code>e = E + 127 = x + 127</code>，而frac部分均为0，即返回<code>(x + 127) &lt;&lt; 23</code>。</p>
   </div>
@@ -327,6 +334,9 @@ return sameSign ^ 0x1;
     window.PILOG_ROOT = "../../";
     window.PILOG_DEFAULT_VIEW = "cards";
   </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+          onload="try{if(window.renderMathInElement){renderMathInElement(document.body,{delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});}}catch(e){}"></script>
   <script src="../../js/search.js" defer></script>
   
 </body>
