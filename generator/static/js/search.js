@@ -85,6 +85,11 @@
       .slice(0, 8);
 
     if (!scored.length) {
+      var img = document.createElement("img");
+      img.className = "search-empty-img";
+      img.src = root + "img/pixel-empty.svg";
+      img.alt = "";
+      results.appendChild(img);
       var empty = document.createElement("div");
       empty.className = "search-empty";
       empty.textContent = "没有匹配「" + query + "」的文章";

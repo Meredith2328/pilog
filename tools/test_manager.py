@@ -79,6 +79,19 @@ def main() -> None:
         pg.click("#btn-undo")
         pg.wait_for_timeout(500)
 
+        # config reset restores defaults
+        pg.fill("#cfg-grid .cfg-panel .body input[type=text]", "TEMP TITLE")
+        pg.click("#cfg-save")
+        pg.wait_for_timeout(500)
+        pg.click("#cfg-reset")
+        pg.wait_for_timeout(500)
+        cfg = json.loads((ROOT / "config.json").read_text(encoding="utf-8"))
+        check("config reset restores defaults", cfg["site"]["title"] == "MEREDITH'S LOG")
+        pg.click("#btn-undo")
+        pg.wait_for_timeout(400)
+        pg.click("#btn-undo")
+        pg.wait_for_timeout(400)
+
         # nav child add / delete with confirm
         pg.click('.tab[data-tab="preview"]')
         pg.hover(".pv-nav-item")

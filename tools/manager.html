@@ -348,8 +348,11 @@ a{color:var(--accent)}
 <!-- ============ config tab ============ -->
 <div class="layout" id="tab-config">
   <div class="cfg-grid" id="cfg-grid"></div>
-  <div style="margin-top:16px"><button class="btn" id="cfg-save">保存配置</button>
-    <span class="hint"> 保存会写入 config.json，可撤销（Ctrl+S）</span></div>
+  <div style="margin-top:16px;display:flex;gap:10px;align-items:center">
+    <button class="btn" id="cfg-save">保存配置</button>
+    <button class="btn" id="cfg-reset">恢复默认</button>
+    <span class="hint">保存写入 config.json（Ctrl+S）；恢复默认将把配置重置为框架默认值，可撤销</span>
+  </div>
 </div>
 
 <input type="file" id="replace-input" accept="image/*" hidden>
@@ -1298,6 +1301,30 @@ function renderConfig() {
     panel.appendChild(path);
     grid.appendChild(panel);
   });
+  // site assets panel: restore logo / banner
+  const assetsPanel = document.createElement("div");
+  assetsPanel.className = "cfg-panel";
+  const body = document.createElement("div");
+  body.className = "body";
+  const logoBtn = document.createElement("button");
+  logoBtn.className = "btn small";
+  logoBtn.id = "restore-logo";
+  logoBtn.textContent = "恢复默认头图（小恐龙）";
+  logoBtn.style.display = state.brand.logo ? "" : "none";
+  body.appendChild(logoBtn);
+  const headerBtn = document.createElement("button");
+  headerBtn.className = "btn small";
+  headerBtn.id = "restore-header";
+  headerBtn.textContent = "恢复默认背景（像素横幅）";
+  headerBtn.style.display = state.brand.header ? "" : "none";
+  body.appendChild(headerBtn);
+  assetsPanel.innerHTML = "<h3>站点资源</h3>";
+  assetsPanel.appendChild(body);
+  const path = document.createElement("div");
+  path.className = "path";
+  path.textContent = "影响文件: blogs/assets/logo.png · blogs/assets/header.png";
+  assetsPanel.appendChild(path);
+  grid.appendChild(assetsPanel);
 }
 $("#cfg-save").addEventListener("click", async () => {
   const updates = { site: {}, socials: {}, giscus: {} };
@@ -1317,6 +1344,34 @@ $("#cfg-save").addEventListener("click", async () => {
     state.config = d.config;
     renderPreview();
   } catch (e) { toast(e.message); }
+});
+$("#cfg-reset").addEventListener("click", async () => {
+  if (!confirm("将 config.json 重置为框架默认值？（含标题、路径、社交账号等，可撤销）")) return;
+  try {
+    const d = await api("/api/config/reset", { method: "POST" });
+    logChange("恢复默认配置", d.files);
+    toast("已恢复默认配置", d.files);
+    state.config = d.config;
+    renderPreview();
+    renderConfig();
+  } catch (e) { toast(e.message); }
+});
+document.addEventListener("click", async e => {
+  if (e.target.id === "restore-logo") {
+    if (!confirm("恢复默认小恐龙头图？（删除自定义头图）")) return;
+    const d = await api("/api/brand?kind=logo", { method: "DELETE" });
+    logChange("恢复默认头图", d.files);
+    toast("已恢复默认头图", d.files);
+    await refreshBrand();
+    renderConfig();
+  } else if (e.target.id === "restore-header") {
+    if (!confirm("恢复默认像素横幅？（删除自定义背景图）")) return;
+    const d = await api("/api/brand?kind=header", { method: "DELETE" });
+    logChange("恢复默认背景", d.files);
+    toast("已恢复默认背景", d.files);
+    await refreshBrand();
+    renderConfig();
+  }
 });
 
 /* ---------- undo / redo / rebuild / log ---------- */

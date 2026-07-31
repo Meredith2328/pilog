@@ -25,9 +25,8 @@
 </head>
 <body>
   <header class="site-header">
-    {% if has_header_banner %}
-    <div class="header-banner" style="background-image:url('{{ root }}assets/header.png')"></div>
-    {% endif %}
+    <div class="header-banner{% if not has_header_banner %} is-default{% endif %}"
+         style="background-image:url('{{ root }}{{ 'assets/header.png' if has_header_banner else 'img/banner-default.svg' }}')"></div>
     <div class="header-row">
       <a class="brand" href="{{ root }}index.html">
         <img class="brand-icon" src="{{ root }}img/dino-icon.png" alt="dino" width="28" height="30">

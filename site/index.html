@@ -27,7 +27,8 @@
 </head>
 <body>
   <header class="site-header">
-    
+    <div class="header-banner is-default"
+         style="background-image:url('img/banner-default.svg')"></div>
     <div class="header-row">
       <a class="brand" href="index.html">
         <img class="brand-icon" src="img/dino-icon.png" alt="dino" width="28" height="30">
@@ -159,6 +160,10 @@
           </div>
         </div>
         
+        <div class="card-thumb">
+          <img src="assets/.thumbs/placeholder_4b8cdd88ce.png" alt="" loading="lazy">
+        </div>
+        
       </a>
     </article>
     
@@ -181,6 +186,10 @@
             <button class="tag-chip" type="button" data-tag="workflow">#workflow</button>
             
           </div>
+        </div>
+        
+        <div class="card-thumb">
+          <img src="assets/.thumbs/placeholder_ff4b7a45f2.png" alt="" loading="lazy">
         </div>
         
       </a>
@@ -207,6 +216,10 @@
           </div>
         </div>
         
+        <div class="card-thumb">
+          <img src="assets/.thumbs/placeholder_ebca5d32f5.png" alt="" loading="lazy">
+        </div>
+        
       </a>
     </article>
     
@@ -231,6 +244,10 @@
           </div>
         </div>
         
+        <div class="card-thumb">
+          <img src="assets/.thumbs/placeholder_7892bd383d.png" alt="" loading="lazy">
+        </div>
+        
       </a>
     </article>
     
@@ -251,6 +268,10 @@
             <button class="tag-chip" type="button" data-tag="about">#about</button>
             
           </div>
+        </div>
+        
+        <div class="card-thumb">
+          <img src="assets/.thumbs/placeholder_5780daf6db.png" alt="" loading="lazy">
         </div>
         
       </a>
@@ -278,7 +299,7 @@
           <li class="tree-folder is-open" data-path="posts">
             <div class="tree-row" role="button" tabindex="0">
               <span class="tree-toggle">▼</span>
-              <span class="tree-icon tree-icon-folder">▣</span>
+              <img class="tree-icon-img tree-icon-folder" src="img/pixel-folder.svg" alt="folder">
               <span class="tree-name">posts</span>
             </div>
             <ul class="tree-children">
@@ -288,7 +309,7 @@
           <li class="tree-folder is-open" data-path="posts/notes">
             <div class="tree-row" role="button" tabindex="0">
               <span class="tree-toggle">▼</span>
-              <span class="tree-icon tree-icon-folder">▣</span>
+              <img class="tree-icon-img tree-icon-folder" src="img/pixel-folder.svg" alt="folder">
               <span class="tree-name">notes</span>
             </div>
             <ul class="tree-children">
@@ -298,7 +319,7 @@
           <li class="tree-file" data-path="posts/notes/dino-game">
             <a class="tree-row" href="posts/notes/dino-game.html">
               <span class="tree-toggle tree-toggle-empty"></span>
-              <span class="tree-icon tree-icon-file">▤</span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
               <span class="tree-name">断网小恐龙，入住博客角落</span>
               <span class="tree-date">2026-07-15</span>
             </a>
@@ -309,7 +330,7 @@
           <li class="tree-file" data-path="posts/notes/long-title-demo">
             <a class="tree-row" href="posts/notes/long-title-demo.html">
               <span class="tree-toggle tree-toggle-empty"></span>
-              <span class="tree-icon tree-icon-file">▤</span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
               <span class="tree-name">一篇用来演示超长标题在卡片与图谱节点中如何显示与自动截断的示例文章</span>
               <span class="tree-date">2026-07-10</span>
             </a>
@@ -320,7 +341,7 @@
           <li class="tree-file" data-path="posts/notes/obsidian-tips">
             <a class="tree-row" href="posts/notes/obsidian-tips.html">
               <span class="tree-toggle tree-toggle-empty"></span>
-              <span class="tree-icon tree-icon-file">▤</span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
               <span class="tree-name">在 Obsidian 中高效写作</span>
               <span class="tree-date">2026-07-20</span>
             </a>
@@ -336,7 +357,7 @@
           <li class="tree-folder is-open" data-path="posts/tech">
             <div class="tree-row" role="button" tabindex="0">
               <span class="tree-toggle">▼</span>
-              <span class="tree-icon tree-icon-folder">▣</span>
+              <img class="tree-icon-img tree-icon-folder" src="img/pixel-folder.svg" alt="folder">
               <span class="tree-name">tech</span>
             </div>
             <ul class="tree-children">
@@ -346,7 +367,7 @@
           <li class="tree-file is-highlight" data-path="posts/tech/markdown-cheatsheet">
             <a class="tree-row" href="posts/tech/markdown-cheatsheet.html">
               <span class="tree-toggle tree-toggle-empty"></span>
-              <span class="tree-icon tree-icon-file">▤</span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
               <span class="tree-name">Markdown 速查表</span>
               <span class="tree-date">2026-07-28</span>
             </a>
@@ -357,7 +378,7 @@
           <li class="tree-file" data-path="posts/tech/pixel-blog">
             <a class="tree-row" href="posts/tech/pixel-blog.html">
               <span class="tree-toggle tree-toggle-empty"></span>
-              <span class="tree-icon tree-icon-file">▤</span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
               <span class="tree-name">用 pilog 搭建像素风博客</span>
               <span class="tree-date">2026-07-30</span>
             </a>
@@ -378,7 +399,7 @@
           <li class="tree-file" data-path="about">
             <a class="tree-row" href="about.html">
               <span class="tree-toggle tree-toggle-empty"></span>
-              <span class="tree-icon tree-icon-file">▤</span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
               <span class="tree-name">关于</span>
               <span class="tree-date">2026-01-01</span>
             </a>

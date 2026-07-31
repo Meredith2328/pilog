@@ -78,7 +78,7 @@
           <li class="tree-folder{% if node.open %} is-open{% endif %}" data-path="{{ node.path }}">
             <div class="tree-row" role="button" tabindex="0">
               <span class="tree-toggle">▼</span>
-              <span class="tree-icon tree-icon-folder">▣</span>
+              <img class="tree-icon-img tree-icon-folder" src="{{ root }}img/pixel-folder.svg" alt="folder">
               <span class="tree-name">{{ node.name }}</span>
             </div>
             <ul class="tree-children">
@@ -89,7 +89,7 @@
           <li class="tree-file{% if node.highlight %} is-highlight{% endif %}" data-path="{{ node.path }}">
             <a class="tree-row" href="{{ root }}{{ node.url }}">
               <span class="tree-toggle tree-toggle-empty"></span>
-              <span class="tree-icon tree-icon-file">▤</span>
+              <img class="tree-icon-img tree-icon-file" src="{{ root }}img/pixel-file.svg" alt="file">
               <span class="tree-name">{{ node.title }}</span>
               <span class="tree-date">{{ node.date }}</span>
             </a>

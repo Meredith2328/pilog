@@ -73,6 +73,13 @@ a:hover {
   image-rendering: auto;
 }
 
+.header-banner.is-default {
+  height: 84px;
+  background-size: cover;
+  background-position: center;
+  image-rendering: pixelated;
+}
+
 .header-row {
   max-width: 1080px;
   margin: 0 auto;
@@ -245,6 +252,13 @@ a:hover {
   font-size: 12px;
   color: var(--mute);
   text-align: center;
+}
+
+.search-empty-img {
+  display: block;
+  width: 48px;
+  margin: 8px auto 2px;
+  image-rendering: pixelated;
 }
 
 .socials {
@@ -738,6 +752,17 @@ a:hover {
   width: 20px;
   text-align: center;
   color: var(--text);
+}
+
+.tree-icon-img {
+  width: 18px;
+  height: 14px;
+  image-rendering: pixelated;
+  flex: none;
+}
+
+.tree-icon-file {
+  height: 16px;
 }
 
 .tree-icon-folder {
@@ -1329,6 +1354,12 @@ a:hover {
 .notfound {
   text-align: center;
   padding: 60px 0;
+}
+
+.notfound-img {
+  width: 64px;
+  margin-bottom: 12px;
+  image-rendering: pixelated;
 }
 
 .notfound-art {

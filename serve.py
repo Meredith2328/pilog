@@ -29,7 +29,7 @@ from PIL import Image
 
 from build import build_site
 from generator.assets import AssetMap
-from generator.config import Config
+from generator.config import DEFAULTS, Config
 from generator.content import scan_posts, sorted_for_cards, split_front_matter
 from generator.markdownx import MarkdownContext, find_asset
 
@@ -425,6 +425,9 @@ class Handler(SimpleHTTPRequestHandler):
         if path == "/api/config":
             self._api_config()
             return
+        if path == "/api/config/reset":
+            self._api_config_reset()
+            return
         if path == "/api/nav":
             self._api_nav()
             return
@@ -492,6 +495,21 @@ class Handler(SimpleHTTPRequestHandler):
         _dirty = True
         self._send_json(
             {"ok": True, "files": _files_list(after), "config": cfg}
+        )
+
+    def _api_config_reset(self):
+        target = CONFIG_PATH
+        before = _snap(target)
+        defaults = json.loads(json.dumps(DEFAULTS))
+        target.write_text(
+            json.dumps(defaults, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        after = _snap(target)
+        _record_change(before, after, "reset config")
+        _dirty = True
+        self._send_json(
+            {"ok": True, "files": _files_list(after), "config": defaults}
         )
 
     def _api_nav(self):
