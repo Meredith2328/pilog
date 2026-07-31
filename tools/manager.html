@@ -354,6 +354,25 @@ a{color:var(--accent)}
     <button class="btn" id="cfg-reset">恢复默认</button>
     <span class="hint">保存写入 config.json（Ctrl+S）；恢复默认将把配置重置为框架默认值，可撤销</span>
   </div>
+  <div class="cfg-grid" style="margin-top:16px">
+    <div class="cfg-panel">
+      <h3>发布到 GitHub</h3>
+      <div class="body">
+        <div class="cfg-row"><label>仓库</label><input type="text" id="pub-repo" placeholder="owner/repo"></div>
+        <div class="cfg-row"><label>分支</label><input type="text" id="pub-branch" placeholder="main"></div>
+        <div class="cfg-row"><label>令牌</label><input type="password" id="pub-token" placeholder="fine-grained PAT（仅本地保存，不提交）"></div>
+        <div class="cfg-row"><label>提交信息</label><input type="text" id="pub-message" placeholder="留空则自动生成"></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button class="btn small" id="pub-save">保存发布配置</button>
+          <button class="btn" id="pub-go">发布到 GitHub</button>
+          <span class="hint" id="pub-status"></span>
+        </div>
+        <p class="hint">令牌只写入本地 gitignore 的 .publish-token；发布流程为 构建 → git add/commit → push，不含任何删除操作。
+          最小权限：Contents: Read and write（Metadata: Read 为强制项）。</p>
+      </div>
+      <div class="path" id="pub-output" style="white-space:pre-wrap;max-height:180px;overflow:auto"></div>
+    </div>
+  </div>
 </div>
 
 <input type="file" id="replace-input" accept="image/*" hidden>
@@ -1401,6 +1420,49 @@ $("#cfg-reset").addEventListener("click", async () => {
     renderPreview();
     renderConfig();
   } catch (e) { toast(e.message); }
+});
+async function loadPublishConfig() {
+  try {
+    const d = await api("/api/publish/config");
+    $("#pub-repo").value = d.repo || "";
+    $("#pub-branch").value = d.branch || "main";
+    $("#pub-status").textContent = d.has_token ? "令牌已就绪（已本地保存）" : "尚未配置令牌";
+  } catch (e) { /* ignore */ }
+}
+$("#pub-save").addEventListener("click", async () => {
+  const body = { repo: $("#pub-repo").value.trim(), branch: $("#pub-branch").value.trim() };
+  if ($("#pub-token").value.trim()) body.token = $("#pub-token").value.trim();
+  try {
+    const d = await api("/api/publish/config", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    logChange("发布配置", d.files);
+    $("#pub-token").value = "";
+    $("#pub-status").textContent = d.has_token ? "令牌已就绪（已本地保存）" : "尚未配置令牌";
+    toast("发布配置已保存", d.files);
+  } catch (e) { toast(e.message); }
+});
+$("#pub-go").addEventListener("click", async () => {
+  const btn = $("#pub-go");
+  btn.disabled = true;
+  $("#pub-status").textContent = "发布中…（构建 + 提交 + 推送）";
+  $("#pub-output").textContent = "";
+  try {
+    const d = await api("/api/publish", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: $("#pub-message").value.trim() }),
+    });
+    $("#pub-output").textContent = d.output || "";
+    $("#pub-status").textContent = d.ok ? "发布成功 ✓" : "发布失败";
+    toast(d.ok ? "发布成功，等待 GitHub Actions 部署" : "发布失败: " + (d.error || ""), d.files);
+  } catch (e) {
+    $("#pub-status").textContent = "发布失败";
+    toast(e.message);
+  }
+  btn.disabled = false;
 });
 document.addEventListener("click", async e => {
   if (e.target.id === "restore-logo") {

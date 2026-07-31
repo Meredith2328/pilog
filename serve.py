@@ -376,6 +376,20 @@ class Handler(SimpleHTTPRequestHandler):
                 {"ok": True, "config": cfg, "path": "config.json"}
             )
             return
+        if path == "/api/publish/config":
+            cfg = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+            pub = cfg.get("publish", {})
+            token_path = ROOT / pub.get("token_file", ".publish-token")
+            self._send_json(
+                {
+                    "ok": True,
+                    "repo": pub.get("repo", ""),
+                    "branch": pub.get("branch", "main"),
+                    "token_file": pub.get("token_file", ".publish-token"),
+                    "has_token": token_path.is_file(),
+                }
+            )
+            return
         if path == "/api/nav":
             nav_file = self.blog_root / "nav.md"
             items = (
@@ -447,6 +461,12 @@ class Handler(SimpleHTTPRequestHandler):
             return
         if path == "/api/config/reset":
             self._api_config_reset()
+            return
+        if path == "/api/publish/config":
+            self._api_publish_config()
+            return
+        if path == "/api/publish":
+            self._api_publish()
             return
         if path == "/api/nav":
             self._api_nav()
@@ -531,6 +551,56 @@ class Handler(SimpleHTTPRequestHandler):
         self._send_json(
             {"ok": True, "files": _files_list(after), "config": defaults}
         )
+
+    def _api_publish_config(self):
+        body = self._read_json()
+        if not isinstance(body, dict):
+            self._send_json({"ok": False, "error": "bad payload"}, 400)
+            return
+        cfg_path = CONFIG_PATH
+        before_cfg = _snap(cfg_path)
+        cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
+        pub = cfg.setdefault("publish", {})
+        if "repo" in body:
+            pub["repo"] = str(body["repo"]).strip()
+        if "branch" in body:
+            pub["branch"] = str(body["branch"]).strip() or "main"
+        cfg_path.write_text(
+            json.dumps(cfg, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        after_cfg = _snap(cfg_path)
+        _record_change(before_cfg, after_cfg, "publish config")
+        token = str(body.get("token") or "").strip()
+        token_path = ROOT / pub.get("token_file", ".publish-token")
+        if token:
+            before_tok = _snap(token_path)
+            token_path.write_text(token + "\n", encoding="utf-8")
+            after_tok = _snap(token_path)
+            _record_change(before_tok, after_tok, "publish token")
+        self._send_json(
+            {
+                "ok": True,
+                "files": [
+                    {"path": "config.json", "action": "modified"},
+                    {
+                        "path": str(token_path.relative_to(ROOT)).replace("\\", "/"),
+                        "action": "updated",
+                    },
+                ],
+                "has_token": token_path.is_file(),
+            }
+        )
+
+    def _api_publish(self):
+        body = self._read_json() or {}
+        from publish import run_publish
+
+        result = run_publish(
+            message=str(body.get("message") or "").strip() or None,
+            build=True,
+        )
+        self._send_json({"ok": result["ok"], **result})
 
     def _api_nav(self):
         body = self._read_json()
