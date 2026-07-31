@@ -58,6 +58,28 @@ def copy_tree(src: Path, dst: Path, logger=None) -> int:
     return count
 
 
+def sync_tree(src: Path, dst: Path, logger=None) -> int:
+    """Copy `src` into `dst` and prune files no longer present in `src`."""
+    count = copy_tree(src, dst, logger=logger)
+    if not dst.exists():
+        return count
+    src_files = {
+        p.relative_to(src).as_posix()
+        for p in src.rglob("*")
+        if p.is_file()
+    } if src.exists() else set()
+    pruned = 0
+    for p in dst.rglob("*"):
+        if p.is_file() and ".thumbs" not in p.parts:
+            rel = p.relative_to(dst).as_posix()
+            if rel not in src_files:
+                p.unlink()
+                pruned += 1
+    if pruned and logger:
+        logger(f"pruned {pruned} stale asset files")
+    return count
+
+
 def _is_pixel_art(img: Image.Image) -> bool:
     if img.width <= 128 and img.height <= 128:
         colors = len(img.getcolors(maxcolors=4096) or [])

@@ -25,6 +25,7 @@ from generator.assets import (
     copy_tree,
     make_pixel_placeholder,
     make_thumbnail,
+    sync_tree,
 )
 from generator.config import Config
 from generator.content import (
@@ -410,7 +411,7 @@ def build_site(
     # 5. static assets + blog assets + dino
     static_src = Path(__file__).parent / "generator" / "static"
     shutil.copytree(static_src, out_root, dirs_exist_ok=True)
-    copy_tree(blog_root / "assets", out_root / "assets")
+    sync_tree(blog_root / "assets", out_root / "assets")
     assets.copy_all(log)
 
     dino_src = cfg.root / "dino" / "index.html"
