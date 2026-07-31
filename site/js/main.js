@@ -36,10 +36,16 @@
     return pane && pane.dataset.pane ? pane.dataset.pane : "cards";
   }
 
+  function defaultView() {
+    var v = window.PILOG_DEFAULT_VIEW || "cards";
+    return VIEWS.indexOf(v) >= 0 ? v : "cards";
+  }
+
   /* ---------- filters (cards view, multi-condition) ---------- */
 
   var filterState = { tags: {}, folders: {} };
   var cardsIndex = null;
+  var cardsIndexFailed = false;
   var filterSeq = 0;
 
   function normFolder(f) {
@@ -73,7 +79,7 @@
   }
 
   function loadCardsIndex() {
-    if (cardsIndex !== null) return Promise.resolve(cardsIndex);
+    if (cardsIndex !== null || cardsIndexFailed) return Promise.resolve(null);
     return fetch((window.PILOG_ROOT || "") + "data/cards.json")
       .then(function (r) {
         return r.json();
@@ -83,8 +89,11 @@
         return data;
       })
       .catch(function () {
-        cardsIndex = [];
-        return cardsIndex;
+        // data/cards.json unavailable (e.g. the site is opened directly via
+        // file:// where fetch is blocked): filtering must still work using
+        // the server-rendered cards already in the page
+        cardsIndexFailed = true;
+        return null;
       });
   }
 
@@ -164,8 +173,41 @@
       });
   }
 
-  function renderFiltered(grid) {
-    var seq = ++filterSeq;
+  function filterServerCards(grid) {
+    var shown = 0;
+    grid.querySelectorAll(".card:not(.is-client)").forEach(function (card) {
+      var tags = (card.dataset.tags || "").split(/\s+/).filter(Boolean);
+      var tagOk = true;
+      for (var t in filterState.tags) {
+        if (tags.indexOf(t) < 0) {
+          tagOk = false;
+          break;
+        }
+      }
+      var folderOk = true;
+      for (var f in filterState.folders) {
+        if (!folderMatch(card.dataset.folder || "", f)) {
+          folderOk = false;
+          break;
+        }
+      }
+      var match = tagOk && folderOk;
+      card.hidden = !match;
+      if (match) shown++;
+    });
+    return shown;
+  }
+
+  function showEmpty(grid, pageOnly) {
+    var div = document.createElement("div");
+    div.className = "empty-cards";
+    div.textContent = pageOnly
+      ? "当前页没有符合条件的文章，试试其他标签或目录"
+      : "没有符合条件的文章，换个标签或目录试试";
+    grid.appendChild(div);
+  }
+
+  function renderFiltered(grid, seq) {
     var matches = (cardsIndex || []).filter(function (p) {
       var ok = true;
       Object.keys(filterState.tags).forEach(function (t) {
@@ -178,16 +220,17 @@
     });
     if (seq !== filterSeq) return;
     clearClientCards(grid);
+    // the client set replaces the server-rendered cards entirely
+    grid.querySelectorAll(".card:not(.is-client)").forEach(function (c) {
+      c.hidden = true;
+    });
     matches.forEach(function (p) {
       var wrap = document.createElement("div");
       wrap.innerHTML = cardHTML(p).trim();
       grid.appendChild(wrap.firstChild);
     });
     if (!matches.length) {
-      var div = document.createElement("div");
-      div.className = "empty-cards";
-      div.textContent = "没有符合条件的文章，换个标签或目录试试";
-      grid.appendChild(div);
+      showEmpty(grid, false);
     }
   }
 
@@ -207,15 +250,27 @@
       if (pager) pager.hidden = false;
       return;
     }
+    var seq = ++filterSeq;
     if (pager) pager.hidden = true;
-    grid.querySelectorAll(".card").forEach(function (c) {
-      c.hidden = true;
-    });
+
+    // 1) synchronous: filter the server-rendered cards already on this page,
+    // so filtering always works even before/without data/cards.json
+    var serverShown = filterServerCards(grid);
+
+    // 2) async: upgrade to the full cross-page result set when available
     if (cardsIndex !== null) {
-      renderFiltered(grid);
+      renderFiltered(grid, seq);
     } else {
-      loadCardsIndex().then(function () {
-        renderFiltered(grid);
+      loadCardsIndex().then(function (data) {
+        if (seq !== filterSeq) return;
+        if (data === null) {
+          // no cross-page index: keep the on-page result and only warn when
+          // this page has no match (matches may live on other pages)
+          if (pager) pager.hidden = false;
+          if (serverShown === 0) showEmpty(grid, true);
+          return;
+        }
+        renderFiltered(grid, seq);
       });
     }
   }
@@ -379,7 +434,7 @@
       renderSelected();
       applyFilters();
     }
-    activateView("cards", false);
+    activateView(defaultView(), false);
   }
 
   parseHash();

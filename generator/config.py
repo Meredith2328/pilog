@@ -18,6 +18,7 @@ DEFAULTS: dict = {
         "use_google_fonts": True,
         "footer_text": "",
         "show_dino": True,
+        "default_view": "cards",
         "cards_per_page": 12,
         "collapse_threshold": 25,
     },

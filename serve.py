@@ -330,7 +330,10 @@ class Handler(SimpleHTTPRequestHandler):
 
     def _api_get(self, path: str, qs: dict):
         if path == "/api/config":
-            cfg = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+            # merged view: fields that only exist in DEFAULTS (e.g. numeric
+            # options) are shown with real values instead of blank inputs,
+            # so saving the form can never write empty strings over them
+            cfg = Config.load(CONFIG_PATH).raw
             self._send_json(
                 {"ok": True, "config": cfg, "path": "config.json"}
             )

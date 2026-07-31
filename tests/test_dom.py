@@ -54,6 +54,8 @@ def main() -> None:
 
         ok = True
         ok &= check("card count >= 5", page.locator(".card").count() >= 5)
+        ok &= check("default view global exposed",
+                    page.evaluate("window.PILOG_DEFAULT_VIEW") == "cards")
         first_title = page.locator(".card-title").first.inner_text()
         ok &= check("pinned post first", "pilog" in first_title and "像素" in first_title,
                     first_title[:30])
@@ -103,6 +105,20 @@ def main() -> None:
         page.locator(".sel-chip .sel-x").first.click()
         ok &= check("empty state cleared", page.locator(".empty-cards").count() == 0)
         page.click("#filter-more")  # close the more-tags panel before moving on
+
+        # filters must still work when data/cards.json is unavailable (e.g. the
+        # built site opened directly via file:// where fetch is blocked): the
+        # server-rendered cards on the page are filtered synchronously
+        page.route("**/data/cards.json", lambda route: route.fulfill(
+            status=200, content_type="application/json", body="not-json"))
+        page.goto(base + "/", wait_until="networkidle")
+        page.locator(".filter-tags .tag-chip").first.click()
+        page.wait_for_timeout(400)
+        vis = page.locator(".card:visible").count()
+        ok &= check("tag filter works without cards.json", vis >= 1, str(vis))
+        page.unroute("**/data/cards.json")
+        page.locator(".sel-chip .sel-x").first.click()
+        page.wait_for_timeout(300)
 
         # nav folder link in cards view selects the folder filter
         page.locator(".site-nav a[data-kind='folder']", has_text="技术").click()

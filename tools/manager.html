@@ -1320,6 +1320,14 @@ function cfgField(section, key, label, opts = {}) {
   if (opts.checkbox) {
     row.innerHTML = "<label>" + esc(label) + "</label><input type='checkbox'>";
     cfgEls[section + "." + key] = row.querySelector("input");
+  } else if (opts.select) {
+    const options = opts.select
+      .map(o => Array.isArray(o)
+        ? "<option value='" + esc(o[0]) + "'>" + esc(o[1]) + "</option>"
+        : "<option value='" + esc(o) + "'>" + esc(o) + "</option>")
+      .join("");
+    row.innerHTML = "<label>" + esc(label) + "</label><select>" + options + "</select>";
+    cfgEls[section + "." + key] = row.querySelector("select");
   } else {
     row.innerHTML = "<label>" + esc(label) + "</label><input type='text'>";
     cfgEls[section + "." + key] = row.querySelector("input");
@@ -1337,6 +1345,7 @@ function renderConfig() {
       ["footer_text", "页脚文字"], ["cards_per_page", "每页卡片数"],
       ["collapse_threshold", "折叠阈值"], ["use_google_fonts", "Google 字体", { checkbox: true }],
       ["show_dino", "右下角小恐龙", { checkbox: true }],
+      ["default_view", "默认视图", { select: [["cards", "卡片视图"], ["tree", "清单视图"], ["graph", "图谱视图"]] }],
     ]],
     ["socials", "社交账号", [
       ["github", "GitHub"], ["x", "X / Twitter"], ["bilibili", "Bilibili"],

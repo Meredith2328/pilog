@@ -10,7 +10,10 @@
     "site_url": "https://meredith2328.github.io/pilog",
     "use_google_fonts": true,
     "footer_text": "© 2026 Meredith — built with pilog",
-    "show_dino": true
+    "show_dino": true,
+    "default_view": "cards",
+    "cards_per_page": 12,
+    "collapse_threshold": 25
   },
   "giscus": {
     "enabled": true,

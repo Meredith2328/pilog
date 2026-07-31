@@ -94,7 +94,10 @@
   {% endif %}
 
   <script src="{{ root }}js/main.js" defer></script>
-  <script>window.PILOG_ROOT = {{ root|tojson }};</script>
+  <script>
+    window.PILOG_ROOT = {{ root|tojson }};
+    window.PILOG_DEFAULT_VIEW = {{ site.default_view|tojson }};
+  </script>
   <script src="{{ root }}js/search.js" defer></script>
   {% block scripts %}{% endblock %}
 </body>

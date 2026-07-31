@@ -272,7 +272,7 @@ def build_site(
             post.thumb_src = thumb_src
 
     # 3. graph + tree + search index
-    collapse_threshold = int(cfg.site.get("collapse_threshold", 25))
+    collapse_threshold = int(cfg.site.get("collapse_threshold") or 25)
     tree = sort_tree(
         build_tree(posts, collapse_threshold=collapse_threshold)
     )
@@ -321,7 +321,7 @@ def build_site(
         )[:3]
     ]
     ordered = sorted_for_cards(posts)
-    per_page = max(1, int(cfg.site.get("cards_per_page", 12)))
+    per_page = max(1, int(cfg.site.get("cards_per_page") or 12))
     pages = [
         ordered[i : i + per_page]
         for i in range(0, max(len(ordered), 1), per_page)

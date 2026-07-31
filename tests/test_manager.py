@@ -95,6 +95,21 @@ def main() -> None:
         pg.click("#btn-undo")
         pg.wait_for_timeout(400)
 
+        # default view setting: config UI -> config.json -> homepage
+        pg.click('.tab[data-tab="config"]')
+        pg.select_option("#cfg-grid select", "tree")
+        pg.click("#cfg-save")
+        pg.wait_for_timeout(500)
+        cfg = json.loads((ROOT / "config.json").read_text(encoding="utf-8"))
+        check("default view saved to config", cfg["site"]["default_view"] == "tree")
+        pg.click("#btn-rebuild")
+        pg.wait_for_timeout(2500)
+        pg.goto("http://127.0.0.1:8195/", wait_until="networkidle")
+        check("homepage honors default view",
+              pg.locator("#view-tree").evaluate("el => !el.hidden"))
+        pg.goto("http://127.0.0.1:8195/manager", wait_until="networkidle")
+        pg.wait_for_timeout(600)
+
         # nav child add / delete with confirm
         pg.click('.tab[data-tab="preview"]')
         pg.hover(".pv-nav-item")
