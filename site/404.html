@@ -24,6 +24,8 @@
   
 </head>
 <body>
+  <div class="deco deco-left" aria-hidden="true"></div>
+  <div class="deco deco-right" aria-hidden="true"></div>
   <header class="site-header">
     <div class="header-banner is-default"
          style="background-image:url('img/banner-default.svg')"></div>
@@ -84,8 +86,36 @@
   <img class="notfound-img" src="img/pixel-404.svg" alt="">
   <div class="notfound-art">404</div>
   <p class="notfound-text">这里什么都没有 —— 连小恐龙都跑掉了。</p>
-  <a class="pixel-btn" href="index.html">回到首页</a>
+  <p class="notfound-count" id="notfound-count">5 秒后自动返回首页…</p>
+  <a class="pixel-btn" id="notfound-link" href="index.html">立即返回首页</a>
 </div>
+<script>
+/* 404 页面可能在任何路径下被访问（如 /blogtest/posts/x.html），
+   所以回首页不能只用相对链接：优先用站点绝对地址，本地开发回退相对路径。 */
+(function () {
+  var bp = "/blogtest";
+  var url = "https://meredith2328.github.io/blogtest";
+  var home = "index.html";
+  try {
+    if (url && location.origin === new URL(url, location.href).origin) {
+      home = new URL(url, location.href).pathname.replace(/\/+$/, "") + "/index.html";
+    } else if (bp && location.pathname.indexOf(bp) === 0) {
+      home = bp + "/index.html";
+    }
+  } catch (e) { /* keep relative fallback */ }
+  document.getElementById("notfound-link").href = home;
+  var left = 5;
+  var el = document.getElementById("notfound-count");
+  var timer = setInterval(function () {
+    left--;
+    if (left > 0) el.textContent = left + " 秒后自动返回首页…";
+    else {
+      clearInterval(timer);
+      location.href = home;
+    }
+  }, 1000);
+})();
+</script>
 </main>
 
   <footer class="site-footer">

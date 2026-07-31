@@ -327,7 +327,27 @@ class Handler(SimpleHTTPRequestHandler):
                 return
             self._api_get(path, qs)
             return
+        # custom 404 page for missing files (GitHub Pages behaviour)
+        file_path = Path(self.translate_path(path))
+        if file_path.is_dir():
+            if (file_path / "index.html").is_file():
+                super().do_GET()
+                return
+            self._serve_custom_404()
+            return
+        if not file_path.is_file():
+            self._serve_custom_404()
+            return
         super().do_GET()
+
+    def _serve_custom_404(self):
+        page = self.out_root / "404.html"
+        body = page.read_bytes() if page.is_file() else b"404"
+        self.send_response(404)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
 
     def do_POST(self):
         if self.path.startswith("/api/"):

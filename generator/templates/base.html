@@ -24,6 +24,8 @@
   {% block head %}{% endblock %}
 </head>
 <body>
+  <div class="deco deco-left" aria-hidden="true"></div>
+  <div class="deco deco-right" aria-hidden="true"></div>
   <header class="site-header">
     <div class="header-banner{% if not has_header_banner %} is-default{% endif %}"
          style="background-image:url('{{ root }}{{ 'assets/header.png' if has_header_banner else 'img/banner-default.svg' }}')"></div>

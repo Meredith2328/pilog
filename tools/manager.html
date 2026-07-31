@@ -33,6 +33,7 @@ a{color:var(--accent)}
 /* ---------- preview ---------- */
 .pv-stage{max-width:1080px;margin:0 auto;background:var(--paper);border:2px solid var(--ink);box-shadow:6px 6px 0 var(--shadow)}
 .pv-banner{height:130px;background-size:cover;background-position:center top;background-color:var(--panel);border-bottom:2px solid var(--ink);position:relative;cursor:pointer}
+.pv-banner.is-default{height:120px;background-size:auto 100%;background-repeat:repeat-x;background-position:left top;image-rendering:pixelated}
 .pv-banner .pv-hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;color:var(--paper);background:rgba(60,64,67,.55);opacity:0;transition:opacity .15s}
 .pv-banner:hover .pv-hint{opacity:1}
 .pv-banner .pv-del{position:absolute;top:6px;right:8px;background:var(--ink);color:var(--paper);border:none;font-family:var(--mono);cursor:pointer;padding:2px 8px;display:none}
@@ -499,7 +500,10 @@ function renderPreview() {
   $("#pv-title").textContent = cfg.title || "";
   $("#pv-sub").textContent = cfg.subtitle || "";
   const banner = $("#pv-banner");
-  banner.style.backgroundImage = state.brand.header ? "url('" + HEADER_URL() + "')" : "";
+  banner.classList.toggle("is-default", !state.brand.header);
+  banner.style.backgroundImage = state.brand.header
+    ? "url('" + HEADER_URL() + "')"
+    : "url('/img/banner-default.svg')";
   banner.style.backgroundColor = state.brand.header ? "transparent" : "var(--panel)";
   $("#banner-del").style.display = state.brand.header ? "block" : "none";
   $("#pv-logo-img").src = state.brand.logo ? LOGO_URL() : "/img/dino-icon.png";
@@ -1196,7 +1200,10 @@ async function refreshBrand() {
   state.brand = brand;
   $("#pv-logo-img").src = state.brand.logo ? LOGO_URL() : "/img/dino-icon.png";
   const banner = $("#pv-banner");
-  banner.style.backgroundImage = state.brand.header ? "url('" + HEADER_URL() + "')" : "";
+  banner.classList.toggle("is-default", !state.brand.header);
+  banner.style.backgroundImage = state.brand.header
+    ? "url('" + HEADER_URL() + "')"
+    : "url('/img/banner-default.svg')";
   banner.style.backgroundColor = state.brand.header ? "transparent" : "var(--panel)";
   $("#banner-del").style.display = state.brand.header ? "block" : "none";
 }

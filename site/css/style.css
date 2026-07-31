@@ -74,10 +74,43 @@ a:hover {
 }
 
 .header-banner.is-default {
-  height: 84px;
-  background-size: cover;
-  background-position: center;
+  height: 120px;
+  background-size: auto 100%;
+  background-repeat: repeat-x;
+  background-position: left top;
   image-rendering: pixelated;
+}
+
+/* ---------- side decorations ---------- */
+
+.deco {
+  position: fixed;
+  bottom: 28px;
+  width: 120px;
+  height: 240px;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: bottom center;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.55;
+  image-rendering: pixelated;
+}
+
+.deco-left {
+  left: max(14px, calc(50% - 720px));
+  background-image: url("../img/deco-left.svg");
+}
+
+.deco-right {
+  right: max(14px, calc(50% - 720px));
+  background-image: url("../img/deco-right.svg");
+}
+
+@media (max-width: 1360px) {
+  .deco {
+    display: none;
+  }
 }
 
 .header-row {

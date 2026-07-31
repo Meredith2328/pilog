@@ -132,6 +132,21 @@ def main() -> None:
         check("no page errors", not errs, "; ".join(errs))
         b.close()
 
+    # 404 page: custom content + countdown + auto redirect home
+    with sync_playwright() as p2:
+        b2 = p2.chromium.launch()
+        pg2 = b2.new_page(viewport={"width": 1200, "height": 800})
+        resp = pg2.goto("http://127.0.0.1:8195/definitely-missing.html",
+                        wait_until="domcontentloaded")
+        check("missing page returns 404", resp.status == 404)
+        pg2.wait_for_timeout(300)
+        check("custom 404 page shown", pg2.locator(".notfound-art").count() == 1)
+        check("404 countdown present", "自动返回首页" in pg2.locator("#notfound-count").inner_text())
+        pg2.wait_for_timeout(5600)
+        check("404 auto redirects home",
+              pg2.url.replace("/index.html", "").rstrip("/").endswith("8195"))
+        b2.close()
+
     # cleanup: undo remaining ops + remove leftovers
     import urllib.request
 
