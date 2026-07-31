@@ -111,8 +111,29 @@ def run_publish(message: str | None = None, build: bool = True) -> dict:
             "pushed": False,
         }
 
+    # safety: the token file must never be tracked or staged
+    if token_file.exists():
+        tracked = git(
+            ["ls-files", "--error-unmatch", str(token_file)],
+            check=False,
+        ).returncode == 0
+        if tracked:
+            return {
+                "ok": False,
+                "error": (
+                    f"令牌文件 {token_file} 已被 git 跟踪，已阻止发布。"
+                    "请先执行: git rm --cached .publish-token"
+                ),
+            }
     if status.strip():
         git(["add", "-A"])
+        staged = git(["diff", "--cached", "--name-only"]).stdout
+        if token_file.name in staged.splitlines():
+            git(["reset"])
+            return {
+                "ok": False,
+                "error": "令牌文件被意外加入暂存区，已自动取消暂存并阻止发布。",
+            }
         msg = message or f"site update ({datetime.now():%Y-%m-%d %H:%M})"
         git(["commit", "-m", msg])
         lines.append(f"[2/3] 已提交：{msg}")
