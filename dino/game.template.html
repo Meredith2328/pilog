@@ -1,0 +1,1970 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="color-scheme" content="light">
+<title>T-Rex Runner - Chrome 小恐龙</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    background: #f7f7f7;
+    font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    padding: 24px 16px 32px;
+  }
+  .stage {
+    transform-origin: top center;
+  }
+  .runner-outer {
+    position: relative;
+    width: 600px;
+    height: 150px;
+    background: #f7f7f7;
+  }
+  .runner-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 44px;
+    height: 150px;
+    overflow: hidden;
+    background: #f7f7f7;
+  }
+  .runner-container.intro {
+    animation: dino-intro 0.4s ease-out 1 both;
+  }
+  @keyframes dino-intro {
+    from { width: 44px; }
+    to { width: 600px; }
+  }
+  .runner-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 600px;
+    height: 150px;
+    image-rendering: pixelated;
+    touch-action: none;
+  }
+  .hint {
+    color: #5f6368;
+    font-size: 13px;
+    line-height: 1.8;
+    text-align: center;
+  }
+  .hint kbd {
+    display: inline-block;
+    padding: 1px 7px;
+    border: 1px solid #dadce0;
+    border-bottom-width: 2px;
+    border-radius: 5px;
+    background: #fff;
+    font-family: inherit;
+    font-size: 12px;
+    color: #3c4043;
+  }
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .sound-toggle {
+    border: 1px solid #dadce0;
+    background: #fff;
+    color: #3c4043;
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .sound-toggle:hover { background: #f1f3f4; }
+  .credit {
+    color: #9aa0a6;
+    font-size: 11px;
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    <div class="stage" id="stage">
+      <div class="runner-outer">
+        <div class="runner-container" id="runner-container">
+          <canvas id="runner-canvas" class="runner-canvas"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="toolbar">
+      <button id="sound-toggle" class="sound-toggle" type="button"></button>
+    </div>
+    <div class="hint">
+      <kbd>空格</kbd> / <kbd>↑</kbd> 跳跃　·　<kbd>↓</kbd> 下蹲（空中急降）　·　<kbd>Enter</kbd> / <kbd>空格</kbd> / 点击 重新开始
+      <br>触屏：轻点跳跃　·　游戏结束时双击左上角 <b>HI</b> 高分可清零
+    </div>
+    <div class="credit">素材与逻辑还原自 Chromium 开源实现（BSD-3-Clause）</div>
+  </div>
+  <noscript><p style="padding:40px;text-align:center">需要启用 JavaScript 才能运行本游戏。</p></noscript>
+<script>
+(function () {
+'use strict';
+
+// ============================================================
+// 常量（与 Chromium components/neterror/resources/dino_game 一致）
+// ============================================================
+const DEFAULT_WIDTH = 600;
+const DEFAULT_HEIGHT = 150;
+const FPS = 60;
+const MS_PER_FRAME = 1000 / FPS;
+const IS_HIDPI = (window.devicePixelRatio || 1) > 1;
+
+const BASE_CONFIG = {
+  acceleration: 0.001,
+  bgCloudSpeed: 0.2,
+  bottomPad: 10,
+  clearTime: 3000,
+  cloudFrequency: 0.5,
+  gameoverClearTime: 1200,
+  gapCoefficient: 0.6,
+  invertDistance: 700,
+  invertFadeDuration: 12000,
+  maxBlinkCount: 3,
+  maxClouds: 6,
+  maxObstacleDuplication: 2,
+  maxSpeed: 13,
+  mobileSpeedCoefficient: 1.2,
+  speed: 6,
+  speedDropCoefficient: 3
+};
+
+// 精灵图位置（offline_sprite_definitions.ts）
+const SPRITE_DEF = {
+  ldpi: {
+    cactusLarge: {x: 332, y: 2},
+    cactusSmall: {x: 228, y: 2},
+    cloud: {x: 86, y: 2},
+    moon: {x: 484, y: 2},
+    pterodactyl: {x: 134, y: 2},
+    restart: {x: 2, y: 68},
+    star: {x: 645, y: 2},
+    textSprite: {x: 655, y: 2},
+    tRex: {x: 848, y: 2}
+  },
+  hdpi: {
+    cactusLarge: {x: 652, y: 2},
+    cactusSmall: {x: 446, y: 2},
+    cloud: {x: 166, y: 2},
+    moon: {x: 954, y: 2},
+    pterodactyl: {x: 260, y: 2},
+    restart: {x: 2, y: 130},
+    star: {x: 1276, y: 2},
+    textSprite: {x: 1294, y: 2},
+    tRex: {x: 1678, y: 2}
+  }
+};
+
+const HORIZON_LINE_CONFIG = {sourceX: 2, sourceY: 52, width: 600, height: 12, yPos: 127};
+
+// ============================================================
+// 内嵌资源（构建时替换为 base64）
+// ============================================================
+const SPRITE_1X = 'data:image/png;base64,__SPRITE_1X__';
+const SPRITE_2X = 'data:image/png;base64,__SPRITE_2X__';
+const SOUND_PRESS = 'data:audio/mpeg;base64,__SND_PRESS__';
+const SOUND_HIT = 'data:audio/mpeg;base64,__SND_HIT__';
+const SOUND_SCORE = 'data:audio/mpeg;base64,__SND_SCORE__';
+
+// ============================================================
+// 工具函数
+// ============================================================
+function getRandomNum(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function getTimeStamp() {
+  return performance.now();
+}
+
+class CollisionBox {
+  constructor(x, y, width, height) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+  }
+}
+
+// 经典模式障碍物（小仙人掌 / 大仙人掌 / 翼龙）
+const OBSTACLE_TYPES = [
+  {
+    type: 'cactusSmall',
+    width: 17, height: 35, yPos: 105,
+    multipleSpeed: 4, minGap: 120, minSpeed: 0,
+    collisionBoxes: [
+      new CollisionBox(0, 7, 5, 27),
+      new CollisionBox(4, 0, 6, 34),
+      new CollisionBox(10, 4, 7, 14)
+    ]
+  },
+  {
+    type: 'cactusLarge',
+    width: 25, height: 50, yPos: 90,
+    multipleSpeed: 7, minGap: 120, minSpeed: 0,
+    collisionBoxes: [
+      new CollisionBox(0, 12, 7, 38),
+      new CollisionBox(8, 0, 7, 49),
+      new CollisionBox(13, 10, 10, 38)
+    ]
+  },
+  {
+    type: 'pterodactyl',
+    width: 46, height: 40, yPos: [100, 75, 50],
+    multipleSpeed: 999, minGap: 150, minSpeed: 8.5,
+    speedOffset: 0.8, numFrames: 2, frameRate: 1000 / 6,
+    collisionBoxes: [
+      new CollisionBox(15, 15, 16, 5),
+      new CollisionBox(18, 21, 24, 6),
+      new CollisionBox(2, 14, 4, 3),
+      new CollisionBox(6, 10, 4, 7),
+      new CollisionBox(10, 8, 6, 9)
+    ]
+  }
+];
+
+function boxCompare(a, b) {
+  return a.x < b.x + b.width &&
+    a.x + a.width > b.x &&
+    a.y < b.y + b.height &&
+    a.height + a.y > b.y;
+}
+
+function createAdjustedCollisionBox(box, adjustment) {
+  return new CollisionBox(
+    box.x + adjustment.x, box.y + adjustment.y, box.width, box.height);
+}
+
+function decodeBase64ToArrayBuffer(base64) {
+  const binary = atob(base64);
+  const len = binary.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes.buffer;
+}
+
+function drawCollisionBoxes(canvasCtx, tRexBox, obstacleBox) {
+  canvasCtx.save();
+  canvasCtx.strokeStyle = '#f00';
+  canvasCtx.strokeRect(tRexBox.x, tRexBox.y, tRexBox.width, tRexBox.height);
+  canvasCtx.strokeStyle = '#0f0';
+  canvasCtx.strokeRect(obstacleBox.x, obstacleBox.y,
+    obstacleBox.width, obstacleBox.height);
+  canvasCtx.restore();
+}
+
+// ============================================================
+// 音频
+// ============================================================
+const SOUND_NAMES = {
+  BUTTON_PRESS: SOUND_PRESS,
+  HIT: SOUND_HIT,
+  SCORE: SOUND_SCORE
+};
+let audioCtx = null;
+let soundBuffers = {};
+let soundEnabled = true;
+try {
+  soundEnabled = localStorage.getItem('tRexRunnerSound') !== '0';
+} catch (e) {}
+
+function loadSounds() {
+  if (audioCtx) return;
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    for (const name in SOUND_NAMES) {
+      const b64 = SOUND_NAMES[name].split(',')[1];
+      audioCtx.decodeAudioData(decodeBase64ToArrayBuffer(b64), (buffer) => {
+        soundBuffers[name] = buffer;
+      }, () => {});
+    }
+  } catch (e) {
+    audioCtx = null;
+  }
+}
+
+function playSound(name) {
+  if (!soundEnabled || !audioCtx || !soundBuffers[name]) return;
+  try {
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    const source = audioCtx.createBufferSource();
+    source.buffer = soundBuffers[name];
+    source.connect(audioCtx.destination);
+    source.start(0);
+  } catch (e) {
+    /* ignore */
+  }
+}
+
+// 调试钩子：查看音频加载状态
+window.__getAudioState = function () {
+  return {ctx: !!audioCtx, loaded: Object.keys(soundBuffers).length};
+};
+
+// ============================================================
+// 小恐龙
+// ============================================================
+const Status = {
+  CRASHED: 'CRASHED',
+  DUCKING: 'DUCKING',
+  JUMPING: 'JUMPING',
+  RUNNING: 'RUNNING',
+  WAITING: 'WAITING'
+};
+
+const TREX_CONFIG = {
+  dropVelocity: -5,
+  gravity: 0.6,
+  height: 47,
+  heightDuck: 25,
+  initialJumpVelocity: -10,
+  introDuration: 1500,
+  maxJumpHeight: 30,
+  minJumpHeight: 30,
+  speedDropCoefficient: 3,
+  spriteWidth: 262,
+  startXPos: 50,
+  width: 44,
+  widthDuck: 59
+};
+
+const TREX_ANIM_FRAMES = {
+  WAITING: {frames: [44, 0], msPerFrame: 1000 / 3},
+  RUNNING: {frames: [88, 132], msPerFrame: 1000 / 12},
+  CRASHED: {frames: [220], msPerFrame: 1000 / 60},
+  JUMPING: {frames: [0], msPerFrame: 1000 / 60},
+  DUCKING: {frames: [264, 323], msPerFrame: 1000 / 8}
+};
+
+const TREX_COLLISION_BOXES = {
+  ducking: [new CollisionBox(1, 18, 55, 25)],
+  running: [
+    new CollisionBox(22, 0, 17, 16),
+    new CollisionBox(1, 18, 30, 9),
+    new CollisionBox(10, 35, 14, 8),
+    new CollisionBox(1, 24, 29, 5),
+    new CollisionBox(5, 30, 21, 4),
+    new CollisionBox(9, 34, 15, 4)
+  ]
+};
+
+const BLINK_TIMING = 7000;
+
+class Trex {
+  constructor(canvas, spritePos, provider) {
+    this.canvasCtx = canvas.getContext('2d');
+    this.spritePos = spritePos;
+    this.provider = provider;
+    this.config = Object.assign({}, TREX_CONFIG);
+    this.xPos = 0;
+    this.yPos = 0;
+    this.xInitialPos = 0;
+    this.groundYPos = DEFAULT_HEIGHT - this.config.height -
+      this.provider.getConfig().bottomPad;
+    this.minJumpHeight = this.groundYPos - this.config.minJumpHeight;
+    this.yPos = this.groundYPos;
+    this.currentFrame = 0;
+    this.currentAnimFrames = [];
+    this.blinkDelay = 0;
+    this.animStartTime = 0;
+    this.timer = 0;
+    this.msPerFrame = MS_PER_FRAME;
+    this.status = Status.WAITING;
+    this.jumping = false;
+    this.jumpVelocity = 0;
+    this.reachedMinHeight = false;
+    this.speedDrop = false;
+    this.jumpCount = 0;
+    this.ducking = false;
+    this.blinkCount = 0;
+    this.playingIntro = false;
+    this.draw(0, 0);
+    this.update(0, Status.WAITING);
+  }
+
+  setJumpVelocity(setting) {
+    this.config.initialJumpVelocity = -setting;
+    this.config.dropVelocity = -setting / 2;
+  }
+
+  update(deltaTime, optStatus) {
+    this.timer += deltaTime;
+    if (optStatus !== undefined) {
+      this.status = optStatus;
+      this.currentFrame = 0;
+      this.msPerFrame = TREX_ANIM_FRAMES[optStatus].msPerFrame;
+      this.currentAnimFrames = TREX_ANIM_FRAMES[optStatus].frames;
+      if (optStatus === Status.WAITING) {
+        this.animStartTime = getTimeStamp();
+        this.setBlinkDelay();
+      }
+    }
+    // 开场动画：小恐龙从左侧滑入到 startXPos
+    if (this.playingIntro && this.xPos < this.config.startXPos) {
+      this.xPos += Math.round(
+        (this.config.startXPos / this.config.introDuration) * deltaTime);
+      this.xInitialPos = this.xPos;
+    }
+    if (this.status === Status.WAITING) {
+      this.blink(getTimeStamp());
+    } else {
+      this.draw(this.currentAnimFrames[this.currentFrame], 0);
+    }
+    if (this.timer >= this.msPerFrame) {
+      this.currentFrame = this.currentFrame ===
+        this.currentAnimFrames.length - 1 ? 0 : this.currentFrame + 1;
+      this.timer = 0;
+    }
+    // 按住下键落地后进入下蹲
+    if (this.speedDrop && this.yPos === this.groundYPos) {
+      this.speedDrop = false;
+      this.setDuck(true);
+    }
+  }
+
+  draw(x, y) {
+    let sourceX = x;
+    let sourceY = y;
+    let sourceWidth = this.ducking && this.status !== Status.CRASHED ?
+      this.config.widthDuck : this.config.width;
+    const sourceHeight = this.config.height;
+    if (IS_HIDPI) {
+      sourceX *= 2;
+      sourceY *= 2;
+      sourceWidth *= 2;
+    }
+    sourceX += this.spritePos.x;
+    sourceY += this.spritePos.y;
+    if (this.ducking && this.status !== Status.CRASHED) {
+      this.canvasCtx.drawImage(this.provider.getRunnerImageSprite(),
+        sourceX, sourceY, sourceWidth, sourceHeight * (IS_HIDPI ? 2 : 1),
+        this.xPos, this.yPos, this.config.widthDuck, this.config.height);
+    } else {
+      if (this.ducking && this.status === Status.CRASHED) {
+        this.xPos++;
+      }
+      this.canvasCtx.drawImage(this.provider.getRunnerImageSprite(),
+        sourceX, sourceY, sourceWidth, sourceHeight * (IS_HIDPI ? 2 : 1),
+        this.xPos, this.yPos, this.config.width, this.config.height);
+    }
+  }
+
+  setBlinkDelay() {
+    this.blinkDelay = Math.ceil(Math.random() * BLINK_TIMING);
+  }
+
+  blink(time) {
+    const deltaTime = time - this.animStartTime;
+    if (deltaTime >= this.blinkDelay) {
+      this.draw(this.currentAnimFrames[this.currentFrame], 0);
+      if (this.currentFrame === 1) {
+        this.setBlinkDelay();
+        this.animStartTime = time;
+        this.blinkCount++;
+      }
+    }
+  }
+
+  startJump(speed) {
+    if (!this.jumping) {
+      this.update(0, Status.JUMPING);
+      this.jumpVelocity = this.config.initialJumpVelocity - (speed / 10);
+      this.jumping = true;
+      this.reachedMinHeight = false;
+      this.speedDrop = false;
+    }
+  }
+
+  endJump() {
+    if (this.reachedMinHeight &&
+      this.jumpVelocity < this.config.dropVelocity) {
+      this.jumpVelocity = this.config.dropVelocity;
+    }
+  }
+
+  updateJump(deltaTime) {
+    const msPerFrame = TREX_ANIM_FRAMES[this.status].msPerFrame;
+    const framesElapsed = deltaTime / msPerFrame;
+    if (this.speedDrop) {
+      this.yPos += Math.round(this.jumpVelocity *
+        this.config.speedDropCoefficient * framesElapsed);
+    } else {
+      this.yPos += Math.round(this.jumpVelocity * framesElapsed);
+    }
+    this.jumpVelocity += this.config.gravity * framesElapsed;
+    if (this.yPos < this.minJumpHeight || this.speedDrop) {
+      this.reachedMinHeight = true;
+    }
+    if (this.yPos < this.config.maxJumpHeight || this.speedDrop) {
+      this.endJump();
+    }
+    if (this.yPos > this.groundYPos) {
+      this.reset();
+      this.jumpCount++;
+    }
+    this.update(deltaTime);
+  }
+
+  setSpeedDrop() {
+    this.speedDrop = true;
+    this.jumpVelocity = 1;
+  }
+
+  setDuck(isDucking) {
+    if (isDucking && this.status !== Status.DUCKING) {
+      this.update(0, Status.DUCKING);
+      this.ducking = true;
+    } else if (this.status === Status.DUCKING) {
+      this.update(0, Status.RUNNING);
+      this.ducking = false;
+    }
+  }
+
+  reset() {
+    this.xPos = this.xInitialPos;
+    this.yPos = this.groundYPos;
+    this.jumpVelocity = 0;
+    this.jumping = false;
+    this.ducking = false;
+    this.update(0, Status.RUNNING);
+    this.speedDrop = false;
+    this.jumpCount = 0;
+  }
+
+  getCollisionBoxes() {
+    return this.ducking ? TREX_COLLISION_BOXES.ducking :
+      TREX_COLLISION_BOXES.running;
+  }
+}
+
+// ============================================================
+// 障碍物
+// ============================================================
+class Obstacle {
+  constructor(canvasCtx, type, spritePos, dimensions, gapCoefficient, speed, provider) {
+    this.canvasCtx = canvasCtx;
+    this.spritePos = spritePos;
+    this.typeConfig = type;
+    this.gapCoefficient = gapCoefficient;
+    this.size = getRandomNum(1, 3);
+    this.xPos = dimensions.width;
+    this.yPos = 0;
+    this.width = 0;
+    this.collisionBoxes = [];
+    this.gap = 0;
+    this.remove = false;
+    this.followingObstacleCreated = false;
+    this.currentFrame = 0;
+    this.timer = 0;
+    this.speedOffset = 0;
+    this.imageSprite = provider.getRunnerImageSprite();
+    this.init(speed);
+  }
+
+  init(speed) {
+    this.cloneCollisionBoxes();
+    if (this.size > 1 && this.typeConfig.multipleSpeed > speed) {
+      this.size = 1;
+    }
+    this.width = this.typeConfig.width * this.size;
+    if (Array.isArray(this.typeConfig.yPos)) {
+      this.yPos = this.typeConfig.yPos[
+        getRandomNum(0, this.typeConfig.yPos.length - 1)];
+    } else {
+      this.yPos = this.typeConfig.yPos;
+    }
+    this.draw();
+    if (this.size > 1) {
+      this.collisionBoxes[1].width = this.width -
+        this.collisionBoxes[0].width - this.collisionBoxes[2].width;
+      this.collisionBoxes[2].x = this.width - this.collisionBoxes[2].width;
+    }
+    if (this.typeConfig.speedOffset) {
+      this.speedOffset = Math.random() > 0.5 ?
+        this.typeConfig.speedOffset : -this.typeConfig.speedOffset;
+    }
+    this.gap = this.getGap(this.gapCoefficient, speed);
+  }
+
+  draw() {
+    let sourceWidth = this.typeConfig.width;
+    const sourceHeight = this.typeConfig.height;
+    if (IS_HIDPI) {
+      sourceWidth *= 2;
+    }
+    let sourceX = (sourceWidth * this.size) * (0.5 * (this.size - 1)) +
+      this.spritePos.x;
+    if (this.currentFrame > 0) {
+      sourceX += sourceWidth * this.currentFrame;
+    }
+    this.canvasCtx.drawImage(this.imageSprite,
+      sourceX, this.spritePos.y,
+      sourceWidth * this.size, sourceHeight * (IS_HIDPI ? 2 : 1),
+      this.xPos, this.yPos,
+      this.typeConfig.width * this.size, this.typeConfig.height);
+  }
+
+  update(deltaTime, speed) {
+    if (!this.remove) {
+      if (this.typeConfig.speedOffset) {
+        speed += this.speedOffset;
+      }
+      this.xPos -= Math.floor((speed * FPS / 1000) * deltaTime);
+      if (this.typeConfig.numFrames) {
+        this.timer += deltaTime;
+        if (this.timer >= this.typeConfig.frameRate) {
+          this.currentFrame = this.currentFrame ===
+            this.typeConfig.numFrames - 1 ? 0 : this.currentFrame + 1;
+          this.timer = 0;
+        }
+      }
+      this.draw();
+      if (!this.isVisible()) {
+        this.remove = true;
+      }
+    }
+  }
+
+  getGap(gapCoefficient, speed) {
+    const minGap = Math.round(this.width * speed +
+      this.typeConfig.minGap * gapCoefficient);
+    const maxGap = Math.round(minGap * 1.5);
+    return getRandomNum(minGap, maxGap);
+  }
+
+  isVisible() {
+    return this.xPos + this.width > 0;
+  }
+
+  cloneCollisionBoxes() {
+    for (let i = this.typeConfig.collisionBoxes.length - 1; i >= 0; i--) {
+      const box = this.typeConfig.collisionBoxes[i];
+      this.collisionBoxes[i] = new CollisionBox(
+        box.x, box.y, box.width, box.height);
+    }
+  }
+}
+
+// ============================================================
+// 云
+// ============================================================
+const CLOUD_CONFIG = {
+  HEIGHT: 14,
+  MAX_CLOUD_GAP: 400,
+  MAX_SKY_LEVEL: 30,
+  MIN_CLOUD_GAP: 100,
+  MIN_SKY_LEVEL: 71,
+  WIDTH: 46
+};
+
+class Cloud {
+  constructor(canvas, spritePos, containerWidth, provider) {
+    this.canvasCtx = canvas.getContext('2d');
+    this.spritePos = spritePos;
+    this.provider = provider;
+    this.xPos = containerWidth;
+    this.yPos = 0;
+    this.remove = false;
+    this.gap = getRandomNum(CLOUD_CONFIG.MIN_CLOUD_GAP,
+      CLOUD_CONFIG.MAX_CLOUD_GAP);
+    this.init();
+  }
+
+  init() {
+    this.yPos = getRandomNum(CLOUD_CONFIG.MAX_SKY_LEVEL,
+      CLOUD_CONFIG.MIN_SKY_LEVEL);
+    this.draw();
+  }
+
+  draw() {
+    let sourceWidth = CLOUD_CONFIG.WIDTH;
+    const sourceHeight = CLOUD_CONFIG.HEIGHT;
+    if (IS_HIDPI) {
+      sourceWidth *= 2;
+    }
+    this.canvasCtx.drawImage(this.provider.getRunnerImageSprite(),
+      this.spritePos.x, this.spritePos.y,
+      sourceWidth, sourceHeight * (IS_HIDPI ? 2 : 1),
+      this.xPos, this.yPos, CLOUD_CONFIG.WIDTH, CLOUD_CONFIG.HEIGHT);
+  }
+
+  update(speed) {
+    if (!this.remove) {
+      this.xPos -= Math.ceil(speed);
+      this.draw();
+      if (!this.isVisible()) {
+        this.remove = true;
+      }
+    }
+  }
+
+  isVisible() {
+    return this.xPos + CLOUD_CONFIG.WIDTH > 0;
+  }
+}
+
+// ============================================================
+// 地平线
+// ============================================================
+class HorizonLine {
+  constructor(canvas, lineConfig, provider) {
+    let sourceX = lineConfig.sourceX;
+    let sourceY = lineConfig.sourceY;
+    if (IS_HIDPI) {
+      sourceX *= 2;
+      sourceY *= 2;
+    }
+    this.spritePos = {x: sourceX, y: sourceY};
+    this.canvasCtx = canvas.getContext('2d');
+    this.provider = provider;
+    this.dimensions = {width: lineConfig.width, height: lineConfig.height};
+    this.sourceXPos = [this.spritePos.x, this.spritePos.x + this.dimensions.width];
+    this.xPos = [0, this.dimensions.width];
+    this.yPos = lineConfig.yPos;
+    this.sourceDimensions = {
+      width: lineConfig.width,
+      height: lineConfig.height
+    };
+    if (IS_HIDPI) {
+      this.sourceDimensions.width *= 2;
+      this.sourceDimensions.height *= 2;
+    }
+    this.draw();
+  }
+
+  getRandomType() {
+    return Math.random() > 0.5 ? this.dimensions.width : 0;
+  }
+
+  draw() {
+    this.canvasCtx.drawImage(this.provider.getRunnerImageSprite(),
+      this.sourceXPos[0], this.spritePos.y,
+      this.sourceDimensions.width, this.sourceDimensions.height,
+      this.xPos[0], this.yPos, this.dimensions.width, this.dimensions.height);
+    this.canvasCtx.drawImage(this.provider.getRunnerImageSprite(),
+      this.sourceXPos[1], this.spritePos.y,
+      this.sourceDimensions.width, this.sourceDimensions.height,
+      this.xPos[1], this.yPos, this.dimensions.width, this.dimensions.height);
+  }
+
+  updatexPos(pos, increment) {
+    const line1 = pos;
+    const line2 = pos === 0 ? 1 : 0;
+    this.xPos[line1] -= increment;
+    this.xPos[line2] = this.xPos[line1] + this.dimensions.width;
+    if (this.xPos[line1] <= -this.dimensions.width) {
+      this.xPos[line1] += this.dimensions.width * 2;
+      this.xPos[line2] = this.xPos[line1] - this.dimensions.width;
+      this.sourceXPos[line1] = this.getRandomType() + this.spritePos.x;
+    }
+  }
+
+  update(deltaTime, speed) {
+    const increment = Math.floor(speed * (FPS / 1000) * deltaTime);
+    this.updatexPos(this.xPos[0] <= 0 ? 0 : 1, increment);
+    this.draw();
+  }
+
+  reset() {
+    this.xPos[0] = 0;
+    this.xPos[1] = this.dimensions.width;
+  }
+}
+
+// ============================================================
+// 夜晚模式（月亮 + 星星）
+// ============================================================
+const NIGHT_PHASES = [140, 120, 100, 60, 40, 20, 0];
+const NIGHT_CONFIG = {
+  FADE_SPEED: 0.035,
+  HEIGHT: 40,
+  MOON_SPEED: 0.25,
+  NUM_STARS: 2,
+  STAR_SIZE: 9,
+  STAR_SPEED: 0.3,
+  STAR_MAX_Y: 70,
+  WIDTH: 20
+};
+
+class NightMode {
+  constructor(canvas, spritePos, containerWidth, provider) {
+    this.canvasCtx = canvas.getContext('2d');
+    this.spritePos = spritePos;
+    this.provider = provider;
+    this.containerWidth = containerWidth;
+    this.xPos = 0;
+    this.yPos = 30;
+    this.currentPhase = 0;
+    this.opacity = 0;
+    this.drawStars = false;
+    this.stars = new Array(NIGHT_CONFIG.NUM_STARS);
+    this.placeStars();
+  }
+
+  update(activated) {
+    if (activated && this.opacity === 0) {
+      this.currentPhase++;
+      if (this.currentPhase >= NIGHT_PHASES.length) {
+        this.currentPhase = 0;
+      }
+    }
+    if (activated && (this.opacity < 1 || this.opacity === 0)) {
+      this.opacity += NIGHT_CONFIG.FADE_SPEED;
+    } else if (this.opacity > 0) {
+      this.opacity -= NIGHT_CONFIG.FADE_SPEED;
+    }
+    if (this.opacity > 0) {
+      this.xPos = this.updateXpos(this.xPos, NIGHT_CONFIG.MOON_SPEED);
+      if (this.drawStars) {
+        for (let i = 0; i < NIGHT_CONFIG.NUM_STARS; i++) {
+          this.stars[i].x = this.updateXpos(
+            this.stars[i].x, NIGHT_CONFIG.STAR_SPEED);
+        }
+      }
+      this.draw();
+    } else {
+      this.opacity = 0;
+      this.placeStars();
+    }
+    this.drawStars = true;
+  }
+
+  updateXpos(currentPos, speed) {
+    if (currentPos < -NIGHT_CONFIG.WIDTH) {
+      return this.containerWidth;
+    }
+    return currentPos - speed;
+  }
+
+  draw() {
+    let moonSourceWidth =
+      this.currentPhase === 3 ? NIGHT_CONFIG.WIDTH * 2 : NIGHT_CONFIG.WIDTH;
+    const moonSourceHeight = NIGHT_CONFIG.HEIGHT;
+    const phaseOffset = NIGHT_PHASES[this.currentPhase];
+    let moonSourceX = this.spritePos.x + phaseOffset;
+    let starSize = NIGHT_CONFIG.STAR_SIZE;
+    let starSourceX = SPRITE_DEF.ldpi.star.x;
+    const sprite = this.provider.getRunnerImageSprite();
+    if (IS_HIDPI) {
+      moonSourceWidth *= 2;
+      moonSourceX = this.spritePos.x + (phaseOffset * 2);
+      starSize *= 2;
+      starSourceX = SPRITE_DEF.hdpi.star.x;
+    }
+    this.canvasCtx.save();
+    this.canvasCtx.globalAlpha = this.opacity;
+    if (this.drawStars) {
+      for (let i = 0; i < this.stars.length; i++) {
+        const star = this.stars[i];
+        this.canvasCtx.drawImage(sprite,
+          starSourceX, star.sourceY, starSize, starSize,
+          Math.round(star.x), star.y, NIGHT_CONFIG.STAR_SIZE,
+          NIGHT_CONFIG.STAR_SIZE);
+      }
+    }
+    this.canvasCtx.drawImage(sprite,
+      moonSourceX, this.spritePos.y, moonSourceWidth,
+      moonSourceHeight * (IS_HIDPI ? 2 : 1),
+      Math.round(this.xPos), this.yPos,
+      this.currentPhase === 3 ? NIGHT_CONFIG.WIDTH * 2 : NIGHT_CONFIG.WIDTH,
+      NIGHT_CONFIG.HEIGHT);
+    this.canvasCtx.restore();
+    this.canvasCtx.globalAlpha = 1;
+  }
+
+  placeStars() {
+    const segmentSize = Math.round(this.containerWidth /
+      NIGHT_CONFIG.NUM_STARS);
+    for (let i = 0; i < NIGHT_CONFIG.NUM_STARS; i++) {
+      const sourceY = IS_HIDPI ?
+        SPRITE_DEF.hdpi.star.y + NIGHT_CONFIG.STAR_SIZE * 2 * i :
+        SPRITE_DEF.ldpi.star.y + NIGHT_CONFIG.STAR_SIZE * i;
+      this.stars[i] = {
+        x: getRandomNum(segmentSize * i, segmentSize * (i + 1)),
+        y: getRandomNum(0, NIGHT_CONFIG.STAR_MAX_Y),
+        sourceY: sourceY
+      };
+    }
+  }
+
+  reset() {
+    this.currentPhase = 0;
+    this.opacity = 0;
+    this.update(false);
+  }
+}
+
+// ============================================================
+// 计分器
+// ============================================================
+const METER_CONFIG = {
+  WIDTH: 10,
+  HEIGHT: 13,
+  DEST_WIDTH: 11,
+  MAX_DISTANCE_UNITS: 5,
+  ACHIEVEMENT_DISTANCE: 100,
+  COEFFICIENT: 0.025,
+  FLASH_DURATION: 1000 / 4,
+  FLASH_ITERATIONS: 3,
+  HIGH_SCORE_HIT_AREA_PADDING: 4
+};
+
+class DistanceMeter {
+  constructor(canvas, spritePos, canvasWidth, provider) {
+    this.canvas = canvas;
+    this.canvasCtx = canvas.getContext('2d');
+    this.image = provider.getRunnerImageSprite();
+    this.provider = provider;
+    this.spritePos = spritePos;
+    this.canvasWidth = canvasWidth;
+    this.x = 0;
+    this.y = 5;
+    this.maxScore = 0;
+    this.highScore = '';
+    this.digits = [];
+    this.defaultString = '';
+    this.achievement = false;
+    this.flashTimer = 0;
+    this.flashIterations = 0;
+    this.maxScoreUnits = METER_CONFIG.MAX_DISTANCE_UNITS;
+    this.highScoreBounds = null;
+    this.highScoreFlashing = false;
+    this.flashingRafId = null;
+    this.frameTimeStamp = 0;
+    this.init(canvasWidth);
+  }
+
+  init(width) {
+    this.calcXpos(width);
+    let maxDistanceStr = '';
+    for (let i = 0; i < this.maxScoreUnits; i++) {
+      this.draw(i, 0);
+      this.defaultString += '0';
+      maxDistanceStr += '9';
+    }
+    this.maxScore = parseInt(maxDistanceStr, 10);
+  }
+
+  calcXpos(canvasWidth) {
+    this.x = canvasWidth -
+      (METER_CONFIG.DEST_WIDTH * (this.maxScoreUnits + 1));
+  }
+
+  draw(digitPos, value, highScore) {
+    let sourceWidth = METER_CONFIG.WIDTH;
+    const sourceHeight = METER_CONFIG.HEIGHT;
+    let sourceX = METER_CONFIG.WIDTH * value;
+    const sourceY = this.spritePos.y;
+    if (IS_HIDPI) {
+      sourceWidth *= 2;
+      sourceX *= 2;
+    }
+    sourceX += this.spritePos.x;
+    this.canvasCtx.save();
+    const highScoreX = this.x - (this.maxScoreUnits * 2) *
+      METER_CONFIG.WIDTH;
+    this.canvasCtx.translate(highScore ? highScoreX : this.x, this.y);
+    this.canvasCtx.drawImage(this.image,
+      sourceX, sourceY, sourceWidth, sourceHeight * (IS_HIDPI ? 2 : 1),
+      digitPos * METER_CONFIG.DEST_WIDTH, 0,
+      METER_CONFIG.WIDTH, METER_CONFIG.HEIGHT);
+    this.canvasCtx.restore();
+  }
+
+  getActualDistance(distance) {
+    return distance ? Math.round(distance * METER_CONFIG.COEFFICIENT) : 0;
+  }
+
+  update(deltaTime, distance) {
+    let paint = true;
+    let playSound = false;
+    if (!this.achievement) {
+      distance = this.getActualDistance(distance);
+      if (distance > this.maxScore &&
+        this.maxScoreUnits === METER_CONFIG.MAX_DISTANCE_UNITS) {
+        this.maxScoreUnits++;
+        this.maxScore = parseInt(this.maxScore + '9', 10);
+      }
+      if (distance > 0) {
+        if (distance % METER_CONFIG.ACHIEVEMENT_DISTANCE === 0) {
+          this.achievement = true;
+          this.flashTimer = 0;
+          playSound = true;
+        }
+        const distanceStr = (this.defaultString + distance)
+          .substr(-this.maxScoreUnits);
+        this.digits = distanceStr.split('');
+      } else {
+        this.digits = this.defaultString.split('');
+      }
+    } else {
+      if (this.flashIterations <= METER_CONFIG.FLASH_ITERATIONS) {
+        this.flashTimer += deltaTime;
+        if (this.flashTimer < METER_CONFIG.FLASH_DURATION) {
+          paint = false;
+        } else if (this.flashTimer > METER_CONFIG.FLASH_DURATION * 2) {
+          this.flashTimer = 0;
+          this.flashIterations++;
+        }
+      } else {
+        this.achievement = false;
+        this.flashIterations = 0;
+        this.flashTimer = 0;
+      }
+    }
+    if (paint) {
+      for (let i = this.digits.length - 1; i >= 0; i--) {
+        this.draw(i, parseInt(this.digits[i], 10));
+      }
+    }
+    this.drawHighScore();
+    return playSound;
+  }
+
+  drawHighScore() {
+    if (this.highScore.length > 0) {
+      this.canvasCtx.save();
+      this.canvasCtx.globalAlpha = 0.8;
+      for (let i = this.highScore.length - 1; i >= 0; i--) {
+        const characterToDraw = this.highScore[i];
+        let charPos = parseInt(characterToDraw, 10);
+        if (isNaN(charPos)) {
+          if (characterToDraw === 'H') {
+            charPos = 10;
+          } else if (characterToDraw === 'I') {
+            charPos = 11;
+          } else {
+            continue;
+          }
+        }
+        this.draw(i, charPos, true);
+      }
+      this.canvasCtx.restore();
+    }
+  }
+
+  setHighScore(distance) {
+    distance = this.getActualDistance(distance);
+    const highScoreStr = (this.defaultString + distance)
+      .substr(-this.maxScoreUnits);
+    this.highScore = 'HI ' + highScoreStr;
+  }
+
+  hasClickedOnHighScore(e) {
+    let x = 0;
+    let y = 0;
+    if (e instanceof MouseEvent) {
+      x = e.offsetX;
+      y = e.offsetY;
+    } else if (e instanceof TouchEvent && e.touches.length > 0) {
+      const bounds = this.canvas.getBoundingClientRect();
+      x = e.touches[0].clientX - bounds.left;
+      y = e.touches[0].clientY - bounds.top;
+    }
+    this.highScoreBounds = this.getHighScoreBounds();
+    return x >= this.highScoreBounds.x &&
+      x <= this.highScoreBounds.x + this.highScoreBounds.width &&
+      y >= this.highScoreBounds.y &&
+      y <= this.highScoreBounds.y + this.highScoreBounds.height;
+  }
+
+  getHighScoreBounds() {
+    return {
+      x: (this.x - (this.maxScoreUnits * 2) * METER_CONFIG.WIDTH) -
+        METER_CONFIG.HIGH_SCORE_HIT_AREA_PADDING,
+      y: this.y,
+      width: METER_CONFIG.WIDTH * (this.highScore.length + 1) +
+        METER_CONFIG.HIGH_SCORE_HIT_AREA_PADDING,
+      height: METER_CONFIG.HEIGHT +
+        (METER_CONFIG.HIGH_SCORE_HIT_AREA_PADDING * 2)
+    };
+  }
+
+  startHighScoreFlashing() {
+    this.highScoreFlashing = true;
+    this.flashHighScore();
+  }
+
+  flashHighScore() {
+    const now = getTimeStamp();
+    const deltaTime = now - (this.frameTimeStamp || now);
+    let paint = true;
+    this.frameTimeStamp = now;
+    if (this.flashIterations > METER_CONFIG.FLASH_ITERATIONS * 2) {
+      this.cancelHighScoreFlashing();
+      return;
+    }
+    this.flashTimer += deltaTime;
+    if (this.flashTimer < METER_CONFIG.FLASH_DURATION) {
+      paint = false;
+    } else if (this.flashTimer > METER_CONFIG.FLASH_DURATION * 2) {
+      this.flashTimer = 0;
+      this.flashIterations++;
+    }
+    if (paint) {
+      this.drawHighScore();
+    } else {
+      this.clearHighScoreBounds();
+    }
+    this.flashingRafId = requestAnimationFrame(
+      this.flashHighScore.bind(this));
+  }
+
+  clearHighScoreBounds() {
+    if (!this.highScoreBounds) return;
+    this.canvasCtx.save();
+    this.canvasCtx.fillStyle =
+      this.provider.getInverted() ? '#080808' : '#fff';
+    this.canvasCtx.fillRect(
+      this.highScoreBounds.x, this.highScoreBounds.y,
+      this.highScoreBounds.width, this.highScoreBounds.height);
+    this.canvasCtx.restore();
+  }
+
+  isHighScoreFlashing() {
+    return this.highScoreFlashing;
+  }
+
+  cancelHighScoreFlashing() {
+    if (this.flashingRafId) {
+      cancelAnimationFrame(this.flashingRafId);
+    }
+    this.flashIterations = 0;
+    this.flashTimer = 0;
+    this.highScoreFlashing = false;
+    this.clearHighScoreBounds();
+    this.drawHighScore();
+  }
+
+  resetHighScore() {
+    this.setHighScore(0);
+    this.cancelHighScoreFlashing();
+  }
+
+  reset() {
+    this.update(0, 0);
+    this.achievement = false;
+  }
+}
+
+// ============================================================
+// 游戏结束面板
+// ============================================================
+const RESTART_ANIM_DURATION = 875;
+const LOGO_PAUSE_DURATION = 875;
+const RESTART_FRAMES = [0, 36, 72, 108, 144, 180, 216, 252];
+const PANEL_DIMENSIONS = {
+  TEXT_X: 0,
+  TEXT_Y: 13,
+  TEXT_WIDTH: 191,
+  TEXT_HEIGHT: 11,
+  RESTART_WIDTH: 36,
+  RESTART_HEIGHT: 32
+};
+
+class GameOverPanel {
+  constructor(canvas, textImgPos, restartImgPos, dimensions, provider) {
+    this.canvas = canvas;
+    this.canvasCtx = canvas.getContext('2d');
+    this.canvasDimensions = dimensions;
+    this.textImgPos = textImgPos;
+    this.restartImgPos = restartImgPos;
+    this.provider = provider;
+    this.frameTimeStamp = 0;
+    this.animTimer = 0;
+    this.currentFrame = 0;
+    this.gameOverRafId = null;
+  }
+
+  updateDimensions(width, height) {
+    this.canvasDimensions.width = width;
+    if (height) {
+      this.canvasDimensions.height = height;
+    }
+    this.currentFrame = RESTART_FRAMES.length - 1;
+  }
+
+  drawGameOverText() {
+    const dims = PANEL_DIMENSIONS;
+    const centerX = this.canvasDimensions.width / 2;
+    let textSourceX = dims.TEXT_X;
+    let textSourceY = dims.TEXT_Y;
+    let textSourceWidth = dims.TEXT_WIDTH;
+    const textSourceHeight = dims.TEXT_HEIGHT;
+    const textTargetX = Math.round(centerX - (dims.TEXT_WIDTH / 2));
+    const textTargetY = Math.round(
+      (this.canvasDimensions.height - 25) / 3);
+    if (IS_HIDPI) {
+      textSourceX *= 2;
+      textSourceY *= 2;
+      textSourceWidth *= 2;
+    }
+    textSourceX += this.textImgPos.x;
+    textSourceY += this.textImgPos.y;
+    this.canvasCtx.drawImage(this.provider.getRunnerImageSprite(),
+      textSourceX, textSourceY, textSourceWidth,
+      textSourceHeight * (IS_HIDPI ? 2 : 1),
+      textTargetX, textTargetY, dims.TEXT_WIDTH, dims.TEXT_HEIGHT);
+  }
+
+  drawRestartButton() {
+    const dims = PANEL_DIMENSIONS;
+    // clamp out-of-range frames to the last one: when the panel animation
+    // finishes (currentFrame reaches RESTART_FRAMES.length) the final
+    // redraw must keep the complete button, not fall back to frame 0
+    let framePosX = RESTART_FRAMES[
+      Math.min(this.currentFrame, RESTART_FRAMES.length - 1)];
+    let restartSourceWidth = dims.RESTART_WIDTH;
+    const restartSourceHeight = dims.RESTART_HEIGHT;
+    const restartTargetX =
+      (this.canvasDimensions.width / 2) - (dims.RESTART_HEIGHT / 2);
+    const restartTargetY = this.canvasDimensions.height / 2;
+    if (IS_HIDPI) {
+      restartSourceWidth *= 2;
+      framePosX *= 2;
+    }
+    this.canvasCtx.drawImage(this.provider.getRunnerImageSprite(),
+      this.restartImgPos.x + framePosX, this.restartImgPos.y,
+      restartSourceWidth, restartSourceHeight * (IS_HIDPI ? 2 : 1),
+      restartTargetX, restartTargetY,
+      dims.RESTART_WIDTH, dims.RESTART_HEIGHT);
+  }
+
+  draw() {
+    this.drawGameOverText();
+    this.drawRestartButton();
+    this.update();
+  }
+
+  update() {
+    const now = getTimeStamp();
+    const deltaTime = now - (this.frameTimeStamp || now);
+    this.frameTimeStamp = now;
+    this.animTimer += deltaTime;
+    if (this.currentFrame === 0 &&
+      this.animTimer > LOGO_PAUSE_DURATION) {
+      this.animTimer = 0;
+      this.currentFrame++;
+      this.drawRestartButton();
+    } else if (this.currentFrame > 0 &&
+      this.currentFrame < RESTART_FRAMES.length) {
+      if (this.animTimer >= RESTART_ANIM_DURATION /
+        RESTART_FRAMES.length) {
+        this.currentFrame++;
+        this.drawRestartButton();
+      }
+    } else if (this.currentFrame === RESTART_FRAMES.length) {
+      this.reset();
+      return;
+    }
+    this.gameOverRafId = requestAnimationFrame(this.update.bind(this));
+  }
+
+  reset() {
+    if (this.gameOverRafId) {
+      cancelAnimationFrame(this.gameOverRafId);
+      this.gameOverRafId = null;
+    }
+    this.animTimer = 0;
+    this.frameTimeStamp = 0;
+    this.currentFrame = 0;
+  }
+}
+
+// ============================================================
+// 地平线层（云 + 障碍物 + 地平线 + 夜晚）
+// ============================================================
+const HORIZON_CONFIG = {
+  BG_CLOUD_SPEED: 0.2,
+  CLOUD_FREQUENCY: 0.5,
+  MAX_CLOUDS: 6
+};
+
+class Horizon {
+  constructor(canvas, spriteDef, dimensions, gapCoefficient, provider) {
+    this.canvas = canvas;
+    this.canvasCtx = canvas.getContext('2d');
+    this.dimensions = dimensions;
+    this.gapCoefficient = gapCoefficient;
+    this.provider = provider;
+    this.spriteDef = spriteDef;
+    this.cloudFrequency = HORIZON_CONFIG.CLOUD_FREQUENCY;
+    this.cloudSpeed = HORIZON_CONFIG.BG_CLOUD_SPEED;
+    this.obstacles = [];
+    this.clouds = [];
+    this.obstacleHistory = [];
+    this.horizonLines = [];
+    this.addCloud();
+    this.horizonLines.push(new HorizonLine(
+      canvas, HORIZON_LINE_CONFIG, provider));
+    this.nightMode = new NightMode(
+      canvas, spriteDef.moon, dimensions.height, provider);
+  }
+
+  update(deltaTime, currentSpeed, updateObstacles, showNightMode) {
+    for (const line of this.horizonLines) {
+      line.update(deltaTime, currentSpeed);
+    }
+    this.nightMode.update(showNightMode);
+    this.updateClouds(deltaTime, currentSpeed);
+    if (updateObstacles) {
+      this.updateObstacles(deltaTime, currentSpeed);
+    }
+  }
+
+  updateClouds(deltaTime, speed) {
+    const elSpeed = this.cloudSpeed / 1000 * deltaTime * speed;
+    this.updateBackgroundEl(elSpeed, this.clouds,
+      HORIZON_CONFIG.MAX_CLOUDS, this.addCloud.bind(this),
+      this.cloudFrequency);
+    this.clouds = this.clouds.filter((obj) => !obj.remove);
+  }
+
+  updateBackgroundEl(elSpeed, elArray, maxEl, addFunction, frequency) {
+    const numElements = elArray.length;
+    if (!numElements) {
+      addFunction();
+      return;
+    }
+    for (let i = numElements - 1; i >= 0; i--) {
+      elArray[i].update(elSpeed);
+    }
+    const lastEl = elArray[elArray.length - 1];
+    if (numElements < maxEl &&
+      (this.dimensions.width - lastEl.xPos) > lastEl.gap &&
+      frequency > Math.random()) {
+      addFunction();
+    }
+  }
+
+  updateObstacles(deltaTime, currentSpeed) {
+    const updatedObstacles = this.obstacles.slice(0);
+    for (const obstacle of this.obstacles) {
+      obstacle.update(deltaTime, currentSpeed);
+      if (obstacle.remove) {
+        updatedObstacles.shift();
+      }
+    }
+    this.obstacles = updatedObstacles;
+    if (this.obstacles.length > 0) {
+      const lastObstacle = this.obstacles[this.obstacles.length - 1];
+      if (lastObstacle && !lastObstacle.followingObstacleCreated &&
+        lastObstacle.isVisible() &&
+        (lastObstacle.xPos + lastObstacle.width + lastObstacle.gap) <
+        this.dimensions.width) {
+        this.addNewObstacle(currentSpeed);
+        lastObstacle.followingObstacleCreated = true;
+      }
+    } else {
+      this.addNewObstacle(currentSpeed);
+    }
+  }
+
+  addNewObstacle(currentSpeed) {
+    const obstacleTypeIndex =
+      getRandomNum(0, OBSTACLE_TYPES.length - 1);
+    const obstacleType = OBSTACLE_TYPES[obstacleTypeIndex];
+    if ((obstacleTypeIndex > 0 &&
+        this.duplicateObstacleCheck(obstacleType.type)) ||
+      currentSpeed < obstacleType.minSpeed) {
+      this.addNewObstacle(currentSpeed);
+    } else {
+      const spritePos = this.spriteDef[obstacleType.type];
+      this.obstacles.push(new Obstacle(
+        this.canvasCtx, obstacleType, spritePos, this.dimensions,
+        this.gapCoefficient, currentSpeed, this.provider));
+      this.obstacleHistory.unshift(obstacleType.type);
+      if (this.obstacleHistory.length > 1) {
+        this.obstacleHistory.splice(
+          this.provider.getConfig().maxObstacleDuplication);
+      }
+    }
+  }
+
+  duplicateObstacleCheck(nextObstacleType) {
+    let duplicateCount = 0;
+    for (const obstacleType of this.obstacleHistory) {
+      duplicateCount =
+        obstacleType === nextObstacleType ? duplicateCount + 1 : 0;
+    }
+    return duplicateCount >=
+      this.provider.getConfig().maxObstacleDuplication;
+  }
+
+  addCloud() {
+    this.clouds.push(new Cloud(
+      this.canvas, this.spriteDef.cloud, this.dimensions.width,
+      this.provider));
+  }
+
+  reset() {
+    this.obstacles = [];
+    this.obstacleHistory = [];
+    for (const line of this.horizonLines) {
+      line.reset();
+    }
+    this.nightMode.reset();
+  }
+}
+
+// ============================================================
+// 主 Runner
+// ============================================================
+const KEYCODES = {
+  JUMP: {'38': 1, '32': 1},
+  DUCK: {'40': 1},
+  RESTART: {'13': 1}
+};
+
+class Runner {
+  constructor(outerContainerId) {
+    if (Runner.instance_) {
+      return Runner.instance_;
+    }
+    Runner.instance_ = this;
+    this.outerContainerEl = document.querySelector(outerContainerId);
+    this.config = Object.assign({}, BASE_CONFIG);
+    this.dimensions = {width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT};
+    this.currentSpeed = this.config.speed;
+    this.time = 0;
+    this.runningTime = 0;
+    this.distanceRan = 0;
+    this.highestScore = 0;
+    this.raqId = 0;
+    this.playCount = 0;
+    this.activated = false;
+    this.playing = false;
+    this.playingIntro = false;
+    this.crashed = false;
+    this.paused = false;
+    this.inverted = false;
+    this.invertTimer = 0;
+    this.invertTrigger = false;
+    this.updatePending = false;
+    this.debug = /[?&]debug=1/.test(location.search);
+    this.containerEl = null;
+    this.canvas = null;
+    this.canvasCtx = null;
+    this.imageSprite = null;
+    this.horizon = null;
+    this.distanceMeter = null;
+    this.tRex = null;
+    this.gameOverPanel = null;
+    this.loadImages();
+  }
+
+  getConfig() {
+    return this.config;
+  }
+
+  getRunnerImageSprite() {
+    return this.imageSprite;
+  }
+
+  getSpriteDefinition() {
+    return {
+      obstacles: OBSTACLE_TYPES,
+      lines: [HORIZON_LINE_CONFIG]
+    };
+  }
+
+  loadImages() {
+    this.imageSprite = new Image();
+    this.imageSprite.src = IS_HIDPI ? SPRITE_2X : SPRITE_1X;
+    if (this.imageSprite.complete) {
+      this.init();
+    } else {
+      this.imageSprite.addEventListener('load', () => this.init());
+      this.imageSprite.addEventListener('error', () => {
+        this.imageSprite.src = SPRITE_1X;
+      });
+    }
+  }
+
+  init() {
+    this.adjustDimensions();
+    this.setSpeed();
+    this.containerEl = document.getElementById('runner-container');
+    this.canvas = document.getElementById('runner-canvas');
+    this.canvasCtx = this.canvas.getContext('2d');
+    this.canvasCtx.fillStyle = '#f7f7f7';
+    this.canvasCtx.fillRect(0, 0, this.dimensions.width,
+      this.dimensions.height);
+    updateCanvasScaling(this.canvas, this.dimensions.width,
+      this.dimensions.height);
+
+    const spriteDef = IS_HIDPI ? SPRITE_DEF.hdpi : SPRITE_DEF.ldpi;
+    this.horizon = new Horizon(this.canvas, spriteDef, this.dimensions,
+      this.config.gapCoefficient, this);
+    this.distanceMeter = new DistanceMeter(this.canvas,
+      spriteDef.textSprite, this.dimensions.width, this);
+    this.tRex = new Trex(this.canvas, spriteDef.tRex, this);
+
+    // 载入本地高分
+    const saved = parseInt(localStorage.getItem('tRexRunnerHighScore'), 10);
+    if (!isNaN(saved) && saved > 0) {
+      this.highestScore = saved;
+      this.distanceMeter.setHighScore(saved);
+    }
+
+    this.containerEl.addEventListener('animationend', (e) => {
+      if (e.animationName === 'dino-intro') {
+        this.startGame();
+      }
+    });
+    this.containerEl.addEventListener('webkitAnimationEnd', (e) => {
+      if (e.animationName === 'dino-intro') {
+        this.startGame();
+      }
+    });
+
+    this.startListening();
+    this.update();
+    window.addEventListener('resize', this.debounceResize.bind(this));
+  }
+
+  debounceResize() {
+    if (this.resizeTimerId === undefined) {
+      this.resizeTimerId = setInterval(
+        this.adjustDimensions.bind(this), 250);
+    }
+  }
+
+  adjustDimensions() {
+    clearInterval(this.resizeTimerId);
+    this.resizeTimerId = undefined;
+    if (!this.canvas) return;
+    this.dimensions.width = DEFAULT_WIDTH;
+    this.canvas.width = DEFAULT_WIDTH;
+    this.canvas.height = DEFAULT_HEIGHT;
+    updateCanvasScaling(this.canvas, this.dimensions.width,
+      this.dimensions.height);
+    this.distanceMeter.calcXpos(this.dimensions.width);
+    this.clearCanvas();
+    this.horizon.update(0, 0, true, false);
+    this.tRex.update(0);
+    if (this.playing || this.crashed || this.paused) {
+      this.containerEl.style.width = this.dimensions.width + 'px';
+      this.distanceMeter.update(0, Math.ceil(this.distanceRan));
+      this.stop();
+    } else {
+      this.tRex.draw(0, 0);
+    }
+    if (this.crashed && this.gameOverPanel) {
+      this.gameOverPanel.updateDimensions(this.dimensions.width);
+      this.gameOverPanel.draw();
+    }
+  }
+
+  setSpeed(optSpeed) {
+    const speed = optSpeed || this.currentSpeed;
+    if (this.dimensions.width < DEFAULT_WIDTH) {
+      const mobileSpeed = speed * this.dimensions.width /
+        DEFAULT_WIDTH * this.config.mobileSpeedCoefficient;
+      this.currentSpeed = mobileSpeed > speed ? speed : mobileSpeed;
+    } else if (optSpeed) {
+      this.currentSpeed = optSpeed;
+    }
+  }
+
+  playIntro() {
+    if (!this.activated && !this.crashed) {
+      this.playingIntro = true;
+      this.tRex.playingIntro = true;
+      this.containerEl.classList.add('intro');
+      this.containerEl.style.width = this.dimensions.width + 'px';
+      this.activated = true;
+    } else if (this.crashed) {
+      this.restart();
+    }
+  }
+
+  startGame() {
+    this.runningTime = 0;
+    this.playingIntro = false;
+    this.tRex.playingIntro = false;
+    this.playCount++;
+    // 游戏开始后才监听页面失焦/恢复
+    document.addEventListener('visibilitychange',
+      this.onVisibilityChange.bind(this));
+    window.addEventListener('blur', this.onVisibilityChange.bind(this));
+    window.addEventListener('focus', this.onVisibilityChange.bind(this));
+  }
+
+  clearCanvas() {
+    this.canvasCtx.clearRect(0, 0, this.dimensions.width,
+      this.dimensions.height);
+    this.canvasCtx.fillStyle = this.inverted ? '#080808' : '#f7f7f7';
+    this.canvasCtx.fillRect(0, 0, this.dimensions.width,
+      this.dimensions.height);
+  }
+
+  update() {
+    this.updatePending = false;
+    const now = getTimeStamp();
+    let deltaTime = now - (this.time || now);
+    this.time = now;
+    if (this.playing) {
+      this.canvasCtx.filter = 'none';
+      this.clearCanvas();
+      if (this.inverted) {
+        this.canvasCtx.filter = 'invert(1)';
+      }
+      if (this.tRex.jumping) {
+        this.tRex.updateJump(deltaTime);
+      }
+      this.runningTime += deltaTime;
+      const hasObstacles = this.runningTime > this.config.clearTime;
+      if (this.tRex.jumpCount === 1 && !this.playingIntro) {
+        this.playIntro();
+      }
+      if (this.playingIntro) {
+        this.horizon.update(0, this.currentSpeed, hasObstacles, false);
+      } else if (!this.crashed) {
+        const showNightMode = this.inverted;
+        deltaTime = !this.activated ? 0 : deltaTime;
+        this.horizon.update(deltaTime, this.currentSpeed, hasObstacles,
+          showNightMode);
+      }
+      const firstObstacle = this.horizon.obstacles[0];
+      let collision = hasObstacles && firstObstacle &&
+        this.checkForCollision(firstObstacle, this.tRex);
+      if (!collision) {
+        this.distanceRan += this.currentSpeed * deltaTime /
+          MS_PER_FRAME;
+        if (this.currentSpeed < this.config.maxSpeed) {
+          this.currentSpeed += this.config.acceleration;
+        }
+      } else {
+        this.gameOver();
+      }
+      const playAchievementSound = this.distanceMeter.update(deltaTime,
+        Math.ceil(this.distanceRan));
+      if (playAchievementSound) {
+        playSound('SCORE');
+      }
+      // 夜晚模式：每 700 分进入，持续 12 秒
+      if (this.invertTimer > this.config.invertFadeDuration) {
+        this.invertTimer = 0;
+        this.invertTrigger = false;
+        this.invert(false);
+      } else if (this.invertTimer) {
+        this.invertTimer += deltaTime;
+      } else {
+        const actualDistance = this.distanceMeter.getActualDistance(
+          Math.ceil(this.distanceRan));
+        if (actualDistance > 0) {
+          this.invertTrigger =
+            !(actualDistance % this.config.invertDistance);
+          if (this.invertTrigger && this.invertTimer === 0) {
+            this.invertTimer += deltaTime;
+            this.invert(false);
+          }
+        }
+      }
+      this.canvasCtx.filter = 'none';
+    }
+    if (this.playing ||
+      (!this.activated &&
+        this.tRex.blinkCount < this.config.maxBlinkCount)) {
+      this.tRex.update(deltaTime);
+      this.scheduleNextUpdate();
+    }
+  }
+
+  scheduleNextUpdate() {
+    if (!this.updatePending) {
+      this.updatePending = true;
+      this.raqId = requestAnimationFrame(this.update.bind(this));
+    }
+  }
+
+  isRunning() {
+    return !!this.raqId;
+  }
+
+  checkForCollision(obstacle, tRex) {
+    const tRexBox = new CollisionBox(
+      tRex.xPos + 1, tRex.yPos + 1,
+      tRex.config.width - 2, tRex.config.height - 2);
+    const obstacleBox = new CollisionBox(
+      obstacle.xPos + 1, obstacle.yPos + 1,
+      obstacle.typeConfig.width * obstacle.size - 2,
+      obstacle.typeConfig.height - 2);
+    if (this.debug) {
+      drawCollisionBoxes(this.canvasCtx, tRexBox, obstacleBox);
+    }
+    if (boxCompare(tRexBox, obstacleBox)) {
+      for (const tRexBoxes of tRex.getCollisionBoxes()) {
+        for (const obstacleBoxes of obstacle.collisionBoxes) {
+          const adjTrexBox =
+            createAdjustedCollisionBox(tRexBoxes, tRexBox);
+          const adjObstacleBox =
+            createAdjustedCollisionBox(obstacleBoxes, obstacleBox);
+          const crashed = boxCompare(adjTrexBox, adjObstacleBox);
+          if (this.debug) {
+            drawCollisionBoxes(this.canvasCtx,
+              adjTrexBox, adjObstacleBox);
+          }
+          if (crashed) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  handleGameOverClicks(e) {
+    if (e.target && e.target.id === 'sound-toggle') {
+      return;
+    }
+    if (this.distanceMeter.hasClickedOnHighScore(e) &&
+      this.highestScore) {
+      if (this.distanceMeter.isHighScoreFlashing()) {
+        this.saveHighScore(0, true);
+        this.distanceMeter.resetHighScore();
+      } else {
+        this.distanceMeter.startHighScoreFlashing();
+      }
+    } else {
+      this.distanceMeter.cancelHighScoreFlashing();
+      this.restart();
+    }
+  }
+
+  isLeftClickOnCanvas(e) {
+    return e.type === 'pointerup' && e.button != null &&
+      e.button < 2 && e.target === this.canvas;
+  }
+
+  onKeyDown(e) {
+    const jumpKey = KEYCODES.JUMP[String(e.keyCode)];
+    const isTouchStart = e.type === 'touchstart';
+    if (!this.crashed && !this.paused) {
+      if (jumpKey || isTouchStart) {
+        e.preventDefault();
+        if (!this.playing) {
+          loadSounds();
+          this.setPlayStatus(true);
+          this.update();
+        }
+        if (!this.tRex.jumping && !this.tRex.ducking) {
+          playSound('BUTTON_PRESS');
+          this.tRex.startJump(this.currentSpeed);
+        }
+      } else if (this.playing && KEYCODES.DUCK[String(e.keyCode)]) {
+        e.preventDefault();
+        if (this.tRex.jumping) {
+          this.tRex.setSpeedDrop();
+        } else if (!this.tRex.ducking) {
+          this.tRex.setDuck(true);
+        }
+      }
+    }
+  }
+
+  onKeyUp(e) {
+    const keyCode = e.keyCode;
+    const isJumpKey = KEYCODES.JUMP[String(keyCode)] ||
+      e.type === 'touchend' || e.type === 'pointerup';
+    if (this.isRunning() && isJumpKey) {
+      this.tRex.endJump();
+    } else if (KEYCODES.DUCK[String(keyCode)]) {
+      this.tRex.speedDrop = false;
+      this.tRex.setDuck(false);
+    } else if (this.crashed) {
+      const deltaTime = getTimeStamp() - this.time;
+      if (KEYCODES.RESTART[String(keyCode)] ||
+        this.isLeftClickOnCanvas(e) ||
+        (deltaTime >= this.config.gameoverClearTime && isJumpKey)) {
+        this.handleGameOverClicks(e);
+      }
+    } else if (this.paused && isJumpKey) {
+      this.tRex.reset();
+      this.play();
+    }
+  }
+
+  startListening() {
+    document.addEventListener('keydown', this.onKeyDown.bind(this));
+    document.addEventListener('keyup', this.onKeyUp.bind(this));
+    this.containerEl.addEventListener('touchstart', this.onKeyDown.bind(this), {
+      passive: false
+    });
+    document.addEventListener('pointerup', this.onKeyUp.bind(this));
+    this.containerEl.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+    }, {passive: false});
+  }
+
+  setPlayStatus(isPlaying) {
+    this.playing = isPlaying;
+  }
+
+  gameOver() {
+    playSound('HIT');
+    if (navigator.vibrate) {
+      try {
+        navigator.vibrate(200);
+      } catch (e) {}
+    }
+    this.stop();
+    this.crashed = true;
+    this.distanceMeter.achievement = false;
+    this.tRex.update(100, Status.CRASHED);
+    if (!this.gameOverPanel) {
+      const spriteDef = IS_HIDPI ? SPRITE_DEF.hdpi : SPRITE_DEF.ldpi;
+      this.gameOverPanel = new GameOverPanel(this.canvas,
+        spriteDef.textSprite, spriteDef.restart, this.dimensions, this);
+    } else {
+      this.gameOverPanel.draw();
+    }
+    this.gameOverPanel.draw();
+    if (this.distanceRan > this.highestScore) {
+      this.saveHighScore(this.distanceRan);
+    }
+    this.time = getTimeStamp();
+  }
+
+  stop() {
+    this.setPlayStatus(false);
+    this.paused = true;
+    cancelAnimationFrame(this.raqId);
+    this.raqId = 0;
+  }
+
+  play() {
+    if (!this.crashed) {
+      this.setPlayStatus(true);
+      this.paused = false;
+      this.tRex.update(0, Status.RUNNING);
+      this.time = getTimeStamp();
+      this.update();
+    }
+  }
+
+  restart() {
+    if (!this.raqId) {
+      this.playCount++;
+      this.runningTime = 0;
+      this.setPlayStatus(true);
+      this.paused = false;
+      this.crashed = false;
+      this.distanceRan = 0;
+      this.setSpeed(this.config.speed);
+      this.time = getTimeStamp();
+      this.clearCanvas();
+      this.distanceMeter.reset();
+      this.horizon.reset();
+      this.tRex.reset();
+      playSound('BUTTON_PRESS');
+      this.invert(true);
+      this.update();
+      this.gameOverPanel.reset();
+    }
+  }
+
+  onVisibilityChange(e) {
+    if (document.hidden || document.visibilityState !== 'visible' ||
+      e.type === 'blur') {
+      this.stop();
+    } else if (!this.crashed) {
+      this.tRex.reset();
+      this.play();
+    }
+  }
+
+  saveHighScore(distanceRan, resetScore) {
+    this.highestScore = Math.ceil(distanceRan);
+    this.distanceMeter.setHighScore(this.highestScore);
+    try {
+      if (resetScore) {
+        localStorage.removeItem('tRexRunnerHighScore');
+      } else {
+        localStorage.setItem('tRexRunnerHighScore',
+          String(this.highestScore));
+      }
+    } catch (e) {}
+  }
+
+  invert(reset) {
+    if (reset) {
+      this.invertTimer = 0;
+      this.inverted = false;
+    } else {
+      this.inverted = this.invertTrigger;
+    }
+  }
+
+  getInverted() {
+    return this.inverted;
+  }
+}
+
+function updateCanvasScaling(canvas, width, height) {
+  const context = canvas.getContext('2d');
+  const devicePixelRatio = Math.floor(window.devicePixelRatio) || 1;
+  canvas.width = width * devicePixelRatio;
+  canvas.height = height * devicePixelRatio;
+  canvas.style.width = width + 'px';
+  canvas.style.height = height + 'px';
+  context.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+}
+
+// ============================================================
+// 启动
+// ============================================================
+window.Runner = Runner;
+const runner = new Runner('#runner-container');
+
+// 响应式缩放
+function fitStage() {
+  const stage = document.getElementById('stage');
+  const scale = Math.min(1, (window.innerWidth - 24) / 600);
+  stage.style.transform = 'scale(' + scale + ')';
+}
+window.addEventListener('resize', fitStage);
+fitStage();
+
+// 音效开关
+const soundToggle = document.getElementById('sound-toggle');
+function updateSoundToggle() {
+  soundToggle.textContent = soundEnabled ? '🔊 音效开' : '🔇 音效关';
+}
+soundToggle.addEventListener('click', () => {
+  soundEnabled = !soundEnabled;
+  localStorage.setItem('tRexRunnerSound', soundEnabled ? '1' : '0');
+  updateSoundToggle();
+  soundToggle.blur();
+});
+updateSoundToggle();
+
+})();
+</script>
+</body>
+</html>

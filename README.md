@@ -1,0 +1,191 @@
+# pilog — 像素风静态博客框架
+
+轻量、美观、面向 Obsidian 工作流的静态博客生成器。读取 `blogs/` 目录下的 Markdown，生成带**卡片 / 清单 / 图谱**三种视图的静态站点；主题复刻 Chrome 断网页小恐龙的像素美学（灰白底、锐利直角、无多余圆角）。
+
+![主题预览](docs/preview-cards.png)
+
+## 特性
+
+- **三种视图**：卡片（含手动/自动预览与预览图）、清单（Windows 式文件树）、图谱（力导向关系图，目录层级为实线箭头、文章引用为蓝色虚线箭头）；
+- **图谱细节**：节点加大、长标题末尾以 `...` 自适应截断（悬停显示完整标题）；代表站点的根节点为白底描边 + 像素小恐龙，不再是一块黑色方块；
+- **贪吃蛇彩蛋**：图谱外沿有一条像素贪吃蛇，沿节点云的外包络线无限巡逻，始终与节点/连线保持安全间距；节点被拖到它附近时它会“逃跑”，工具栏有开关可随时显隐；
+- **回到首页默认卡片视图**：从任何页面返回首页都显示卡片视图；只有带 `#view-tree` / `#view-graph` 的显式深链接（如导航里的目录项）才会直接打开对应视图；
+- **卡片分页**：超过 `cards_per_page`（默认 12）自动生成 `page/2.html`… 静态分页页，带页码导航；
+- **默认折叠**：文章超过 `collapse_threshold`（默认 25）后，清单视图与图谱视图会默认折叠文章较多（≥4 篇）的叶子目录，单击目录节点或文件夹即可按需展开；
+- **搜索**：页头搜索框支持标题 / 全文 / 标签检索（`/` 快捷键聚焦），输入即出下拉结果；
+- **置顶与高亮**：front matter 里 `pin: true` 的文章在卡片视图置顶显示（带「置顶」徽章）；`highlight: true` 的文章在卡片、清单、图谱三种视图中都带黄色描边；
+- **Markdown 高度支持**：表格、脚注、任务列表、目录锚点、服务端 Pygments 代码高亮（几乎所有语言）、等宽代码字体；
+- **Obsidian 语法**：`![[图片.png]]`、`[[文章]]`、`![[图片.png|300]]` 均原生支持，也支持 Markdown 原生相对/绝对路径图片；
+- **图片工作台**：本地拖入图片即导入，支持缩放、裁剪、旋转、替换、删除，并一键复制引用片段；
+- **导航自定义**：`blogs/nav.md` 决定导航栏内容（支持多级下拉）；
+- **giscus 评论 + RSS**：`config.json` 填好仓库即可开启评论，`rss.xml` 自动生成；
+- **社交图标**：GitHub / X / Bilibili / 微博 / 邮箱，配置后显示在页头；
+- **小恐龙彩蛋**：复刻版 Chrome 断网小恐龙游戏固定在页面右下角，配色即本站主题；
+- **GitHub Pages 就绪**：所有内部链接按页面相对路径计算，部署在 `meredith2328.github.io/blogtest` 这类子目录下也不会迷路。
+
+## 目录结构
+
+```
+pilog/
+├── blogs/                 # 博客源目录（可直接作为 Obsidian 仓库打开）
+│   ├── nav.md             # 导航栏（一个 Markdown 文件）
+│   ├── about.md           # 示例文章（根级文章）
+│   ├── assets/            # 全局图片（![[xx.png]] 会在这里查找）
+│   └── posts/             # 文章按目录归类，目录即层级
+│       ├── tech/          #   └─ 技术主题
+│       └── notes/         #   └─ 随笔主题
+├── config.json            # 站点配置
+├── build.py               # 构建脚本
+├── serve.py               # 本地开发服务器 + 图片工作台
+├── generator/             # 生成器源码（模板/样式/脚本）
+├── tools/                 # 辅助工具（封面生成/截图/路径测试）
+├── dino/                  # 小恐龙游戏（构建时复制进站点）
+├── site/                  # 生成结果，提交到 GitHub
+└── .github/workflows/     # GitHub Actions 部署
+```
+
+## 快速开始
+
+```powershell
+# 进入项目目录（本仓库约定使用 moni 环境运行 Python）
+conda activate moni
+
+# 构建静态站点
+python build.py
+
+# 本地预览 + 自动重建
+python serve.py --watch
+# 打开 http://127.0.0.1:8000/
+
+# 图片工作台
+# 打开 http://127.0.0.1:8000/manager
+```
+
+## 写作工作流（Obsidian）
+
+1. 用 Obsidian 打开 `blogs/` 目录作为仓库；
+2. 新建 `.md` 文件，例如 `blogs/posts/tech/我的文章.md`；
+3. 可选 front matter：
+
+   ```yaml
+   ---
+   title: 我的文章
+   date: 2026-08-01
+   tags: [tech, 随笔]
+   preview: 手动指定的预览内容，支持 Markdown。
+   preview_image: assets/封面.png
+   draft: false
+   ---
+   ```
+
+   - 不写 `title` 时取正文第一个标题；不写 `date` 时取文件修改时间；
+   - 不写 `preview` 时自动截取正文（自动跳过标题、代码块、表格、脚注，只保留有信息量的段落）；
+   - `preview_image` 不填时使用正文第一张图片，都没有则生成一张随机的像素占位图；
+   - 不写 `tags` 时，卡片会以目录路径（如 `posts/tech`）作为层级标签展示。
+4. 图片引用三种写法都可以：
+
+   ```markdown
+   ![本地相对路径](assets/封面.png)
+   ![[Obsidian 全局引用.png]]
+   ![[指定宽度.png|300]]
+   ```
+
+5. 文章互相引用（会在图谱中生成虚线箭头）：
+
+   ```markdown
+   [Markdown 速查表](markdown-cheatsheet.md)
+   [[另一篇文章]]
+   [[另一篇文章#章节]]
+   ```
+
+6. 运行 `python build.py`（或开着 `serve.py --watch` 自动重建），检查效果后提交。
+
+   另外两个可选 front matter 字段：`pin: true` 让文章在卡片视图置顶；`highlight: true` 给文章加黄色描边（三种视图都显示）。
+
+## 图片工作台（/manager）
+
+拖拽导入、缩放、裁剪、旋转、替换、删除，全在浏览器里完成：
+
+1. 左侧选择目标目录（如 `assets` 或某篇文章所在目录）；
+2. 把图片拖进中间的虚线区域（勾选「覆盖同名文件」可替换已有图片）；
+3. 点选缩略图进入编辑器：拖动蓝色选框裁剪、滑块缩放、选择输出倍率（0.5×–3×）；
+4. 「保存裁剪 / 缩放保存 / 旋转 / 另存为 / 替换 / 删除」即可；
+5. 底部两个片段框分别复制 Obsidian 风格 `![[xx.png]]` 与 Markdown 相对路径引用，粘贴进文章即可。
+
+## 导航栏（nav.md）
+
+`blogs/nav.md` 是一个普通 Markdown 文件，构建时解析其中的链接列表作为导航栏，支持嵌套子菜单：
+
+```markdown
+# 导航
+
+- [首页](/)
+- [关于](about.md)
+- [技术](posts/tech/)
+  - [Markdown 速查表](posts/tech/markdown-cheatsheet.md)
+- [恐龙游戏](dino/)
+```
+
+导航中的 `首页`（`/`）会解析为**页面相对链接**，在任何部署路径（包括本地预览、`/blogtest` 子目录）下都能正确回到主页；其他 `/` 开头的绝对链接会自动带上 `config.json` 里的 `base_path`。目录链接若没有 `index.md`，会跳到主页的「清单视图」对应位置。
+
+## 配置（config.json）
+
+```jsonc
+{
+  "site": {
+    "title": "MEREDITH'S LOG",        // 站点名
+    "subtitle": "pixel · minimal · notes",
+    "author": "Meredith",
+    "base_path": "/blogtest",         // 部署在子目录时填，如 meredith2328.github.io/blogtest
+    "site_url": "https://meredith2328.github.io/blogtest", // 绝对地址，RSS/OG 用
+    "use_google_fonts": true,         // 网络受限时改为 false，使用系统字体
+    "show_dino": true,                // 右下角小恐龙
+    "cards_per_page": 12,             // 卡片视图每页数量
+    "collapse_threshold": 25          // 超过该文章数时，清单/图谱默认折叠大目录
+  },
+  "giscus": {                         // 评论（GitHub Discussions）
+    "enabled": true,
+    "repo": "meredith2328/blogtest",
+    "repo_id": "...",                 // 在 https://giscus.app 获取
+    "category": "Announcements",
+    "category_id": "..."
+  },
+  "socials": {
+    "github": "https://github.com/meredith2328",
+    "x": "", "bilibili": "", "weibo": "", "email": "",
+    "rss": true
+  }
+}
+```
+
+## 构建与部署（GitHub Pages）
+
+1. 修改 `config.json` 中的 `base_path` 与 `site_url`；
+2. `python build.py` 生成 `site/`；
+3. 用 GitHub Desktop 提交全部更改（包括 `site/`）；
+4. 在仓库 Settings → Pages 中选择 **Deploy from a branch 之外的 Actions 方式**（仓库已自带 `.github/workflows/deploy.yml`，推送后自动部署）；
+5. 打开 `https://<用户名>.github.io/<仓库名>/` 验证。
+
+### 关于相对路径的坑（重要）
+
+如果你的博客部署在 `meredith2328.github.io/blogtest` 子目录，最常见的错误是「从子页面点回首页跳到了 `meredith2328.github.io` 根目录」。pilog 的解法：
+
+- **所有内部链接都在构建时按页面计算为相对路径**（如文章页里的 `../../index.html`），与部署位置无关，天然支持子目录；
+- 你写的 `/assets/xx.png` 这类根路径链接，会被自动加上 `base_path` 前缀（如 `/blogtest/assets/xx.png`）；
+- `site_url` 请务必填写**完整地址（含子目录）**，RSS 与分享卡片才不会出错。
+
+## 常见问题
+
+**文章很多（100+）会卡吗？** 实测 100 篇文章规模：构建约 1.4s、首页 204KB、卡片视图首屏约 1s、清单视图展开全部约 50ms、图谱布局+预热约 150ms、贪吃蛇运行时保持 60fps。图谱在 100 篇量级节点会超出首屏可视区（文字保持可读，可滚轮缩放/平移或用目录折叠），属于预期行为。
+
+**`![[图片]]` 找不到？** 图片按以下顺序查找：文章同目录 → `blogs/` 根目录 → `blogs/assets/` → 任意名为 `assets` 的目录。建议统一放在 `blogs/assets/`。
+
+**`[[文章]]` 链接解析规则？** 同目录下同名的文章优先；全仓库唯一时直接匹配；重名时请写成 `目录/文章` 形式。
+
+**想换字体或配色？** 主题样式集中在 `generator/static/css/style.css` 顶部的 CSS 变量里（`--paper`、`--ink`、`--accent` 等）。
+
+**想关掉 Google Fonts？** `config.json` 里 `use_google_fonts: false`，回退到系统字体（Windows 上为 Segoe UI + 微软雅黑，代码为 Cascadia Code/Consolas）。
+
+## 许可
+
+代码与主题为 MIT 许可（见 [LICENSE](LICENSE)）。小恐龙精灵图与音效来自 Chromium 项目（BSD-3-Clause），游戏逻辑参考 [wayou/t-rex-runner](https://github.com/wayou/t-rex-runner)（MIT），详见 `dino/README.md`。

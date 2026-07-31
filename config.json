@@ -1,0 +1,36 @@
+{
+  "site": {
+    "title": "MEREDITH'S LOG",
+    "subtitle": "pixel · minimal · notes",
+    "author": "Meredith",
+    "language": "zh-CN",
+    "blog_dir": "blogs",
+    "out_dir": "site",
+    "base_path": "/blogtest",
+    "site_url": "https://meredith2328.github.io/blogtest",
+    "use_google_fonts": true,
+    "footer_text": "© 2026 Meredith — built with pilog",
+    "show_dino": true
+  },
+  "giscus": {
+    "enabled": false,
+    "repo": "meredith2328/blogtest",
+    "repo_id": "",
+    "category": "Announcements",
+    "category_id": "",
+    "mapping": "pathname",
+    "strict": "0",
+    "reactions": "1",
+    "emit_metadata": "0",
+    "input_position": "top",
+    "lang": "zh-CN"
+  },
+  "socials": {
+    "github": "https://github.com/meredith2328",
+    "x": "",
+    "bilibili": "",
+    "weibo": "",
+    "email": "",
+    "rss": true
+  }
+}

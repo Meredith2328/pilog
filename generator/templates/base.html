@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="{{ site.language or 'zh-CN' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="pilog">
+  <title>{% block title %}{{ page_title }}{% endblock %} · {{ site.title }}</title>
+  <meta name="description" content="{{ description or site.subtitle }}">
+  <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+  <meta property="og:site_name" content="{{ site.title }}">
+  <meta property="og:title" content="{% block og_title %}{{ page_title }} · {{ site.title }}{% endblock %}">
+  <meta property="og:description" content="{{ description or site.subtitle }}">
+  {% if canonical %}<link rel="canonical" href="{{ canonical }}">{% endif %}
+  {% block og_extra %}{% endblock %}
+  <link rel="icon" href="{{ root }}favicon.png">
+  <link rel="apple-touch-icon" href="{{ root }}favicon.png">
+  <link rel="alternate" type="application/rss+xml" title="{{ site.title }} · RSS" href="{{ root }}rss.xml">
+  {% if site.use_google_fonts %}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  {% endif %}
+  <link rel="stylesheet" href="{{ root }}css/style.css">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-row">
+      <a class="brand" href="{{ root }}index.html">
+        <img class="brand-icon" src="{{ root }}img/dino-icon.png" alt="dino" width="28" height="30">
+        <span class="brand-name">{{ site.title }}</span>
+        {% if site.subtitle %}<span class="brand-sub">{{ site.subtitle }}</span>{% endif %}
+      </a>
+
+      <div class="view-switch" role="tablist" aria-label="视图切换">
+        <button class="view-tab is-active" role="tab" data-view="cards" aria-selected="true">卡片</button>
+        <button class="view-tab" role="tab" data-view="tree" aria-selected="false">清单</button>
+        <button class="view-tab" role="tab" data-view="graph" aria-selected="false">图谱</button>
+      </div>
+
+      <div class="search-wrap" id="search-wrap">
+        <input id="search-input" type="search" placeholder="搜索 标题 / 全文 / 标签…"
+               autocomplete="off" aria-label="搜索">
+        <div class="search-results" id="search-results" hidden></div>
+      </div>
+
+      <div class="socials">
+        {% for key, value in socials.items() %}
+          {% if value and key != 'rss' %}
+            <a class="social-icon" href="{{ value }}" title="{{ key }}" target="_blank" rel="noopener">{{ svg_icons[key] }}</a>
+          {% endif %}
+        {% endfor %}
+        {% if socials.get('rss') %}
+          <a class="social-icon" href="{{ root }}rss.xml" title="RSS">{{ svg_icons['rss'] }}</a>
+        {% endif %}
+      </div>
+    </div>
+    {% if nav_html %}
+    <nav class="site-nav" aria-label="站点导航">{{ nav_html }}</nav>
+    {% endif %}
+  </header>
+
+  <main class="site-main">{% block content %}{% endblock %}</main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span>{{ site.footer_text or '© ' + site.author }}</span>
+      <span class="footer-sep">::</span>
+      <a href="{{ root }}rss.xml">RSS</a>
+      <span class="footer-sep">::</span>
+      <span>powered by <a href="https://github.com/meredith2328/pilog" target="_blank" rel="noopener">pilog</a></span>
+    </div>
+  </footer>
+
+  {% if site.show_dino %}
+  <div class="dino-widget" data-widget="dino">
+    <div class="dino-panel" hidden>
+      <div class="dino-bar">
+        <span class="dino-title">T-REX RUNNER</span>
+        <span class="dino-hint">点击游戏区域后按 空格</span>
+        <button class="dino-close" type="button" aria-label="关闭">×</button>
+      </div>
+      <iframe class="dino-frame" src="{{ root }}dino/index.html" title="Chrome 断网小恐龙" loading="lazy"></iframe>
+    </div>
+    <button class="dino-toggle" type="button" aria-label="打开小恐龙游戏">
+      <img src="{{ root }}img/dino-icon.png" alt="小恐龙" width="26" height="28">
+      <span>PLAY</span>
+    </button>
+  </div>
+  {% endif %}
+
+  <script src="{{ root }}js/main.js" defer></script>
+  <script>window.PILOG_ROOT = {{ root|tojson }};</script>
+  <script src="{{ root }}js/search.js" defer></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

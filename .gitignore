@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.cache/
+.deploy_test/
+.stress/
+output/
+.DS_Store
+Thumbs.db

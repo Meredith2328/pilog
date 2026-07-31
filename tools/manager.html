@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pilog 图片工作台</title>
+<style>
+:root {
+  --paper:#f7f7f7; --panel:#f1f3f4; --hairline:#dadce0; --ink:#3c4043;
+  --text:#5f6368; --mute:#9aa0a6; --accent:#1a73e8; --shadow:#e8eaed;
+  --mono:"JetBrains Mono","Cascadia Code",Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;font-size:14px}
+a{color:var(--accent)}
+.topbar{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:2px solid var(--ink);flex-wrap:wrap}
+.topbar h1{font-family:var(--mono);font-size:15px;letter-spacing:.1em;margin:0;padding:4px 10px;background:var(--ink);color:var(--paper)}
+.topbar .path{font-family:var(--mono);font-size:12px;color:var(--mute)}
+.topbar .spacer{flex:1}
+.btn{appearance:none;font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink);background:var(--paper);border:2px solid var(--ink);padding:5px 12px;cursor:pointer;box-shadow:3px 3px 0 var(--shadow)}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow)}
+.btn.danger:hover{background:#c5221f;color:#fff}
+.layout{display:grid;grid-template-columns:210px 1fr 330px;gap:18px;padding:18px 20px;align-items:start}
+.panel{background:var(--paper);border:2px solid var(--ink);box-shadow:5px 5px 0 var(--shadow)}
+.panel h2{margin:0;font-family:var(--mono);font-size:12px;letter-spacing:.12em;background:var(--ink);color:var(--paper);padding:6px 10px}
+.folders{padding:8px;max-height:70vh;overflow:auto}
+.folder-item{padding:4px 8px;cursor:pointer;font-family:var(--mono);font-size:12.5px;border:1px solid transparent}
+.folder-item:hover{background:var(--panel)}
+.folder-item.is-active{background:var(--ink);color:var(--paper)}
+.folder-item .indent{opacity:.45}
+.dropzone{margin:12px;border:2px dashed var(--hairline);padding:22px;text-align:center;color:var(--mute);font-family:var(--mono);font-size:12.5px;cursor:pointer}
+.dropzone.dragover{border-color:var(--accent);color:var(--accent);background:#e8f0fe}
+.dropzone input{display:none}
+.grid{margin:0 12px 12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;max-height:52vh;overflow:auto;padding-bottom:8px}
+.thumb{border:2px solid var(--hairline);cursor:pointer;background:var(--panel);padding:4px;text-align:center}
+.thumb:hover{border-color:var(--ink)}
+.thumb.is-active{border-color:var(--ink);background:var(--paper);box-shadow:3px 3px 0 var(--shadow)}
+.thumb img{width:100%;height:64px;object-fit:contain;image-rendering:pixelated}
+.thumb .tname{font-family:var(--mono);font-size:10px;color:var(--text);word-break:break-all;display:block;margin-top:4px}
+.thumb .tsize{font-family:var(--mono);font-size:9px;color:var(--mute)}
+.editor{padding:12px}
+.canvas-box{position:relative;height:250px;background:var(--panel);border:2px solid var(--hairline);overflow:hidden;margin-bottom:10px}
+#editor-canvas{display:block;width:100%;height:100%}
+.crop-rect{position:absolute;border:2px solid var(--accent);background:rgba(26,115,232,.12);pointer-events:none;display:none}
+.controls{display:flex;flex-direction:column;gap:10px}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:var(--mono);font-size:11.5px;color:var(--text)}
+.row label{min-width:64px}
+.row input[type=range]{flex:1}
+.row select,.row input[type=text]{font-family:var(--mono);font-size:12px;border:2px solid var(--hairline);background:var(--paper);padding:3px 6px;color:var(--ink)}
+.actions{display:flex;gap:6px;flex-wrap:wrap}
+.snippet{font-family:var(--mono);font-size:11px;background:var(--panel);border:1px solid var(--hairline);padding:6px 8px;word-break:break-all;display:flex;align-items:center;gap:8px}
+.snippet code{flex:1;color:var(--ink)}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:12px;padding:8px 16px;border:2px solid var(--ink);box-shadow:4px 4px 0 rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .15s}
+.toast.show{opacity:1}
+.empty{color:var(--mute);font-family:var(--mono);font-size:12px;padding:18px;text-align:center}
+.hint{font-family:var(--mono);font-size:10.5px;color:var(--mute);line-height:1.6}
+@media(max-width:980px){.layout{grid-template-columns:1fr}.folders{max-height:24vh}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <h1>pilog · 图片工作台</h1>
+  <span class="path" id="blog-path"></span>
+  <span class="spacer"></span>
+  <a class="btn" href="/">打开博客</a>
+</div>
+
+<div class="layout">
+  <div class="panel">
+    <h2>目录</h2>
+    <div class="folders" id="folder-tree"></div>
+  </div>
+
+  <div class="panel">
+    <h2 id="current-dir">图片</h2>
+    <div class="dropzone" id="dropzone">
+      <strong>把图片拖到这里</strong>，或点击选择文件<br>
+      <label class="hint" style="cursor:pointer">
+        <input type="checkbox" id="replace-check"> 覆盖同名文件
+      </label>
+      <input type="file" id="file-input" multiple accept="image/*">
+    </div>
+    <div class="grid" id="image-grid"></div>
+  </div>
+
+  <div class="panel">
+    <h2>编辑器</h2>
+    <div class="editor" id="editor" hidden>
+      <div class="canvas-box" id="canvas-box">
+        <canvas id="editor-canvas"></canvas>
+        <div class="crop-rect" id="crop-rect"></div>
+      </div>
+      <div class="controls">
+        <div class="row">
+          <label>缩放</label>
+          <input type="range" id="zoom" min="20" max="400" value="100">
+          <span id="zoom-label">100%</span>
+        </div>
+        <div class="row">
+          <label>输出倍率</label>
+          <select id="out-scale">
+            <option value="0.5">0.5×</option>
+            <option value="1" selected>1×</option>
+            <option value="2">2×</option>
+            <option value="3">3×</option>
+          </select>
+          <span id="info-size"></span>
+        </div>
+        <div class="actions">
+          <button class="btn" id="btn-crop">保存裁剪</button>
+          <button class="btn" id="btn-scale">缩放保存</button>
+          <button class="btn" id="btn-rotate">旋转90°</button>
+          <button class="btn" id="btn-saveas">另存为</button>
+          <button class="btn" id="btn-replace">替换图片</button>
+          <button class="btn danger" id="btn-delete">删除</button>
+        </div>
+        <div class="snippet"><code id="snippet-wiki"></code><button class="btn" data-copy="snippet-wiki">复制</button></div>
+        <div class="snippet"><code id="snippet-md"></code><button class="btn" data-copy="snippet-md">复制</button></div>
+        <p class="hint">拖动蓝色选框裁剪。默认保存到当前目录；另存为可自定义文件名。</p>
+      </div>
+    </div>
+    <div class="empty" id="editor-empty">← 选择一张图片开始编辑</div>
+  </div>
+</div>
+
+<input type="file" id="replace-input" accept="image/*" hidden>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+let state = {
+  folder: "",
+  images: [],
+  current: null,
+  img: null,
+  drawScale: 1,
+  crop: null
+};
+
+function toast(msg) {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+async function api(url, opts) {
+  const res = await fetch(url, opts);
+  const data = await res.json().catch(() => ({ ok: false }));
+  if (!data.ok) throw new Error(data.error || "请求失败");
+  return data;
+}
+
+/* ---------- folder tree ---------- */
+async function loadTree() {
+  const data = await api("/api/tree");
+  $("#blog-path").textContent = data.root;
+  const box = $("#folder-tree");
+  box.innerHTML = "";
+  function addItems(items, depth) {
+    items.forEach(d => {
+      const div = document.createElement("div");
+      div.className = "folder-item";
+      div.dataset.path = d.path;
+      div.innerHTML = '<span class="indent">' + "└ ".repeat(depth) + "</span>▣ " + escapeHtml(d.name);
+      div.addEventListener("click", () => selectFolder(d.path));
+      box.appendChild(div);
+      if (d.children.length) addItems(d.children, depth + 1);
+    });
+  }
+  addItems(data.dirs, 0);
+  if (!state.folder && data.dirs.length) selectFolder(data.dirs[0].path);
+  else if (!state.folder) selectFolder("");
+}
+
+async function selectFolder(path) {
+  state.folder = path;
+  document.querySelectorAll(".folder-item").forEach(el => {
+    el.classList.toggle("is-active", el.dataset.path === path);
+  });
+  $("#current-dir").textContent = "图片 — " + (path || "根目录");
+  await loadImages();
+}
+
+/* ---------- image list ---------- */
+async function loadImages() {
+  const data = await api("/api/list?dir=" + encodeURIComponent(state.folder));
+  state.images = data.images;
+  const grid = $("#image-grid");
+  grid.innerHTML = "";
+  if (!data.images.length) {
+    grid.innerHTML = '<div class="empty">这个目录还没有图片</div>';
+    return;
+  }
+  data.images.forEach(img => {
+    const div = document.createElement("div");
+    div.className = "thumb";
+    div.dataset.path = img.path;
+    div.innerHTML =
+      '<img loading="lazy" src="/api/thumb?path=' + encodeURIComponent(img.path) +
+      "&t=" + img.mtime + '" alt="">' +
+      '<span class="tname">' + escapeHtml(img.name) + "</span>" +
+      '<span class="tsize">' + fmtSize(img.size) + "</span>";
+    div.addEventListener("click", () => selectImage(img));
+    grid.appendChild(div);
+  });
+  if (state.current) {
+    const el = grid.querySelector('[data-path="' + CSS.escape(state.current.path) + '"]');
+    if (el) el.classList.add("is-active");
+  }
+}
+
+function fmtSize(n) {
+  if (n < 1024) return n + " B";
+  if (n < 1048576) return (n / 1024).toFixed(1) + " KB";
+  return (n / 1048576).toFixed(1) + " MB";
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+/* ---------- upload ---------- */
+async function uploadBlob(blob, name, replace) {
+  const data = await api("/api/upload", {
+    method: "POST",
+    headers: {
+      "X-Folder": state.folder,
+      "X-Filename": name,
+      "X-Replace": replace ? "1" : "0"
+    },
+    body: blob
+  });
+  toast(replace ? "已替换 " + data.name : "已导入 " + data.name);
+  await loadImages();
+  const found = state.images.find(i => i.name === data.name);
+  if (found) selectImage(found);
+}
+
+$("#dropzone").addEventListener("click", e => {
+  if (e.target.id !== "replace-check") $("#file-input").click();
+});
+$("#dropzone").addEventListener("dragover", e => {
+  e.preventDefault();
+  $("#dropzone").classList.add("dragover");
+});
+$("#dropzone").addEventListener("dragleave", () => $("#dropzone").classList.remove("dragover"));
+$("#dropzone").addEventListener("drop", e => {
+  e.preventDefault();
+  $("#dropzone").classList.remove("dragover");
+  handleFiles(e.dataTransfer.files);
+});
+$("#file-input").addEventListener("change", e => handleFiles(e.target.files));
+
+async function handleFiles(files) {
+  for (const f of files) {
+    if (!f.type.startsWith("image/")) continue;
+    await uploadBlob(f, f.name, $("#replace-check").checked);
+  }
+  $("#file-input").value = "";
+}
+
+/* ---------- editor ---------- */
+const canvas = $("#editor-canvas");
+const ctx = canvas.getContext("2d");
+const box = $("#canvas-box");
+
+async function selectImage(img) {
+  state.current = img;
+  $("#editor").hidden = false;
+  $("#editor-empty").hidden = true;
+  document.querySelectorAll(".thumb").forEach(el =>
+    el.classList.toggle("is-active", el.dataset.path === img.path));
+  const res = await fetch("/api/file?path=" + encodeURIComponent(img.path) + "&t=" + img.mtime);
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const image = new Image();
+  image.onload = () => {
+    state.img = image;
+    state.crop = null;
+    $("#zoom").value = 100;
+    $("#zoom-label").textContent = "100%";
+    updateSnippets();
+    draw();
+  };
+  image.src = url;
+}
+
+function draw() {
+  const img = state.img;
+  if (!img) return;
+  const zoom = Number($("#zoom").value) / 100;
+  const fit = Math.min(box.clientWidth / img.naturalWidth, box.clientHeight / img.naturalHeight);
+  state.drawScale = fit * zoom;
+  canvas.width = box.clientWidth;
+  canvas.height = box.clientHeight;
+  ctx.imageSmoothingEnabled = !(img.naturalWidth <= 128 && img.naturalHeight <= 128);
+  ctx.fillStyle = "#f1f3f4";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const w = img.naturalWidth * state.drawScale;
+  const h = img.naturalHeight * state.drawScale;
+  const ox = (canvas.width - w) / 2;
+  const oy = (canvas.height - h) / 2;
+  ctx.drawImage(img, ox, oy, w, h);
+  const boxRect = $("#crop-rect");
+  if (state.crop) {
+    const sx = ox + state.crop.x * state.drawScale;
+    const sy = oy + state.crop.y * state.drawScale;
+    const sw = state.crop.w * state.drawScale;
+    const sh = state.crop.h * state.drawScale;
+    boxRect.style.display = "block";
+    boxRect.style.left = sx + "px";
+    boxRect.style.top = sy + "px";
+    boxRect.style.width = sw + "px";
+    boxRect.style.height = sh + "px";
+  } else {
+    boxRect.style.display = "none";
+  }
+  const outScale = Number($("#out-scale").value);
+  $("#info-size").textContent =
+    Math.round(img.naturalWidth * outScale) + "×" + Math.round(img.naturalHeight * outScale) + "px";
+}
+
+$("#zoom").addEventListener("input", () => {
+  $("#zoom-label").textContent = $("#zoom").value + "%";
+  draw();
+});
+
+/* crop drag */
+let drag = null;
+canvas.addEventListener("pointerdown", e => {
+  if (!state.img) return;
+  const r = canvas.getBoundingClientRect();
+  const ox = (canvas.width - state.img.naturalWidth * state.drawScale) / 2;
+  const oy = (canvas.height - state.img.naturalHeight * state.drawScale) / 2;
+  const px = (e.clientX - r.left - ox) / state.drawScale;
+  const py = (e.clientY - r.top - oy) / state.drawScale;
+  if (px < 0 || py < 0 || px > state.img.naturalWidth || py > state.img.naturalHeight) return;
+  drag = { x0: px, y0: py };
+});
+canvas.addEventListener("pointermove", e => {
+  if (!drag || !state.img) return;
+  const r = canvas.getBoundingClientRect();
+  const ox = (canvas.width - state.img.naturalWidth * state.drawScale) / 2;
+  const oy = (canvas.height - state.img.naturalHeight * state.drawScale) / 2;
+  const px = Math.max(0, Math.min(state.img.naturalWidth, (e.clientX - r.left - ox) / state.drawScale));
+  const py = Math.max(0, Math.min(state.img.naturalHeight, (e.clientY - r.top - oy) / state.drawScale));
+  state.crop = {
+    x: Math.min(drag.x0, px),
+    y: Math.min(drag.y0, py),
+    w: Math.abs(px - drag.x0),
+    h: Math.abs(py - drag.y0)
+  };
+  draw();
+});
+window.addEventListener("pointerup", () => { drag = null; });
+
+function exportBlob(kind) {
+  return new Promise((resolve, reject) => {
+    const img = state.img;
+    if (!img) return reject(new Error("no image"));
+    const outScale = Number($("#out-scale").value);
+    let sw, sh, sx, sy;
+    if (kind === "crop" && state.crop && state.crop.w > 4 && state.crop.h > 4) {
+      sx = Math.round(state.crop.x); sy = Math.round(state.crop.y);
+      sw = Math.round(state.crop.w); sh = Math.round(state.crop.h);
+    } else if (kind === "crop") {
+      return reject(new Error("请先拖拽选区"));
+    } else {
+      sx = 0; sy = 0; sw = img.naturalWidth; sh = img.naturalHeight;
+    }
+    const out = document.createElement("canvas");
+    out.width = Math.max(1, Math.round(sw * outScale));
+    out.height = Math.max(1, Math.round(sh * outScale));
+    const octx = out.getContext("2d");
+    octx.imageSmoothingEnabled = outScale < 1 ? false : !(sw <= 128 && sh <= 128);
+    octx.drawImage(img, sx, sy, sw, sh, 0, 0, out.width, out.height);
+    const isJpg = /\.jpe?g$/i.test(state.current.name);
+    out.toBlob(b => (b ? resolve(b) : reject(new Error("导出失败"))),
+      isJpg ? "image/jpeg" : "image/png", 0.92);
+  });
+}
+
+$("#btn-crop").addEventListener("click", async () => {
+  try {
+    const blob = await exportBlob("crop");
+    await uploadBlob(blob, state.current.name, true);
+  } catch (e) { toast(e.message); }
+});
+
+$("#btn-scale").addEventListener("click", async () => {
+  try {
+    const blob = await exportBlob("full");
+    await uploadBlob(blob, state.current.name, true);
+  } catch (e) { toast(e.message); }
+});
+
+$("#btn-rotate").addEventListener("click", async () => {
+  const img = state.img;
+  if (!img) return;
+  const out = document.createElement("canvas");
+  out.width = img.naturalHeight;
+  out.height = img.naturalWidth;
+  const octx = out.getContext("2d");
+  octx.translate(out.width, 0);
+  octx.rotate(Math.PI / 2);
+  octx.drawImage(img, 0, 0);
+  const isJpg = /\.jpe?g$/i.test(state.current.name);
+  out.toBlob(async b => {
+    await uploadBlob(b, state.current.name, true);
+  }, isJpg ? "image/jpeg" : "image/png", 0.92);
+});
+
+$("#btn-saveas").addEventListener("click", async () => {
+  const name = prompt("另存为文件名（含扩展名）:", state.current.name.replace(/(\.[^.]+)$/, "-new$1"));
+  if (!name) return;
+  try {
+    const blob = await exportBlob("full");
+    await uploadBlob(blob, name, false);
+  } catch (e) { toast(e.message); }
+});
+
+$("#btn-replace").addEventListener("click", () => $("#replace-input").click());
+$("#replace-input").addEventListener("change", async e => {
+  const f = e.target.files[0];
+  if (f) await uploadBlob(f, state.current.name, true);
+  e.target.value = "";
+});
+
+$("#btn-delete").addEventListener("click", async () => {
+  if (!state.current) return;
+  if (!confirm("删除 " + state.current.name + " ？此操作不可恢复。")) return;
+  await api("/api/file?path=" + encodeURIComponent(state.current.path), { method: "DELETE" });
+  state.current = null;
+  state.img = null;
+  $("#editor").hidden = true;
+  $("#editor-empty").hidden = false;
+  toast("已删除");
+  await loadImages();
+});
+
+function updateSnippets() {
+  const c = state.current;
+  if (!c) return;
+  $("#snippet-wiki").textContent = "![[" + c.name + "]]";
+  $("#snippet-md").textContent = "![" + c.name.replace(/\.[^.]+$/, "") + "](" + c.path + ")";
+}
+
+document.querySelectorAll("[data-copy]").forEach(btn => {
+  btn.addEventListener("click", async () => {
+    const text = $("#" + btn.dataset.copy).textContent;
+    try {
+      await navigator.clipboard.writeText(text);
+      toast("已复制");
+    } catch (e) {
+      toast("复制失败，请手动选择");
+    }
+  });
+});
+
+window.addEventListener("resize", () => draw());
+loadTree().catch(e => toast(e.message));
+</script>
+</body>
+</html>

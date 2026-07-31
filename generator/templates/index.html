@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block og_extra %}
+  <meta property="og:image" content="{{ site.site_url }}/favicon.png">
+{% endblock %}
+
+{% block content %}
+<section class="view-pane is-active" id="view-cards" data-pane="cards">
+  <div class="pane-head">
+    <h2 class="pane-title">卡片视图</h2>
+    <div class="tag-filter" id="tag-filter">
+      <button class="filter-chip is-active" data-tag="*">全部</button>
+      {% for tag in all_tags %}
+      <button class="filter-chip" data-tag="{{ tag }}">#{{ tag }}</button>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card-grid" id="card-grid">
+    {% for post in posts %}
+    <article class="card{% if post.highlight %} is-highlight{% endif %}" data-tags="{{ post.folder }} {% for t in post.tags %}{{ t }} {% endfor %}" data-date="{{ post.date_str }}">
+      <a class="card-link" href="{{ root }}{{ post.url }}">
+        <div class="card-body">
+          <div class="card-meta">
+            <time datetime="{{ post.date_str }}">{{ post.date_str }}</time>
+            {% if post.pin %}<span class="pin-badge">置顶</span>{% endif %}
+            <span class="card-folder" title="所属目录">{{ post.folder }}</span>
+          </div>
+          <h3 class="card-title">{{ post.title }}</h3>
+          {% if post.preview_html %}
+          <div class="card-preview">{{ post.preview_html|safe }}</div>
+          {% else %}
+          <p class="card-preview">{{ post.preview_plain|e }}</p>
+          {% endif %}
+          <div class="card-tags">
+            {% for tag in post.tags %}
+            <span class="tag-chip">#{{ tag }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="card-thumb">
+          <img src="{{ root }}{{ post.thumb_url }}" alt="" loading="lazy">
+        </div>
+      </a>
+    </article>
+    {% endfor %}
+  </div>
+
+  {% if pager and pager.total > 1 %}
+  <nav class="pager" aria-label="分页">
+    <span class="pager-info">第 {{ pager.page }} / {{ pager.total }} 页</span>
+    {% if pager.prev %}<a class="pixel-btn" href="{{ pager.prev }}">← 上一页</a>{% endif %}
+    <span class="pager-pages">
+      {% for item in pager.pages %}
+      <a class="pager-page{% if item.current %} is-current{% endif %}" href="{{ item.url }}">{{ item.n }}</a>
+      {% endfor %}
+    </span>
+    {% if pager.next %}<a class="pixel-btn" href="{{ pager.next }}">下一页 →</a>{% endif %}
+  </nav>
+  {% endif %}
+</section>
+
+<section class="view-pane" id="view-tree" data-pane="tree" hidden>
+  <div class="pane-head">
+    <h2 class="pane-title">清单视图</h2>
+    <div class="tree-toolbar">
+      <button class="pixel-btn" type="button" id="tree-expand">展开全部</button>
+      <button class="pixel-btn" type="button" id="tree-collapse">折叠全部</button>
+    </div>
+  </div>
+  <div class="tree-wrap">
+    <ul class="tree" id="tree-root">
+      {% macro render_tree(nodes) %}
+        {% for node in nodes %}
+          {% if node.is_dir %}
+          <li class="tree-folder{% if node.open %} is-open{% endif %}" data-path="{{ node.path }}">
+            <div class="tree-row" role="button" tabindex="0">
+              <span class="tree-toggle">▼</span>
+              <span class="tree-icon tree-icon-folder">▣</span>
+              <span class="tree-name">{{ node.name }}</span>
+            </div>
+            <ul class="tree-children">
+              {{ render_tree(node.children) }}
+            </ul>
+          </li>
+          {% else %}
+          <li class="tree-file{% if node.highlight %} is-highlight{% endif %}" data-path="{{ node.path }}">
+            <a class="tree-row" href="{{ root }}{{ node.url }}">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <span class="tree-icon tree-icon-file">▤</span>
+              <span class="tree-name">{{ node.title }}</span>
+              <span class="tree-date">{{ node.date }}</span>
+            </a>
+          </li>
+          {% endif %}
+        {% endfor %}
+      {% endmacro %}
+      {{ render_tree(tree) }}
+    </ul>
+  </div>
+</section>
+
+<section class="view-pane" id="view-graph" data-pane="graph" hidden>
+  <div class="pane-head">
+    <h2 class="pane-title">图谱视图</h2>
+    <div class="graph-toolbar">
+      <span class="graph-stats" id="graph-stats"></span>
+      <button class="pixel-btn" type="button" id="graph-expand-all">展开全部</button>
+      <button class="pixel-btn" type="button" id="graph-collapse-all">折叠全部</button>
+      <button class="pixel-btn is-on" type="button" id="graph-snake">贪吃蛇 开</button>
+      <button class="pixel-btn" type="button" id="graph-fit">适应视图</button>
+    </div>
+  </div>
+  <div class="graph-legend">
+    <span class="legend-item"><i class="legend-line legend-hierarchy"></i>目录层级</span>
+    <span class="legend-item"><i class="legend-line legend-ref"></i>引用关系</span>
+    <span class="legend-item"><i class="legend-node legend-post"></i>文章</span>
+    <span class="legend-item"><i class="legend-node legend-dir"></i>目录</span>
+    <span class="legend-item"><i class="legend-node legend-highlight"></i>高亮文章</span>
+  </div>
+  <div class="graph-wrap" id="graph-wrap">
+    <svg id="graph-svg" role="img" aria-label="博客关系图谱"></svg>
+    <div class="graph-tip" id="graph-tip" hidden></div>
+    <div class="graph-hint">拖拽节点 · 滚轮缩放 · 双击目录折叠 · 点击文章跳转 · 贪吃蛇沿外沿巡逻</div>
+  </div>
+  <script type="application/json" id="graph-data" data-root="{{ root }}"
+          data-collapse="{{ collapse_threshold }}"></script>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ root }}js/graph.js" defer></script>
+{% endblock %}

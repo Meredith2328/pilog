@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}{{ post.title }}{% endblock %}
+{% block og_type %}article{% endblock %}
+{% block og_title %}{{ post.title }}{% endblock %}
+{% block og_extra %}
+  {% if post.thumb_url %}<meta property="og:image" content="{{ site.site_url }}/{{ post.thumb_url }}">{% endif %}
+  <meta property="article:published_time" content="{{ post.date.isoformat() }}">
+{% endblock %}
+
+{% block content %}
+<article class="post">
+  <header class="post-header">
+    <a class="back-link" href="{{ root }}index.html">← 返回首页</a>
+    <h1 class="post-title">{{ post.title }}</h1>
+    <div class="post-meta">
+      <time datetime="{{ post.date.isoformat() }}">{{ post.date_str }}</time>
+      {% for tag in post.tags %}
+      <a class="tag-chip" href="{{ root }}index.html">{{ '#' ~ tag }}</a>
+      {% endfor %}
+      {% if post.folder %}<span class="post-folder">▣ {{ post.folder }}</span>{% endif %}
+    </div>
+  </header>
+
+  <div class="post-body markdown-body">
+    {{ post.html|safe }}
+  </div>
+
+  {% if giscus and giscus.enabled and giscus.repo %}
+  <section class="post-comments">
+    <h2 class="comments-title">评论</h2>
+    <script src="https://giscus.app/client.js"
+      data-repo="{{ giscus.repo }}"
+      data-repo-id="{{ giscus.repo_id }}"
+      data-category="{{ giscus.category }}"
+      data-category-id="{{ giscus.category_id }}"
+      data-mapping="{{ giscus.mapping }}"
+      data-strict="{{ giscus.strict }}"
+      data-reactions-enabled="{{ giscus.reactions }}"
+      data-emit-metadata="{{ giscus.emit_metadata }}"
+      data-input-position="{{ giscus.input_position }}"
+      data-theme="light"
+      data-lang="{{ giscus.lang }}"
+      crossorigin="anonymous"
+      async></script>
+  </section>
+  {% endif %}
+</article>
+{% endblock %}
