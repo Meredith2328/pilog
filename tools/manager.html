@@ -686,7 +686,11 @@ function renderTree() {
       e.preventDefault();
       li.classList.add("tree-drop");
     });
-    li.querySelector(".tr").addEventListener("dragleave", () => li.classList.remove("tree-drop"));
+    li.querySelector(".tr").addEventListener("dragleave", e => {
+      if (!e.relatedTarget || !li.querySelector(".tr").contains(e.relatedTarget)) {
+        li.classList.remove("tree-drop");
+      }
+    });
     li.querySelector(".tr").addEventListener("drop", e => {
       e.preventDefault();
       e.stopPropagation();
@@ -920,32 +924,67 @@ document.addEventListener("drop", async e => {
 
 /* ---------- markdown drop into cards with placeholder ---------- */
 let mdDrop = null;
-document.addEventListener("dragenter", e => {
-  if (e.dataTransfer && Array.from(e.dataTransfer.types || []).includes("Files")) {
-    if (e.target.closest("#main-grid") || e.target.closest("#pin-grid")) {
-      mdDrop = { x: e.clientX, y: e.clientY };
-      showImportPlaceholder(e.clientX, e.clientY);
-    }
-  }
+const cardsPane = document.getElementById("pv-pane-cards");
+
+function hasFiles(dt) {
+  return dt && (dt.types
+    ? Array.from(dt.types).indexOf("Files") >= 0
+    : !!(dt.files && dt.files.length));
+}
+
+function clearMdDrop() {
+  mdDrop = null;
+  removeImportPlaceholder();
+}
+
+cardsPane.addEventListener("dragenter", e => {
+  if (!hasFiles(e.dataTransfer)) return;
+  mdDrop = { x: e.clientX, y: e.clientY };
+  showImportPlaceholder(e.clientX, e.clientY);
 });
-document.addEventListener("dragover", e => {
-  if (mdDrop) {
-    mdDrop.x = e.clientX;
-    mdDrop.y = e.clientY;
-    showImportPlaceholder(e.clientX, e.clientY);
-  }
-});
-document.addEventListener("drop", async e => {
+cardsPane.addEventListener("dragover", e => {
   if (!mdDrop) return;
-  const grid = e.target.closest("#main-grid") || e.target.closest("#pin-grid");
-  if (grid) {
-    e.preventDefault();
-    e.stopPropagation();
-    const info = dropZoneInfo(mdDrop.x, mdDrop.y) || { pin: grid.id === "pin-grid", index: 999, box: grid };
-    removeImportPlaceholder();
-    await importDropped(e.dataTransfer, "", info);
-    mdDrop = null;
+  e.preventDefault();
+  mdDrop.x = e.clientX;
+  mdDrop.y = e.clientY;
+  showImportPlaceholder(e.clientX, e.clientY);
+});
+cardsPane.addEventListener("dragleave", e => {
+  if (!mdDrop) return;
+  if (!e.relatedTarget || !cardsPane.contains(e.relatedTarget)) {
+    clearMdDrop();
   }
+});
+cardsPane.addEventListener("drop", async e => {
+  if (!mdDrop) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const grid = e.target.closest("#main-grid") || e.target.closest("#pin-grid");
+  const info = dropZoneInfo(mdDrop.x, mdDrop.y) ||
+    { pin: !!(grid && grid.id === "pin-grid"), index: 999, box: grid || $("#main-grid") };
+  clearMdDrop();
+  await importDropped(e.dataTransfer, "", info);
+});
+
+// safety net: drag left the window or was canceled (Esc) — clear any UI
+let dragLeaveTimer = null;
+document.addEventListener("dragleave", e => {
+  if (e.relatedTarget) return;
+  clearTimeout(dragLeaveTimer);
+  dragLeaveTimer = setTimeout(() => {
+    clearMdDrop();
+    document.querySelectorAll(".tree-drop").forEach(el => el.classList.remove("tree-drop"));
+    document.querySelectorAll(".pv-card.dragover").forEach(el => el.classList.remove("dragover"));
+  }, 120);
+});
+document.addEventListener("dragover", () => {
+  clearTimeout(dragLeaveTimer);
+  dragLeaveTimer = null;
+});
+document.addEventListener("drop", () => {
+  clearTimeout(dragLeaveTimer);
+  dragLeaveTimer = null;
+  clearMdDrop();
 });
 function showImportPlaceholder(x, y) {
   removeImportPlaceholder();

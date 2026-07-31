@@ -141,7 +141,12 @@
   function expandDir(id) {
     if (!collapsed[id]) return;
     delete collapsed[id];
-    subtreeIds(id).forEach(function (sid) { delete hidden[sid]; });
+    subtreeIds(id).forEach(function (sid) {
+      delete hidden[sid];
+      // expanding an ancestor reveals everything below it: clear any
+      // nested "collapsed" markers so labels/state stay consistent
+      if (nodes[sid] && nodes[sid].type === "dir") delete collapsed[sid];
+    });
   }
 
   function expandAll() {
@@ -442,11 +447,18 @@
     dragging = n;
     n.fixed = true;
     moved = false;
+    var startX = e.clientX, startY = e.clientY;
+    var originX = n.x, originY = n.y;
+    var originPt = toSvg(startX, startY);
+    var applied = false;
     var move = function (ev) {
       if (dragging !== n) return;
+      var dx = ev.clientX - startX, dy = ev.clientY - startY;
+      if (!applied && Math.hypot(dx, dy) < 4) return;  // ignore click jitter
       var pt = toSvg(ev.clientX, ev.clientY);
-      n.x = pt.x;
-      n.y = pt.y;
+      n.x = originX + (pt.x - originPt.x);
+      n.y = originY + (pt.y - originPt.y);
+      applied = true;
       moved = true;
       updatePositions();
       snakeDirty = true;
