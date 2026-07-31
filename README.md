@@ -38,8 +38,11 @@ pilog/
 ├── config.json            # 站点配置
 ├── build.py               # 构建脚本
 ├── serve.py               # 本地开发服务器 + 图片工作台
+├── publish.py             # 一键发布到 GitHub
+├── requirements.txt       # Python 依赖
 ├── generator/             # 生成器源码（模板/样式/脚本）
-├── tools/                 # 辅助工具（封面生成/截图/路径测试）
+├── tests/                 # 自动化测试（图/路径/工作台/线上）
+├── tools/                 # 本地辅助工具（工作台页面/素材生成/截图）
 ├── dino/                  # 小恐龙游戏（构建时复制进站点）
 ├── site/                  # 生成结果，提交到 GitHub
 └── .github/workflows/     # GitHub Actions 部署
@@ -47,19 +50,14 @@ pilog/
 
 ## 快速开始
 
-```powershell
-# 进入项目目录（本仓库约定使用 moni 环境运行 Python）
-conda activate moni
+需要 Python 3.10+，建议使用 venv/conda 建立自己的环境：
 
-# 构建静态站点
-python build.py
+```bash
+python -m pip install -r requirements.txt   # 安装依赖
 
-# 本地预览 + 自动重建
-python serve.py --watch
-# 打开 http://127.0.0.1:8000/
-
-# 图片工作台
-# 打开 http://127.0.0.1:8000/manager
+python build.py                              # 构建静态站点
+python serve.py --watch                      # 本地预览 + 自动重建
+# 打开 http://127.0.0.1:8000/ ，工作台在 /manager
 ```
 
 ## 写作工作流（Obsidian）
@@ -206,7 +204,7 @@ giscus 是**客户端**评论系统（GitHub Discussions 驱动），博客侧�
 1. 仓库 Settings → 勾选 **Discussions**（已为 `Meredith2328/pilog` 开启）；
 2. 安装 **giscus GitHub App** 到该仓库：访问 https://giscus.app → 配置后点安装（或直接 https://github.com/apps/giscus/installations/new）。这一步必须在网页端由仓库所有者确认，无法用 API 代替。
 
-`config.json` 的 `giscus` 段已填入本仓库的 `repo_id` / `category_id`，安装应用后评论即可正常工作（可用 `python tools/test_live.py` 验证部件挂载）。
+`config.json` 的 `giscus` 段已填入本仓库的 `repo_id` / `category_id`，安装应用后评论即可正常工作（可用 `python tests/test_live.py` 验证部件挂载）。
 
 ### 关于相对路径的坑（重要）
 

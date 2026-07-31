@@ -1,7 +1,11 @@
-import threading
+import json
+from pathlib import Path
+
 from playwright.sync_api import sync_playwright
 
-BASE = "https://meredith2328.github.io/pilog"
+ROOT = Path(__file__).resolve().parents[1]
+cfg = json.loads((ROOT / "config.json").read_text(encoding="utf-8"))
+BASE = cfg["site"].get("site_url", "").rstrip("/")
 
 ok = True
 
@@ -86,7 +90,8 @@ with sync_playwright() as p:
     giscus = pg.locator('script[src*="giscus.app/client.js"]')
     check("giscus script present", giscus.count() == 1)
     if giscus.count():
-        check("giscus repo matches", giscus.get_attribute("data-repo") == "Meredith2328/pilog")
+        giscus_repo = cfg.get("giscus", {}).get("repo", "")
+        check("giscus repo matches", giscus.get_attribute("data-repo") == giscus_repo)
         check("giscus has ids", bool(giscus.get_attribute("data-repo-id"))
               and bool(giscus.get_attribute("data-category-id")))
         pg.wait_for_timeout(6000)

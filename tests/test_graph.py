@@ -9,6 +9,8 @@ import threading
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+from util import block_external
+
 ROOT = Path(__file__).resolve().parents[1]
 PORT = 8140
 
@@ -37,6 +39,7 @@ def main() -> None:
     with sync_playwright() as p:
         browser = p.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        block_external(page)
         page.on("pageerror", lambda e: failures.append(str(e)))
         page.goto(base + "/", wait_until="networkidle")
         page.click('[data-view="graph"]')

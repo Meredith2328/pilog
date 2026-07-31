@@ -9,6 +9,8 @@ import threading
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+from util import block_external
+
 from PIL import Image, ImageStat
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -45,6 +47,7 @@ def main() -> None:
     with sync_playwright() as p:
         browser = p.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        block_external(page)
         page.on("pageerror", lambda e: failures.append("pageerror: " + str(e)))
         page.on("console", lambda m: failures.append(m.text) if m.type == "error" else None)
         page.goto(base + "/", wait_until="networkidle")

@@ -11,6 +11,8 @@ import tempfile
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+from util import block_external
+
 ROOT = Path(__file__).resolve().parents[1]
 PORT = 8130
 
@@ -46,6 +48,7 @@ def main() -> None:
     with sync_playwright() as p:
         browser = p.chromium.launch()
         page = browser.new_page(viewport={"width": 1280, "height": 900})
+        block_external(page)
         errors = []
         page.on("pageerror", lambda e: errors.append(str(e)))
 

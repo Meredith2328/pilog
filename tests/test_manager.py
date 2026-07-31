@@ -13,6 +13,8 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 STRESS = ROOT / ".stress"
 
+from util import block_external  # noqa: E402
+
 import serve  # noqa: E402
 
 srv = serve.ThreadingHTTPServer(("127.0.0.1", 8195), serve.Handler)
@@ -33,6 +35,7 @@ def main() -> None:
     with sync_playwright() as p:
         b = p.chromium.launch()
         pg = b.new_page(viewport={"width": 1440, "height": 1000})
+        block_external(pg)
         errs = []
         pg.on("pageerror", lambda e: errs.append(str(e)))
         pg.on("dialog", lambda d: d.accept())
@@ -136,6 +139,7 @@ def main() -> None:
     with sync_playwright() as p2:
         b2 = p2.chromium.launch()
         pg2 = b2.new_page(viewport={"width": 1200, "height": 800})
+        block_external(pg2)
         resp = pg2.goto("http://127.0.0.1:8195/definitely-missing.html",
                         wait_until="domcontentloaded")
         check("missing page returns 404", resp.status == 404)

@@ -41,7 +41,7 @@ document.querySelector('.view-switch').dataset.active = views[0];
 ```
 
 ```bash
-conda activate moni
+python -m pip install -r requirements.txt
 python build.py
 python serve.py --watch
 ```

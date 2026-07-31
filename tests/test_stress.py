@@ -6,6 +6,8 @@ from __future__ import annotations
 
 import shutil
 import sys
+
+from util import block_external
 import threading
 import time
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -115,6 +117,7 @@ def main() -> None:
     with sync_playwright() as p:
         browser = p.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        block_external(page)
         errors = []
         page.on("pageerror", lambda e: errors.append(str(e)))
 
