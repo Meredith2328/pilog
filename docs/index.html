@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="pilog">
+  <title>MEREDITH&#39;S LOG · MEREDITH&#39;S LOG</title>
+  <meta name="description" content="pixel · minimal · notes">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="MEREDITH&#39;S LOG">
+  <meta property="og:title" content="MEREDITH&#39;S LOG · MEREDITH&#39;S LOG">
+  <meta property="og:description" content="pixel · minimal · notes">
+  <link rel="canonical" href="https://meredith2328.github.io/">
+  
+  <meta property="og:image" content="https://meredith2328.github.io/favicon.png">
+
+  <link rel="icon" href="favicon.png">
+  <link rel="apple-touch-icon" href="favicon.png">
+  <link rel="alternate" type="application/rss+xml" title="MEREDITH&#39;S LOG · RSS" href="rss.xml">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="css/style.css">
+  
+</head>
+<body>
+  <div class="deco deco-left" aria-hidden="true"></div>
+  <div class="deco deco-right" aria-hidden="true"></div>
+  <header class="site-header">
+    <div class="header-banner is-default"
+         style="background-image:url('img/banner-default.svg')"></div>
+    <div class="header-row">
+      <a class="brand" href="index.html">
+        <img class="brand-icon" src="img/dino-icon.png" alt="dino" width="28" height="30">
+        <span class="brand-name">MEREDITH&#39;S LOG</span>
+        <span class="brand-sub">pixel · minimal · notes</span>
+      </a>
+
+      <div class="view-switch" role="tablist" aria-label="视图切换">
+        <button class="view-tab is-active" role="tab" data-view="cards" aria-selected="true">卡片视图</button>
+        <button class="view-tab" role="tab" data-view="tree" aria-selected="false">清单视图</button>
+        <button class="view-tab" role="tab" data-view="graph" aria-selected="false">图谱视图</button>
+      </div>
+
+      <div class="search-wrap" id="search-wrap">
+        <input id="search-input" type="search" placeholder="搜索 标题 / 全文 / 标签…"
+               autocomplete="off" aria-label="搜索">
+        <div class="search-results" id="search-results" hidden></div>
+      </div>
+
+      <div class="socials">
+        
+          
+            <a class="social-icon" href="https://github.com/meredith2328" title="github" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></a>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        
+          <a class="social-icon" href="rss.xml" title="RSS"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg></a>
+        
+      </div>
+    </div>
+    
+    <nav class="site-nav" aria-label="站点导航"><h1 id="_1">导航</h1>
+<ul>
+<li><a href="index.html">首页</a></li>
+<li><a href="about.html">关于</a></li>
+<li><a data-kind="folder" href="index.html#folder=posts/tech">技术</a></li>
+<li><a data-kind="folder" href="index.html#folder=posts/notes">随笔</a></li>
+<li><a href="dino/index.html">恐龙游戏</a></li>
+</ul></nav>
+    
+  </header>
+
+  <main class="site-main">
+<div class="filter-bar" id="filter-bar">
+  <div class="filter-selected" id="filter-selected"></div>
+  <div class="filter-tags">
+    <span class="filter-label">筛选</span>
+    
+    <button class="tag-chip" type="button" data-tag="pilog">#pilog</button>
+    
+    <button class="tag-chip" type="button" data-tag="about">#about</button>
+    
+    <button class="tag-chip" type="button" data-tag="demo">#demo</button>
+    
+    <button class="filter-more" id="filter-more" type="button">更多标签 ▾</button>
+  </div>
+  <div class="filter-more-panel" id="filter-more-panel" hidden>
+    <input id="filter-more-search" type="search" placeholder="搜索标签…">
+    <div class="filter-more-list" id="filter-more-list">
+      
+      <button class="tag-chip" type="button" data-tag="about">#about</button>
+      
+      <button class="tag-chip" type="button" data-tag="demo">#demo</button>
+      
+      <button class="tag-chip" type="button" data-tag="dino">#dino</button>
+      
+      <button class="tag-chip" type="button" data-tag="fun">#fun</button>
+      
+      <button class="tag-chip" type="button" data-tag="markdown">#markdown</button>
+      
+      <button class="tag-chip" type="button" data-tag="meta">#meta</button>
+      
+      <button class="tag-chip" type="button" data-tag="obsidian">#obsidian</button>
+      
+      <button class="tag-chip" type="button" data-tag="pilog">#pilog</button>
+      
+      <button class="tag-chip" type="button" data-tag="workflow">#workflow</button>
+      
+    </div>
+  </div>
+</div>
+
+<section class="view-pane is-active" id="view-cards" data-pane="cards">
+  <div class="pane-head">
+    <h2 class="pane-title">卡片视图</h2>
+  </div>
+
+  <div class="card-grid" id="card-grid">
+    
+    <article class="card" data-tags="pilog meta " data-folder="posts/tech" data-date="2026-07-30">
+      <a class="card-link" href="posts/tech/pixel-blog.html">
+        <div class="card-body">
+          <div class="card-meta">
+            <time datetime="2026-07-30">2026-07-30</time>
+            <span class="pin-badge">置顶</span>
+            
+            
+            <span class="card-folder" title="点击目录片段筛选">
+              <button class="folder-part" type="button" data-folder="posts">posts</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/tech">tech</button>
+            </span>
+            
+          </div>
+          <h3 class="card-title">用 pilog 搭建像素风博客</h3>
+          
+          <div class="card-preview"><p>一套轻量的静态博客框架：读取 <code>blogs/</code> 目录下的 Markdown，生成卡片 / 清单 / 图谱三种视图，主题复刻 Chrome 断网页的像素美学。</p></div>
+          
+          <div class="card-tags">
+            
+            <button class="tag-chip" type="button" data-tag="pilog">#pilog</button>
+            
+            <button class="tag-chip" type="button" data-tag="meta">#meta</button>
+            
+          </div>
+        </div>
+        
+        <div class="card-thumb">
+          <img src="assets/cover-pixel.png" alt="" loading="lazy">
+        </div>
+        
+      </a>
+    </article>
+    
+    <article class="card is-highlight" data-tags="pilog markdown " data-folder="posts/tech" data-date="2026-07-28">
+      <a class="card-link" href="posts/tech/markdown-cheatsheet.html">
+        <div class="card-body">
+          <div class="card-meta">
+            <time datetime="2026-07-28">2026-07-28</time>
+            
+            
+            
+            <span class="card-folder" title="点击目录片段筛选">
+              <button class="folder-part" type="button" data-folder="posts">posts</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/tech">tech</button>
+            </span>
+            
+          </div>
+          <h3 class="card-title">Markdown 速查表</h3>
+          
+          <p class="card-preview">这份速查表展示了本博客支持的 Markdown 能力，同时也用于演示引用关系： 更多能力（目录、表格、代码高亮等）由 pilog 框架说明 介绍。</p>
+          
+          <div class="card-tags">
+            
+            <button class="tag-chip" type="button" data-tag="pilog">#pilog</button>
+            
+            <button class="tag-chip" type="button" data-tag="markdown">#markdown</button>
+            
+          </div>
+        </div>
+        
+      </a>
+    </article>
+    
+    <article class="card" data-tags="obsidian workflow " data-folder="posts/notes" data-date="2026-07-20">
+      <a class="card-link" href="posts/notes/obsidian-tips.html">
+        <div class="card-body">
+          <div class="card-meta">
+            <time datetime="2026-07-20">2026-07-20</time>
+            
+            
+            
+            <span class="card-folder" title="点击目录片段筛选">
+              <button class="folder-part" type="button" data-folder="posts">posts</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/notes">notes</button>
+            </span>
+            
+          </div>
+          <h3 class="card-title">在 Obsidian 中高效写作</h3>
+          
+          <p class="card-preview">把 blogs/ 目录直接作为 Obsidian 仓库打开，就能获得双向链接、图谱视图等本地能力。 新建文件默认位置：当前文件夹； 附件默认保存位置：assets； Wiki 链接格式：最短路径。 这样拖进来的图片会自动落到 blogs/assets/，写作时用 ![[图片名.png]] 引用，构建时 pilog 会原样解析。 博客框架本身的细节，可以看 [[pixel-blog]]。 在 front matter 里可以手动指定 preview，卡片视图会优先展示它（支持 Markdown…</p>
+          
+          <div class="card-tags">
+            
+            <button class="tag-chip" type="button" data-tag="obsidian">#obsidian</button>
+            
+            <button class="tag-chip" type="button" data-tag="workflow">#workflow</button>
+            
+          </div>
+        </div>
+        
+      </a>
+    </article>
+    
+    <article class="card" data-tags="dino fun " data-folder="posts/notes" data-date="2026-07-15">
+      <a class="card-link" href="posts/notes/dino-game.html">
+        <div class="card-body">
+          <div class="card-meta">
+            <time datetime="2026-07-15">2026-07-15</time>
+            
+            
+            
+            <span class="card-folder" title="点击目录片段筛选">
+              <button class="folder-part" type="button" data-folder="posts">posts</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/notes">notes</button>
+            </span>
+            
+          </div>
+          <h3 class="card-title">断网小恐龙，入住博客角落</h3>
+          
+          <p class="card-preview">主页右下角藏着一只 Chrome 断网页小恐龙。点开它，就可以在写博客的间隙跑两步： 空格 / ↑：跳跃 ↓：下蹲（空中可急降） Enter：重新开始 游戏整体复刻了 Chromium 官方的像素配色与手感，也定义了本站的视觉语言：灰白底、锐利直角、没有多余的圆角。 想直接玩，点这里：开始游戏。</p>
+          
+          <div class="card-tags">
+            
+            <button class="tag-chip" type="button" data-tag="dino">#dino</button>
+            
+            <button class="tag-chip" type="button" data-tag="fun">#fun</button>
+            
+          </div>
+        </div>
+        
+      </a>
+    </article>
+    
+    <article class="card" data-tags="pilog demo " data-folder="posts/notes" data-date="2026-07-10">
+      <a class="card-link" href="posts/notes/long-title-demo.html">
+        <div class="card-body">
+          <div class="card-meta">
+            <time datetime="2026-07-10">2026-07-10</time>
+            
+            
+            
+            <span class="card-folder" title="点击目录片段筛选">
+              <button class="folder-part" type="button" data-folder="posts">posts</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/notes">notes</button>
+            </span>
+            
+          </div>
+          <h3 class="card-title">一篇用来演示超长标题在卡片与图谱节点中如何显示与自动截断的示例文章</h3>
+          
+          <p class="card-preview">图谱节点已经加大，可以容纳更长的标题；当标题仍然超出节点宽度时，末尾会用 ... 截断，悬停节点可以看到完整标题。 这篇示例本身没有更多内容，它的任务已经完成了。</p>
+          
+          <div class="card-tags">
+            
+            <button class="tag-chip" type="button" data-tag="pilog">#pilog</button>
+            
+            <button class="tag-chip" type="button" data-tag="demo">#demo</button>
+            
+          </div>
+        </div>
+        
+      </a>
+    </article>
+    
+    <article class="card" data-tags="about " data-folder="root" data-date="2026-01-01">
+      <a class="card-link" href="about.html">
+        <div class="card-body">
+          <div class="card-meta">
+            <time datetime="2026-01-01">2026-01-01</time>
+            
+            
+            
+          </div>
+          <h3 class="card-title">关于</h3>
+          
+          <p class="card-preview">这是一个由 pilog 驱动的极简像素风博客。 这里记录技术笔记、生活随笔，以及一切值得留下来的片段。博客支持三种视图：卡片、清单与图谱，内容由 Markdown 编写，配合 Obsidian 使用体验最佳。 在 blogs/ 目录下新建 .md 文件，使用 Obsidian 或其他编辑器撰写； 运行 python build.py 生成静态站点； 用 GitHub Desktop 提交，GitHub Actions 会自动部署到 GitHub Pages。 页脚有社交账号入口。也可以直接通过 GitHub 发起…</p>
+          
+          <div class="card-tags">
+            
+            <button class="tag-chip" type="button" data-tag="about">#about</button>
+            
+          </div>
+        </div>
+        
+      </a>
+    </article>
+    
+  </div>
+
+  
+</section>
+
+<section class="view-pane" id="view-tree" data-pane="tree" hidden>
+  <div class="pane-head">
+    <h2 class="pane-title">清单视图</h2>
+    <div class="tree-toolbar">
+      <button class="pixel-btn" type="button" id="tree-expand">展开全部</button>
+      <button class="pixel-btn" type="button" id="tree-collapse">折叠全部</button>
+    </div>
+  </div>
+  <div class="tree-wrap">
+    <ul class="tree" id="tree-root">
+      
+      
+        
+          
+          <li class="tree-folder is-open" data-path="posts">
+            <div class="tree-row" role="button" tabindex="0">
+              <span class="tree-toggle">▼</span>
+              <img class="tree-icon-img tree-icon-folder" src="img/pixel-folder.svg" alt="folder">
+              <span class="tree-name">posts</span>
+            </div>
+            <ul class="tree-children">
+              
+        
+          
+          <li class="tree-folder is-open" data-path="posts/notes">
+            <div class="tree-row" role="button" tabindex="0">
+              <span class="tree-toggle">▼</span>
+              <img class="tree-icon-img tree-icon-folder" src="img/pixel-folder.svg" alt="folder">
+              <span class="tree-name">notes</span>
+            </div>
+            <ul class="tree-children">
+              
+        
+          
+          <li class="tree-file" data-path="posts/notes/dino-game">
+            <a class="tree-row" href="posts/notes/dino-game.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">断网小恐龙，入住博客角落</span>
+              <span class="tree-date">2026-07-15</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/notes/long-title-demo">
+            <a class="tree-row" href="posts/notes/long-title-demo.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">一篇用来演示超长标题在卡片与图谱节点中如何显示与自动截断的示例文章</span>
+              <span class="tree-date">2026-07-10</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/notes/obsidian-tips">
+            <a class="tree-row" href="posts/notes/obsidian-tips.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">在 Obsidian 中高效写作</span>
+              <span class="tree-date">2026-07-20</span>
+            </a>
+          </li>
+          
+        
+      
+            </ul>
+          </li>
+          
+        
+          
+          <li class="tree-folder is-open" data-path="posts/tech">
+            <div class="tree-row" role="button" tabindex="0">
+              <span class="tree-toggle">▼</span>
+              <img class="tree-icon-img tree-icon-folder" src="img/pixel-folder.svg" alt="folder">
+              <span class="tree-name">tech</span>
+            </div>
+            <ul class="tree-children">
+              
+        
+          
+          <li class="tree-file is-highlight" data-path="posts/tech/markdown-cheatsheet">
+            <a class="tree-row" href="posts/tech/markdown-cheatsheet.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">Markdown 速查表</span>
+              <span class="tree-date">2026-07-28</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/tech/pixel-blog">
+            <a class="tree-row" href="posts/tech/pixel-blog.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">用 pilog 搭建像素风博客</span>
+              <span class="tree-date">2026-07-30</span>
+            </a>
+          </li>
+          
+        
+      
+            </ul>
+          </li>
+          
+        
+      
+            </ul>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="about">
+            <a class="tree-row" href="about.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">关于</span>
+              <span class="tree-date">2026-01-01</span>
+            </a>
+          </li>
+          
+        
+      
+    </ul>
+  </div>
+</section>
+
+<section class="view-pane" id="view-graph" data-pane="graph" hidden>
+  <div class="pane-head">
+    <h2 class="pane-title">图谱视图</h2>
+    <div class="graph-toolbar">
+      <span class="graph-stats" id="graph-stats"></span>
+      <button class="pixel-btn" type="button" id="graph-expand-all">展开全部</button>
+      <button class="pixel-btn" type="button" id="graph-collapse-all">折叠全部</button>
+      <button class="pixel-btn is-on" type="button" id="graph-snake">贪吃蛇 开</button>
+      <button class="pixel-btn" type="button" id="graph-fit">适应视图</button>
+    </div>
+  </div>
+  <div class="graph-legend">
+    <span class="legend-item"><i class="legend-line legend-hierarchy"></i>目录层级</span>
+    <span class="legend-item"><i class="legend-line legend-ref"></i>引用关系</span>
+    <span class="legend-item"><i class="legend-node legend-post"></i>文章</span>
+    <span class="legend-item"><i class="legend-node legend-dir"></i>目录</span>
+    <span class="legend-item"><i class="legend-node legend-highlight"></i>高亮文章</span>
+  </div>
+  <div class="graph-wrap" id="graph-wrap">
+    <svg id="graph-svg" role="img" aria-label="博客关系图谱"></svg>
+    <div class="graph-tip" id="graph-tip" hidden></div>
+    <div class="graph-hint">拖拽节点 · 滚轮缩放 · 单击目录折叠 · 点击文章跳转 · 贪吃蛇沿外沿巡逻</div>
+  </div>
+  <script type="application/json" id="graph-data" data-root=""
+          data-collapse="25"></script>
+</section>
+</main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span>© 2026 Meredith — built with pilog</span>
+      <span class="footer-sep">::</span>
+      <a href="rss.xml">RSS</a>
+      <span class="footer-sep">::</span>
+      <span>powered by <a href="https://github.com/meredith2328/pilog" target="_blank" rel="noopener">pilog</a></span>
+    </div>
+  </footer>
+
+  
+  <div class="dino-widget" data-widget="dino">
+    <div class="dino-panel" hidden>
+      <div class="dino-bar">
+        <span class="dino-title">T-REX RUNNER</span>
+        <span class="dino-hint">点击游戏区域后按 空格</span>
+        <button class="dino-close" type="button" aria-label="关闭">×</button>
+      </div>
+      <iframe class="dino-frame" src="dino/index.html" title="Chrome 断网小恐龙" loading="lazy"></iframe>
+    </div>
+    <button class="dino-toggle" type="button" aria-label="打开小恐龙游戏">
+      <img src="img/dino-icon.png" alt="小恐龙" width="26" height="28">
+      <span>PLAY</span>
+    </button>
+  </div>
+  
+
+  <script src="js/main.js" defer></script>
+  <script>
+    window.PILOG_ROOT = "";
+    window.PILOG_DEFAULT_VIEW = "cards";
+  </script>
+  <script src="js/search.js" defer></script>
+  
+<script src="js/graph.js" defer></script>
+
+</body>
+</html>

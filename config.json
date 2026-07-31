@@ -5,9 +5,9 @@
     "author": "Meredith",
     "language": "zh-CN",
     "blog_dir": "blogs",
-    "out_dir": "site",
-    "base_path": "/pilog",
-    "site_url": "https://meredith2328.github.io/pilog",
+    "out_dir": "docs",
+    "base_path": "",
+    "site_url": "https://meredith2328.github.io",
     "use_google_fonts": true,
     "footer_text": "© 2026 Meredith — built with pilog",
     "show_dino": true,
@@ -37,8 +37,8 @@
     "rss": true
   },
   "publish": {
-    "repo": "Meredith2328/pilog",
-    "branch": "main",
-    "token_file": ".publish-token"
+    "repo": "Meredith2328/meredith2328.github.io",
+    "branch": "pilog",
+    "token_file": ".publish-token-pages"
   }
 }
