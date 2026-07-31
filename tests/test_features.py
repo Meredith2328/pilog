@@ -41,6 +41,14 @@ def test_markdown_del_and_math() -> None:
     assert "arithmatex" in html, html
     assert "\\(a^2 + b^2\\)" in html, html
     assert "\\[\nx^2" in html, html
+    # `$$...$$` written inline (not on its own line) must still become block math
+    inline_html = render_markdown(
+        "前后都有文字 $$E=mc^2$$ 也在同一行",
+        src,
+        "index.html",
+        ctx,
+    ).html
+    assert '<div class="arithmatex">\\[E=mc^2\\]</div>' in inline_html, inline_html
     print("  [PASS] ~~strikethrough~~ and $...$ / $$...$$ render")
 
 
@@ -108,8 +116,10 @@ def test_hidden_posts_feature_hero_and_nojekyll() -> None:
     assert not (out / "posts" / "secret2.html").exists()
     hero = (out / "posts" / "hero.html").read_text(encoding="utf-8")
     assert 'class="post-hero"' in hero, hero[:400]
+    home = (out / "index.html").read_text(encoding="utf-8")
+    assert "is-cover" in home, "card cover (feature) missing on homepage"
     assert (out / ".nojekyll").exists()
-    print("  [PASS] hidden posts excluded from build; feature hero + .nojekyll present")
+    print("  [PASS] hidden posts excluded; feature hero + card cover + .nojekyll present")
 
 
 def main() -> None:

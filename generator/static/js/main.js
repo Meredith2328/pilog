@@ -135,16 +135,24 @@
         esc(root + p.thumb_url) +
         '" alt="" loading="lazy"></div>'
       : "";
+    var coverHtml = p.feature
+      ? '<span class="card-cover" style="background-image:url(\'' +
+        esc(root + p.feature) +
+        '\')"></span>'
+      : "";
     return (
       '<article class="card' +
       (p.highlight ? " is-highlight" : "") +
+      (p.feature ? " is-cover" : "") +
       ' is-client" data-tags="' +
       esc((p.tags || []).join(" ")) +
       '" data-folder="' +
       esc(p.folder || "") +
       '" data-date="' +
       esc(p.date_str || "") +
-      '"><a class="card-link" href="' +
+      '">' +
+      coverHtml +
+      '<a class="card-link" href="' +
       esc(root + p.url) +
       '"><div class="card-body"><div class="card-meta"><time datetime="' +
       esc(p.date_str || "") +
@@ -160,7 +168,7 @@
       '<div class="card-tags">' +
       tagsHtml +
       "</div></div>" +
-      thumbHtml +
+      (p.feature ? "" : thumbHtml) +
       "</a></article>"
     );
   }

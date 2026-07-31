@@ -232,7 +232,7 @@ def main() -> None:
             """)
 
         vp0 = viewport()
-        page.locator(".site-nav a[data-kind='folder']", has_text="随笔").click()
+        page.locator(".site-nav a[data-kind='folder']", has_text="玩具").click()
         page.wait_for_timeout(700)
         vp1 = viewport()
         flash = page.locator(".graph-flash").count()

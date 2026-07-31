@@ -31,7 +31,10 @@
 
   <div class="card-grid" id="card-grid">
     {% for post in posts %}
-    <article class="card{% if post.highlight %} is-highlight{% endif %}" data-tags="{% for t in post.tags %}{{ t }} {% endfor %}" data-folder="{{ post.folder }}" data-date="{{ post.date_str }}">
+    <article class="card{% if post.highlight %} is-highlight{% endif %}{% if post.feature_url %} is-cover{% endif %}" data-tags="{% for t in post.tags %}{{ t }} {% endfor %}" data-folder="{{ post.folder }}" data-date="{{ post.date_str }}">
+      {% if post.feature_url %}
+      <span class="card-cover" style="background-image:url('{{ root }}{{ post.feature_url }}')"></span>
+      {% endif %}
       <a class="card-link" href="{{ root }}{{ post.url }}">
         <div class="card-body">
           <div class="card-meta">
@@ -56,7 +59,7 @@
             {% endfor %}
           </div>
         </div>
-        {% if post.thumb_url %}
+        {% if post.thumb_url and not post.feature_url %}
         <div class="card-thumb">
           <img src="{{ root }}{{ post.thumb_url }}" alt="" loading="lazy">
         </div>

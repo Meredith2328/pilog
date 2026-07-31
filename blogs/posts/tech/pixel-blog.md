@@ -2,14 +2,14 @@
 title: 用 pilog 搭建像素风博客
 date: 2026-07-30
 tags: [pilog, meta]
-pin: true
-preview: 一套轻量的静态博客框架：读取 `blogs/` 目录下的 Markdown，生成卡片 / 清单 / 图谱三种视图，主题复刻 Chrome 断网页的像素美学。
+highlight: true
+preview: 一套个人自制的轻量静态博客框架：读取 `blogs/` 目录下的 Markdown，生成卡片 / 清单 / 图谱三种视图，主题复刻 Chrome 断网页的像素美学。
 preview_image: assets/cover-pixel.png
 ---
 
 # 用 pilog 搭建像素风博客
 
-**pilog** 是一个轻量的静态博客生成器：你只管在 Obsidian 里写 Markdown，构建脚本会把整个 `blogs/` 目录变成带三种视图的静态站点。
+**pilog** 是个人自制的轻量静态博客生成器：你只管在 Obsidian 里写 Markdown，构建脚本会把整个 `blogs/` 目录变成带三种视图的静态站点。它没有数据库、没有后端，只有一个个 Markdown 文件和一个负责构建的脚本。
 
 ## 三种视图
 
@@ -24,6 +24,29 @@ preview_image: assets/cover-pixel.png
 也支持 Obsidian 的全局引用与宽度控制：
 
 ![[cover-pixel.png|240]]
+
+## 用 Obsidian 写作
+
+把 `blogs/` 目录直接作为 Obsidian 仓库打开，就能获得双向链接、图谱视图等本地能力。几个推荐设置：
+
+- 新建文件默认位置：当前文件夹；
+- 附件默认保存位置：`assets`；
+- Wiki 链接格式：最短路径。
+
+这样拖进来的图片会自动落到 `blogs/assets/`，写作时用 `![[图片名.png]]` 引用，构建时 pilog 会原样解析；文章之间的链接同样支持 `[[另一篇文章]]` 写法。
+
+### 预览字段
+
+在 front matter 里可以手动指定 `preview`，卡片视图会优先展示它（支持 Markdown 语法）；不指定时则自动截取正文。
+
+```yaml
+---
+title: 我的文章
+date: 2026-07-01
+tags: [随笔]
+preview: 一句话介绍这篇文章。
+---
+```
 
 ## 代码高亮
 
@@ -46,8 +69,6 @@ python build.py
 python serve.py --watch
 ```
 
-## Obsidian 语法
+## 更多语法
 
-图片既支持 Markdown 原生语法，也支持 Obsidian 的 `![[图片名]]` 形式，构建时会自动解析并复制到站点。文章之间的链接同样支持 `[[另一篇文章]]` 写法。
-
-更多语法细节见 [Markdown 速查表](markdown-cheatsheet.md)。
+删除线：~~这一段会被划掉~~；LaTeX 行内公式 $E = mc^2$，整行公式即使写在行内也会独立成块：$$x^2 + y^2 = z^2$$ 公式后面还可以继续写文字。图片可以混用 Markdown 相对路径、`![[图片名.png]]` 以及带宽度写法。博客自身的全部功能，也都来自这套简单的 Markdown 约定。

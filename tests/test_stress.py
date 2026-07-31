@@ -168,6 +168,7 @@ def main() -> None:
         nodes = page.locator(".graph-node").count()
         links = page.locator(".graph-link").count()
         refs = page.locator(".graph-link.ref").count()
+        assert refs > 0, f"expected wiki-link ref edges in the graph, got {refs}"
         zoom = page.evaluate("""
             () => {
               const m = document.querySelector('#graph-svg g')

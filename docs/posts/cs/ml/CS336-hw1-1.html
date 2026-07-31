@@ -1,0 +1,1731 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="pilog">
+  <title>CS336 Assignment 1 前半段记录：架构 · MEREDITH&#39;S LOG</title>
+  <meta name="description" content="从分词开始，搭建起Transformer架构。 BPE tokenizer Transformer LM The cross-entropy loss function and the AdamW optimizer The training loop (support: serilizing, loading mod">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="MEREDITH&#39;S LOG">
+  <meta property="og:title" content="CS336 Assignment 1 前半段记录：架构">
+  <meta property="og:description" content="从分词开始，搭建起Transformer架构。 BPE tokenizer Transformer LM The cross-entropy loss function and the AdamW optimizer The training loop (support: serilizing, loading mod">
+  <link rel="canonical" href="https://meredith2328.github.io/posts/cs/ml/CS336-hw1-1.html">
+  
+  <meta property="og:image" content="https://meredith2328.github.io/assets/.thumbs/c5919d2aaec2.jpg">
+  <meta property="article:published_time" content="2026-03-10T00:00:00">
+
+  <link rel="icon" href="../../../favicon.png">
+  <link rel="apple-touch-icon" href="../../../favicon.png">
+  <link rel="alternate" type="application/rss+xml" title="MEREDITH&#39;S LOG · RSS" href="../../../rss.xml">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <link rel="stylesheet" href="../../../css/style.css">
+  
+</head>
+<body>
+  <div class="deco deco-left" aria-hidden="true"></div>
+  <div class="deco deco-right" aria-hidden="true"></div>
+  <header class="site-header">
+    <div class="header-banner is-default"
+         style="background-image:url('../../../img/banner-default.svg')"></div>
+    <div class="header-row">
+      <a class="brand" href="../../../index.html">
+        <img class="brand-icon" src="../../../img/dino-icon.png" alt="dino" width="28" height="30">
+        <span class="brand-name">MEREDITH&#39;S LOG</span>
+        <span class="brand-sub">pixel · minimal · notes</span>
+      </a>
+
+      <div class="view-switch" role="tablist" aria-label="视图切换">
+        <button class="view-tab is-active" role="tab" data-view="cards" aria-selected="true">卡片视图</button>
+        <button class="view-tab" role="tab" data-view="tree" aria-selected="false">清单视图</button>
+        <button class="view-tab" role="tab" data-view="graph" aria-selected="false">图谱视图</button>
+      </div>
+
+      <div class="search-wrap" id="search-wrap">
+        <input id="search-input" type="search" placeholder="搜索 标题 / 全文 / 标签…"
+               autocomplete="off" aria-label="搜索">
+        <div class="search-results" id="search-results" hidden></div>
+      </div>
+
+      <div class="socials">
+        
+          
+            <a class="social-icon" href="https://github.com/meredith2328" title="github" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></a>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        
+          <a class="social-icon" href="../../../rss.xml" title="RSS"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg></a>
+        
+      </div>
+    </div>
+    
+    <nav class="site-nav" aria-label="站点导航"><h1 id="_1">导航</h1>
+<ul>
+<li><a href="../../../index.html">首页</a></li>
+<li><a href="../10pi.html">关于</a></li>
+<li><a data-kind="folder" href="../../../index.html#folder=posts/cs">CS相关</a></li>
+<li><a data-kind="folder" href="../../../index.html#folder=posts/toy">玩具</a></li>
+<li><a href="../../../dino/index.html">恐龙游戏</a></li>
+</ul></nav>
+    
+  </header>
+
+  <main class="site-main">
+<article class="post">
+  <header class="post-header">
+    <a class="back-link" href="../../../index.html">← 返回首页</a>
+    <h1 class="post-title">CS336 Assignment 1 前半段记录：架构</h1>
+    <div class="post-meta">
+      <time datetime="2026-03-10T00:00:00">2026-03-10</time>
+      
+      <span class="post-folder">▣ posts/cs/ml</span>
+    </div>
+  </header>
+
+  
+
+  <div class="post-body markdown-body">
+    <p>从分词开始，搭建起Transformer架构。</p>
+<!-- more -->
+<blockquote>
+<p>edit time: 2026-02-03 17:35:29 开始配置环境√
+edit time: 2026-02-03 17:56:45 下数据集，读文档√
+edit time: 2026-02-03 18:47:24 BPE先到2.4停一下
+edit time: 2026-02-09 18:30:51 BPE过3/3的demo√ 没优化居然就能过
+edit time: 2026-02-09 21:37:52 想把3 Transformer结构做掉
+edit time: 2026-02-09 22:36:31 3.1-3.3介绍√ 后面3.4-3.6就是纯代码了，基本上是自己写一遍，再让ai写一遍，补一些细节
+edit time: 2026-02-11 22:54:59 读test_model，照猫画虎Linear, Embedding, RMSNorm, SwiGLU√
+edit time: 2026-02-12 23:26:05 完成整个3 Transformer结构部分√
+edit time: 2026-02-13 21:36:29 完成4 Utils部分√
+edit time: 2026-02-13 22:25:45 粗略地过了5 Training Loop部分，最后合在一起因为没有做tokenizer所以先搁置
+edit time: 2026-03-10 09:03:18 补完训练部分√ 不管干什么，都先在PyTorch里面干一下，就知道了。</p>
+</blockquote>
+<p>作业目录：
+1. BPE tokenizer
+2. Transformer LM
+3. The cross-entropy loss function and the AdamW optimizer
+4. The training loop (support: serilizing, loading model, optimizer state)</p>
+<p>提到的工具：</p>
+<table>
+<thead>
+<tr>
+<th>工具</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cProfile</code></td>
+<td>CPU性能分析工具。</td>
+</tr>
+<tr>
+<td><code>torch.profiler</code></td>
+<td>GPU性能分析工具。</td>
+</tr>
+<tr>
+<td><code>einops</code></td>
+<td>好用的重排tensor、tensor乘法、tensor聚合的可读实现库。</td>
+</tr>
+<tr>
+<td><code>WanDB</code></td>
+<td>日志工具，用于记录loss、acc变化，以及记录实验信息。</td>
+</tr>
+<tr>
+<td>## 4 Training a Transformer LM</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>我们要做什么？实现一些训练Transformer必要的工具。</p>
+</blockquote>
+<p>4.1 Cross-entropy loss</p>
+<p>实现交叉熵损失。</p>
+<p>4.2 The SGD Optimizer</p>
+<p>基础的随机梯度下降优化器的原理。</p>
+<p>4.3 AdamW</p>
+<p>更进一步，实现AdamW优化器。</p>
+<p>4.4 Learning rate scheduling</p>
+<p>cosine学习率调度。</p>
+<p>4.5 Gradient clipping</p>
+<p>梯度裁剪，防止梯度过大。</p>
+<h3 id="crossentropyloss">CrossEntropyLoss</h3>
+<p>跨各个token，跨batch的平均损失。
+慢慢推一下维度：
+<code>inputs: Float[Tensor, " batch_size vocab_size"]</code>
+<code>targets: Int[Tensor, " batch_size"]</code>
+所以为了数值稳定，我们将 <code>inputs: (batch, vocab_size)</code> 减去它跨 <code>vocab</code> 维度的 <code>max_vals: (batch, 1)</code> ，得到 <code>inputs_stable: (batch, vocab_size)</code> ，
+然后对 <code>inputs_stable</code> 执行log_sum_exp。
+具体而言，先整体exp，然后在<code>vocab_size</code>维上做sum，最后再log。</p>
+<p>再接下来，我们根据targets提供的标签知道了inputs中哪些是正确的，把正确的取出。</p>
+<p>总之，其实就是算了这两部分：</p>
+<div class="arithmatex">\[CrossEntropy(x,y)=-\log(\frac{e^{x_y}}{\sum_j e^{x_j}})=\log(\sum_j e^{x_j})-x_y\]</div>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">CrossEntropyLoss</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span><span class="p">):</span>
+        <span class="c1"># 1) calc log-sum-exp</span>
+        <span class="c1"># batch "1" since 1 only automatically added in the front</span>
+        <span class="n">max_vals</span> <span class="o">=</span> <span class="n">reduce</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="s1">'batch vocab -&gt; batch 1'</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="s1">'max'</span><span class="p">)</span>
+        <span class="n">inputs_stable</span> <span class="o">=</span> <span class="n">inputs</span> <span class="o">-</span> <span class="n">max_vals</span> <span class="c1"># (batch, vocab)</span>
+        <span class="c1"># subtract, for numerical stability</span>
+
+        <span class="n">log_sum_exp</span> <span class="o">=</span> <span class="n">reduce</span><span class="p">(</span>
+            <span class="n">inputs_stable</span><span class="o">.</span><span class="n">exp</span><span class="p">(),</span>
+            <span class="s1">'batch vocab -&gt; batch'</span><span class="p">,</span>
+            <span class="n">reduction</span><span class="o">=</span><span class="s1">'sum'</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">log</span><span class="p">()</span> <span class="o">+</span> <span class="n">max_vals</span>
+        <span class="c1"># add, for numerical stability</span>
+
+        <span class="c1"># 2) get the predicted vals for correct labels</span>
+        <span class="c1"># eg. targets = torch.tensor([2, 0, 3])</span>
+        <span class="c1"># logits = torch.tensor([</span>
+        <span class="c1">#     [0.1, 0.2, '0.3', 0.4, 0.5],</span>
+        <span class="c1">#     ['1.0', 1.1, 1.2, 1.3, 1.4],</span>
+        <span class="c1">#     [2.0, 2.1, 2.2, '2.3', 2.4]</span>
+        <span class="c1"># ])</span>
+        <span class="c1"># we take torch.tensor([0.3, 1.0, 2.3])</span>
+        <span class="n">target_logits</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span>
+            <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">index</span><span class="o">=</span><span class="n">targets</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># 3) calc batch mean loss</span>
+        <span class="n">losses</span> <span class="o">=</span> <span class="n">log_sum_exp</span> <span class="o">-</span> <span class="n">target_logits</span>
+        <span class="k">return</span> <span class="n">losses</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+</code></pre></div>
+<h3 id="sgd">SGD</h3>
+<p>大名鼎鼎的随机梯度下降（Stochastic Gradient Descent）。
+介绍了parameter group的概念，表示模型的不同部分的参数使用不同的超参数。
+用了一个简单的例子来测试超参数的影响：</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SGD</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Optimizer</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Stochastic Gradient Descent (SGD).</span>
+
+<span class="sd">    eg.</span>
+
+<span class="sd">    weights = torch.nn.Parameter(5 * torch.randn((10, 10)))</span>
+<span class="sd">    opt = SGD([weights], lr=1)</span>
+<span class="sd">    for t in range(100):</span>
+<span class="sd">        opt.zero_grad() # Reset the gradients for all learnable parameters.</span>
+<span class="sd">        loss = (weights**2).mean() # Compute a scalar loss value.</span>
+<span class="sd">        print(loss.cpu().item())</span>
+<span class="sd">        loss.backward() # Run backward pass, which computes gradients.</span>
+<span class="sd">        opt.step() # Run optimizer step.</span>
+
+<span class="sd">    Forward, compute the loss.</span>
+<span class="sd">    Backward, compute the gradient.</span>
+<span class="sd">    Run optimizer step, update the params.</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">lr</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Invalid learning rate: </span><span class="si">{</span><span class="n">lr</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">defaults</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"lr"</span><span class="p">:</span> <span class="n">lr</span><span class="p">}</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">defaults</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">closure</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">closure</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">closure</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_groups</span><span class="p">:</span>
+            <span class="n">lr</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="s2">"lr"</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">group</span><span class="p">[</span><span class="s2">"params"</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+                <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
+                <span class="n">t</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"t"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="c1"># iteration number we maintain</span>
+                <span class="n">grad</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">data</span>
+                <span class="c1"># the learning rate decays over training</span>
+                <span class="n">p</span><span class="o">.</span><span class="n">data</span> <span class="o">-=</span> <span class="n">lr</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">t</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">grad</span>
+                <span class="n">state</span><span class="p">[</span><span class="s2">"t"</span><span class="p">]</span> <span class="o">=</span> <span class="n">t</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">loss</span>
+
+<span class="n">weights</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="mi">5</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">((</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">)))</span>
+<span class="n">opt</span> <span class="o">=</span> <span class="n">SGD</span><span class="p">([</span><span class="n">weights</span><span class="p">],</span> <span class="n">lr</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span>
+  <span class="n">opt</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span> <span class="c1"># Reset the gradients for all learnable parameters.</span>
+  <span class="n">loss</span> <span class="o">=</span> <span class="p">(</span><span class="n">weights</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="c1"># Compute a scalar loss value.</span>
+  <span class="nb">print</span><span class="p">(</span><span class="n">loss</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+  <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span> <span class="c1"># Run backward pass, which computes gradients.</span>
+  <span class="n">opt</span><span class="o">.</span><span class="n">step</span><span class="p">()</span> <span class="c1"># Run optimizer step.</span>
+</code></pre></div>
+<p>结果大致如下：
+可见，lr增大时，loss的值大致下降变快，直到无穷小。
+但lr很大时（1e3），loss的值反倒发散到无穷大。</p>
+<div class="highlight"><pre><span></span><code># lr=1
+24.955036163330078 23.966821670532227 23.29372787475586 22.758888244628906 22.305986404418945 ...
+</code></pre></div>
+<div class="highlight"><pre><span></span><code># lr=1e1
+20.56572723388672 13.162065505981445 9.702513694763184 7.591179847717285 6.148856163024902 ...
+</code></pre></div>
+<div class="highlight"><pre><span></span><code># lr=1e2
+23.596664428710938 23.596660614013672 4.04854679107666 0.09689083695411682 1.5798126642781223e-16 ...
+</code></pre></div>
+<div class="highlight"><pre><span></span><code># lr=1e3
+27.495254516601562 9925.787109375 1714339.5 190701984.0 15446859776.0
+</code></pre></div>
+<p>我觉得ai给了一个特别直观的解释。
+想象你在一个碗状的山谷（最小值在谷底）：
+- lr太小：像老太太挪步，半天走不到谷底
+- lr合适：正常步伐，稳步下降
+- lr偏大：大步流星，很快接近谷底
+- lr过大：一步跨到对面山坡，再一步跨回来，每一步都跳到更高的地方，最终飞出碗外</p>
+<h3 id="adamw">AdamW</h3>
+<p><img alt="" src="../../migrated/post-images/20260213211756.png"/></p>
+<p>这个看起来像是在SGD的基础上加了一些数学原理的估计，使得它有很好的效果。
+具体原理暂时不关心，我希望更侧重对大模型训练整体及其实现的把握。以后写到AdamW了再回过来补充原理。</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">AdamW</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Optimizer</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">betas</span><span class="o">=</span><span class="p">(</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.999</span><span class="p">),</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span> <span class="n">weight_decay</span><span class="o">=</span><span class="mf">0.01</span><span class="p">):</span>
+        <span class="n">defaults</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">lr</span><span class="o">=</span><span class="n">lr</span><span class="p">,</span> <span class="n">betas</span><span class="o">=</span><span class="n">betas</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">eps</span><span class="p">,</span> <span class="n">weight_decay</span><span class="o">=</span><span class="n">weight_decay</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">defaults</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">closure</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">closure</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">closure</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_groups</span><span class="p">:</span>
+            <span class="n">beta1</span><span class="p">,</span> <span class="n">beta2</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="s1">'betas'</span><span class="p">]</span>
+            <span class="n">lr</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="s1">'lr'</span><span class="p">]</span>
+            <span class="n">eps</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="s1">'eps'</span><span class="p">]</span>
+            <span class="n">weight_decay</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="s1">'weight_decay'</span><span class="p">]</span>
+
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">group</span><span class="p">[</span><span class="s1">'params'</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+                <span class="n">grad</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">data</span>
+
+                <span class="c1"># 初始化状态</span>
+                <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">state</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">state</span><span class="p">[</span><span class="s1">'step'</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">state</span><span class="p">[</span><span class="s1">'m'</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>  <span class="c1"># 一阶矩</span>
+                    <span class="n">state</span><span class="p">[</span><span class="s1">'v'</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>  <span class="c1"># 二阶矩</span>
+
+                <span class="c1"># 更新步数</span>
+                <span class="n">state</span><span class="p">[</span><span class="s1">'step'</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">t</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">'step'</span><span class="p">]</span>
+
+                <span class="c1"># 更新矩估计</span>
+                <span class="n">state</span><span class="p">[</span><span class="s1">'m'</span><span class="p">]</span><span class="o">.</span><span class="n">mul_</span><span class="p">(</span><span class="n">beta1</span><span class="p">)</span><span class="o">.</span><span class="n">add_</span><span class="p">(</span><span class="n">grad</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">1</span> <span class="o">-</span> <span class="n">beta1</span><span class="p">)</span>
+                <span class="n">state</span><span class="p">[</span><span class="s1">'v'</span><span class="p">]</span><span class="o">.</span><span class="n">mul_</span><span class="p">(</span><span class="n">beta2</span><span class="p">)</span><span class="o">.</span><span class="n">addcmul_</span><span class="p">(</span><span class="n">grad</span><span class="p">,</span> <span class="n">grad</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">1</span> <span class="o">-</span> <span class="n">beta2</span><span class="p">)</span>
+
+                <span class="c1"># 偏差修正</span>
+                <span class="n">bias_correction1</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">beta1</span> <span class="o">**</span> <span class="n">t</span>
+                <span class="n">bias_correction2</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">beta2</span> <span class="o">**</span> <span class="n">t</span>
+
+                <span class="c1"># Adam更新</span>
+                <span class="n">denom</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">'v'</span><span class="p">]</span><span class="o">.</span><span class="n">sqrt</span><span class="p">()</span><span class="o">.</span><span class="n">add_</span><span class="p">(</span><span class="n">eps</span><span class="p">)</span>
+                <span class="n">step_size</span> <span class="o">=</span> <span class="n">lr</span> <span class="o">*</span> <span class="p">(</span><span class="n">bias_correction2</span> <span class="o">**</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">/</span> <span class="n">bias_correction1</span>
+                <span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">addcdiv_</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="s1">'m'</span><span class="p">],</span> <span class="n">denom</span><span class="p">,</span> <span class="n">value</span><span class="o">=-</span><span class="n">step_size</span><span class="p">)</span>
+
+                <span class="c1"># 权重衰减（解耦）</span>
+                <span class="k">if</span> <span class="n">weight_decay</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">add_</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=-</span><span class="n">lr</span> <span class="o">*</span> <span class="n">weight_decay</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">loss</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_adamw_cls</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Returns a torch.optim.Optimizer that implements AdamW.</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">AdamW</span>
+</code></pre></div>
+<blockquote>
+<p>以下是GPT对问题的回答（未检验，很可能有问题）。
+之后会专门写一篇blog替换掉这里对激活值等的计算。</p>
+</blockquote>
+<hr/>
+<p>(a) AdamW 训练的内存占用分析</p>
+<p>假设使用 float32（4字节），d_ff = 4 × d_model，batch_size = B，context_length = L。</p>
+<ol>
+<li>参数量与内存</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>参数量公式</th>
+<th>内存 (字节)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Token Embedding</td>
+<td>V × d_model</td>
+<td>4Vd_model</td>
+</tr>
+<tr>
+<td>每层 Attention QKV</td>
+<td>3 × d_model²</td>
+<td>12d_model²</td>
+</tr>
+<tr>
+<td>每层 Attention O</td>
+<td>d_model²</td>
+<td>4d_model²</td>
+</tr>
+<tr>
+<td>每层 FFN w1/w3</td>
+<td>2 × d_model × 4d_model = 8d_model²</td>
+<td>32d_model²</td>
+</tr>
+<tr>
+<td>每层 FFN w2</td>
+<td>4d_model × d_model = 4d_model²</td>
+<td>16d_model²</td>
+</tr>
+<tr>
+<td>每层 RMSNorm</td>
+<td>2 × d_model</td>
+<td>8d_model</td>
+</tr>
+<tr>
+<td>每层小计</td>
+<td></td>
+<td>12+4+32+16 = 64d_model² + 8d_model</td>
+</tr>
+<tr>
+<td>num_layers层</td>
+<td></td>
+<td>N(64d_model² + 8d_model)</td>
+</tr>
+<tr>
+<td>Final RMSNorm</td>
+<td>d_model</td>
+<td>4d_model</td>
+</tr>
+<tr>
+<td>LM Head</td>
+<td>V × d_model</td>
+<td>4Vd_model</td>
+</tr>
+</tbody>
+</table>
+<p><strong>参数内存总量</strong>：</p>
+<div class="highlight"><pre><span></span><code>M_params = 8Vd_model + N(64d_model² + 8d_model) + 4d_model ≈ 8Vd_model + 64N d_model²
+</code></pre></div>
+<ol start="2">
+<li>梯度内存</li>
+</ol>
+<p>梯度与参数形状相同，因此：</p>
+<div class="highlight"><pre><span></span><code>M_grads = M_params
+</code></pre></div>
+<ol start="3">
+<li>优化器状态内存</li>
+</ol>
+<p>AdamW为每个参数存储：
+- 一阶矩 m（float32）
+- 二阶矩 v（float32）</p>
+<p>因此：</p>
+<div class="highlight"><pre><span></span><code>M_optim = 2 × M_params
+</code></pre></div>
+<ol start="4">
+<li>激活值内存（单层）</li>
+</ol>
+<p><strong>Attention子层</strong>：
+- Q/K/V投影输出：3 × B × L × d_model → 12BLd_model
+- QK^T 分数矩阵：B × num_heads × L × L → 4BHL²
+- Softmax输出（与分数矩阵同形状）：4BHL²
+- 加权和输出：B × L × d_model → 4BLd_model
+- O投影输出：B × L × d_model → 4BLd_model</p>
+<p><strong>FFN子层</strong>：
+- w1/w3投影输出：2 × B × L × 4d_model → 32BLd_model
+- SiLU输出（与w1同形状）：16BLd_model
+- w2投影输出：B × L × d_model → 4BLd_model</p>
+<p><strong>RMSNorm</strong>（两个）：2 × B × L × d_model → 8BLd_model</p>
+<p><strong>单层激活值总量</strong>：</p>
+<div class="highlight"><pre><span></span><code>M_act_layer = (12+4+4+4+32+16+4+8)BLd_model + 8BHL²
+            = 84BLd_model + 8BHL²
+</code></pre></div>
+<p><strong>所有层</strong>（需要存储所有层的激活值用于反向传播）：</p>
+<div class="highlight"><pre><span></span><code>M_act = N × M_act_layer = 84N BLd_model + 8N BHL²
+</code></pre></div>
+<ol start="5">
+<li>输出层激活值</li>
+</ol>
+<ul>
+<li>Final Norm输出：B × L × d_model → 4BLd_model</li>
+<li>LM Head输出：B × L × V → 4BLV</li>
+<li>Cross-entropy中间值（log_softmax）：B × L × V → 4BLV</li>
+</ul>
+<p><strong>输出层激活值</strong>：</p>
+<div class="highlight"><pre><span></span><code>M_act_out = 4BLd_model + 8BLV
+</code></pre></div>
+<ol start="6">
+<li>总内存</li>
+</ol>
+<div class="highlight"><pre><span></span><code>M_total = M_params + M_grads + M_optim + M_act + M_act_out
+        = M_params + M_params + 2M_params + M_act + M_act_out
+        = 4M_params + M_act + M_act_out
+        = 4(8Vd_model + 64N d_model²) + (84N BLd_model + 8N BHL²) + (4BLd_model + 8BLV)
+        = 32Vd_model + 256N d_model² + 84N BLd_model + 8N BHL² + 4BLd_model + 8BLV
+</code></pre></div>
+<hr/>
+<p>(b) GPT-2 XL 数值实例</p>
+<p>GPT-2 XL配置：
+- V = 50,257
+- L = 1,024
+- N = 48
+- d_model = 1,600
+- num_heads = 25
+- H = 25
+- d_ff = 6,400 = 4 × 1,600</p>
+<p>代入公式（单位：字节）：</p>
+<div class="highlight"><pre><span></span><code>M_params = 8×50257×1600 + 48×64×1600²
+         = 643,289,600 + 48 × 163,840,000
+         = 643M + 7,864M
+         = 8.507GB
+
+M_optim = 2 × M_params = 17.014GB
+M_grads = M_params = 8.507GB
+
+M_act = 48×84×B×1024×1600 + 48×8×B×25×1024²
+      = 48×84×B×1,638,400 + 48×8×B×25×1,048,576
+      = 48×137,625,600×B + 48×209,715,200×B
+      = 6.606B×B + 10.066B×B
+      = 16.672B GB
+
+M_act_out = 4×B×1024×1600 + 8×B×1024×50257
+          = 6,553,600×B + 411,697,664×B
+          = 0.0061B + 0.383B
+          = 0.389B GB
+</code></pre></div>
+<p><strong>总内存</strong>：</p>
+<div class="highlight"><pre><span></span><code>M_total = 8.507 + 17.014 + 8.507 + 16.672B + 0.389B
+        = 34.028 + 17.061B GB
+</code></pre></div>
+<p><strong>最大batch size</strong>（80GB内存）：</p>
+<div class="highlight"><pre><span></span><code>80 = 34.028 + 17.061B
+17.061B = 45.972
+B = 2.69 ≈ 2
+</code></pre></div>
+<p><strong>答案</strong>：<code>M_total = 34.028 + 17.061B GB</code>，最大batch size为 <strong>2</strong>。</p>
+<hr/>
+<p>(c) AdamW 一步的FLOPs</p>
+<p>AdamW的主要操作：
+1. <strong>更新一阶矩</strong>：<code>m = β1·m + (1-β1)·g</code> → 2次乘加/参数
+2. <strong>更新二阶矩</strong>：<code>v = β2·v + (1-β2)·g²</code> → 2次乘加 + 1次乘法/参数
+3. <strong>计算修正因子</strong>：<code>1-β1ᵗ</code>、<code>1-β2ᵗ</code> → 忽略（每步一次）
+4. <strong>参数更新</strong>：<code>θ -= α·m/(√v+ε)</code> → 1次除法 + 1次平方根 + 1次乘法/参数
+5. <strong>权重衰减</strong>：<code>θ -= α·λ·θ</code> → 1次乘加/参数</p>
+<p>粗略估计，每个参数约 <strong>10-12 FLOPs</strong>。</p>
+<p><strong>总FLOPs</strong>：</p>
+<div class="highlight"><pre><span></span><code>F_adamw ≈ 12 × (参数量) = 12 × (8Vd_model + 64N d_model²)
+</code></pre></div>
+<p>对于GPT-2 XL：</p>
+<div class="highlight"><pre><span></span><code>参数量 ≈ 2.046B
+F_adamw ≈ 12 × 2.046B = 24.55B FLOPs
+</code></pre></div>
+<hr/>
+<p>(d) 训练时间估算</p>
+<p>GPT-2 XL参数量 ≈ 2.046B</p>
+<p><strong>前向FLOPs</strong>（从之前计算）：</p>
+<div class="highlight"><pre><span></span><code>F_forward ≈ 4.51T FLOPs
+</code></pre></div>
+<p><strong>反向FLOPs</strong>（假设是前向的2倍）：</p>
+<div class="highlight"><pre><span></span><code>F_backward = 2 × F_forward = 9.02T FLOPs
+</code></pre></div>
+<p><strong>一步总FLOPs</strong>：</p>
+<div class="highlight"><pre><span></span><code>F_step = F_forward + F_backward + F_adamw
+       = 4.51T + 9.02T + 0.0245T
+       = 13.5545T FLOPs
+</code></pre></div>
+<p><strong>A100峰值</strong>：19.5 TFLOPS<br/>
+<strong>50% MFU</strong>：9.75 TFLOPS</p>
+<p><strong>每秒处理步数</strong>：</p>
+<div class="highlight"><pre><span></span><code>steps_per_sec = 9.75T / 13.5545T = 0.719 步/秒
+</code></pre></div>
+<p><strong>400K步所需秒数</strong>：</p>
+<div class="highlight"><pre><span></span><code>seconds = 400,000 / 0.719 = 556,328 秒
+</code></pre></div>
+<p><strong>转换为天</strong>：</p>
+<div class="highlight"><pre><span></span><code>days = 556,328 / (24×3600) = 556,328 / 86,400 ≈ 6.44 天
+</code></pre></div>
+<p><strong>答案</strong>：约 <strong>6.4天</strong></p>
+<hr/>
+<h2 id="3-transformer-language-model-architecture">3 Transformer Language Model Architecture</h2>
+<blockquote>
+<p>我们要做什么？实现Transformer本身。</p>
+</blockquote>
+<p>3.1 Transformer LM</p>
+<p>对Transformer的整体直觉做了简介。</p>
+<p>3.2 Output Normalization and Embedding</p>
+<p>同上。提到相比于原论文，我们的实现修改为pre-norm。</p>
+<p>3.3 Remark: Batching, Einsum and Efficient Computation</p>
+<p><code>batch_size</code> 和 <code>sequence_length</code> 通常置于开头，以便直接传播。有时需要利用 <code>view,reshape,transpose</code> 这些方法，但pytorch原生的写法有时不那么清晰。为了简便或者阅读友好等目的，推荐使用einops库。</p>
+<p>3.4 Basic Building Blocks: Linear and Embedding Modules</p>
+<p>介绍基础的Module。</p>
+<p>3.5 Pre-Norm Transformer Block</p>
+<p>实现pre-norm的transformer块。</p>
+<p>3.6 The Full Transformer LM</p>
+<p>实现整个Transformer模型，并且对它的参数、FLOPs做估算。</p>
+<p>语言模型接收 <code>(batch_size, sequence_length)</code> （相当于接收一个序列），
+生成对下一个token的归一化的概率分布 <code>(batch_size, sequence_length, vocab_size)</code> 。
+训练语言模型时，优化预测得到的下一个token和实际下一个token的交叉熵损失。</p>
+<p><del>连接主义！</del></p>
+<h3 id="resource-accounting">知识：Resource accounting</h3>
+<blockquote>
+<p>这一部分本来在3 Training a Transformer LM最后，挪到了最前面方便查阅。
+编写了一篇博客 <a href="https://meredith2328.github.io/post/LLMestimate/">怎么估算LLM的参数量和FLOPs？推一推、测一测 | 十派的玩具箱</a> ，详细整理了相关的内容，并且利用实际的包做了验证。</p>
+<p>直觉：
+<strong>随着模型变大，FFN和Attention占最主导（90%），其中FFN可能更多。</strong>
+<strong>但是随着长上下文变长，到一定阈值后，Attention反超FFN成为绝对主导（起码超过50%）。</strong></p>
+</blockquote>
+<p><img alt="" src="../../migrated/post-images/20260212231548.png"/>
+<img alt="" src="../../migrated/post-images/20260212231557.png"/></p>
+<h3 id="linear">Linear</h3>
+<p><img alt="" src="../../migrated/post-images/20260211223733.png"/></p>
+<p>Linear是一个对输入向量 <code>x</code> 执行 <code>y = xW^T</code> 操作，得到输出向量 <code>y</code> 的层。</p>
+<p>ps.   <span class="arithmatex">\(xW^T\)</span>  而不是  <span class="arithmatex">\(Wx\)</span>  是因为尽管我们在数学上的向量往往是列向量（ <span class="arithmatex">\(Wx\)</span> ），但NumPy和PyTorch的内部实现通常优先使用行向量。原因很好猜到：内存的局部性。</p>
+<p>注意首先使用 <code>super().__init__()</code> ，这是接下来使用 <code>load_state_dict</code> 手动加载权重的基础。</p>
+<p>首先利用 <code>torch.empty</code> 创建 <code>(out_features, in_features)</code> 的 <code>W</code> ，然后将它用 <code>nn.Parameter</code> 包装，再然后使用文档Parameter Initialization部分提到的 <code>trunc_normal_</code> 进行截断处理。 
+对于 <code>forward</code> 的实际实现，这里不使用einops时应该写作 <code>x @ W^T</code> ，因为考虑到空间局部性， <code>x</code> 这样的向量一般是行向量。当然，如果我们直接使用einops.einsum，就很方便了。把那些用于并行的<code>batch</code>之类的维度写成 <code>...</code> 即可。</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.nn.init</span><span class="w"> </span><span class="kn">import</span> <span class="n">trunc_normal_</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">math</span><span class="w"> </span><span class="kn">import</span> <span class="n">sqrt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">einops</span><span class="w"> </span><span class="kn">import</span> <span class="n">einsum</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Linear</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">'''Construct a (out_features, in_features) linear layer.</span>
+<span class="sd">    forward: y = xW^T.</span>
+<span class="sd">    '''</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_features</span><span class="p">,</span> <span class="n">out_features</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">in_features</span> <span class="o">=</span> <span class="n">in_features</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">out_features</span> <span class="o">=</span> <span class="n">out_features</span>
+
+        <span class="n">std</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">in_features</span> <span class="o">+</span> <span class="n">out_features</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="n">trunc_normal_</span><span class="p">(</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span>
+                <span class="n">torch</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">out_features</span><span class="p">,</span> <span class="n">in_features</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+            <span class="p">),</span>
+            <span class="n">mean</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="n">std</span> <span class="o">=</span> <span class="n">std</span><span class="p">,</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="o">-</span><span class="mf">3.0</span> <span class="o">*</span> <span class="n">std</span><span class="p">,</span>
+            <span class="n">b</span> <span class="o">=</span> <span class="mf">3.0</span> <span class="o">*</span> <span class="n">std</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">device</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="o">.</span><span class="n">device</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+        <span class="c1"># return x @ self.weights.T</span>
+        <span class="k">return</span> <span class="n">einsum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">,</span> <span class="s1">'... in_features, out_features in_features -&gt; ... out_features'</span><span class="p">)</span>
+</code></pre></div>
+<p>接下来是修改adapter。
+需要用到 <code>.load_state_dict('key': weights)</code> 来加载权重。</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">cs336_basics</span><span class="w"> </span><span class="kn">import</span> <span class="n">bpe</span><span class="p">,</span> <span class="n">model</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">run_linear</span><span class="p">(</span>
+    <span class="n">d_in</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">d_out</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">weights</span><span class="p">:</span> <span class="n">Float</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="s2">" d_out d_in"</span><span class="p">],</span>
+    <span class="n">in_features</span><span class="p">:</span> <span class="n">Float</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="s2">" ... d_in"</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Float</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="s2">" ... d_out"</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Given the weights of a Linear layer, compute the transformation of a batched input.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        in_dim (int): The size of the input dimension</span>
+<span class="sd">        out_dim (int): The size of the output dimension</span>
+<span class="sd">        weights (Float[Tensor, "d_out d_in"]): The linear weights to use</span>
+<span class="sd">        in_features (Float[Tensor, "... d_in"]): The output tensor to apply the function to</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Float[Tensor, "... d_out"]: The transformed output of your linear module.</span>
+<span class="sd">    """</span>
+
+    <span class="n">linear_layer</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">d_in</span><span class="p">,</span> <span class="n">d_out</span><span class="p">)</span>
+    <span class="n">state_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'weights'</span><span class="p">:</span> <span class="n">weights</span><span class="p">}</span>
+    <span class="n">linear_layer</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">linear_layer</span><span class="p">(</span><span class="n">in_features</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="embedding">embedding</h3>
+<p>Embedding是一个对于输入 <code>token_id</code> 查表，得到它的Embedding向量的层。</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">cs336_basics</span><span class="w"> </span><span class="kn">import</span> <span class="n">bpe</span><span class="p">,</span> <span class="n">model</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">run_linear</span><span class="p">(</span>
+    <span class="n">d_in</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">d_out</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">weights</span><span class="p">:</span> <span class="n">Float</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="s2">" d_out d_in"</span><span class="p">],</span>
+    <span class="n">in_features</span><span class="p">:</span> <span class="n">Float</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="s2">" ... d_in"</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Float</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="s2">" ... d_out"</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Given the weights of a Linear layer, compute the transformation of a batched input.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        in_dim (int): The size of the input dimension</span>
+<span class="sd">        out_dim (int): The size of the output dimension</span>
+<span class="sd">        weights (Float[Tensor, "d_out d_in"]): The linear weights to use</span>
+<span class="sd">        in_features (Float[Tensor, "... d_in"]): The output tensor to apply the function to</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Float[Tensor, "... d_out"]: The transformed output of your linear module.</span>
+<span class="sd">    """</span>
+
+    <span class="n">linear_layer</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">d_in</span><span class="p">,</span> <span class="n">d_out</span><span class="p">)</span>
+    <span class="n">state_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'weights'</span><span class="p">:</span> <span class="n">weights</span><span class="p">}</span>
+    <span class="n">linear_layer</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">linear_layer</span><span class="p">(</span><span class="n">in_features</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">run_embedding</span><span class="p">(</span>
+    <span class="n">vocab_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">d_model</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">weights</span><span class="p">:</span> <span class="n">Float</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="s2">" vocab_size d_model"</span><span class="p">],</span>
+    <span class="n">token_ids</span><span class="p">:</span> <span class="n">Int</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="s2">" ..."</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Float</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="s2">" ... d_model"</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Given the weights of an Embedding layer, get the embeddings for a batch of token ids.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        vocab_size (int): The number of embeddings in the vocabulary</span>
+<span class="sd">        d_model (int): The size of the embedding dimension</span>
+<span class="sd">        weights (Float[Tensor, "vocab_size d_model"]): The embedding vectors to fetch from</span>
+<span class="sd">        token_ids (Int[Tensor, "..."]): The set of token ids to fetch from the Embedding layer</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Float[Tensor, "... d_model"]: Batch of embeddings returned by your Embedding layer.</span>
+<span class="sd">    """</span>
+    <span class="n">embedding_layer</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">Embedding</span><span class="p">(</span><span class="n">vocab_size</span><span class="p">,</span> <span class="n">d_model</span><span class="p">)</span>
+    <span class="n">embedding_layer</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">({</span><span class="s1">'weight'</span><span class="p">:</span> <span class="n">weights</span><span class="p">})</span>
+    <span class="k">return</span> <span class="n">embedding_layer</span><span class="p">(</span><span class="n">token_ids</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">run_embedding</span><span class="p">(</span>
+    <span class="n">vocab_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">d_model</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">weights</span><span class="p">:</span> <span class="n">Float</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="s2">" vocab_size d_model"</span><span class="p">],</span>
+    <span class="n">token_ids</span><span class="p">:</span> <span class="n">Int</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="s2">" ..."</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Float</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="s2">" ... d_model"</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Given the weights of an Embedding layer, get the embeddings for a batch of token ids.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        vocab_size (int): The number of embeddings in the vocabulary</span>
+<span class="sd">        d_model (int): The size of the embedding dimension</span>
+<span class="sd">        weights (Float[Tensor, "vocab_size d_model"]): The embedding vectors to fetch from</span>
+<span class="sd">        token_ids (Int[Tensor, "..."]): The set of token ids to fetch from the Embedding layer</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Float[Tensor, "... d_model"]: Batch of embeddings returned by your Embedding layer.</span>
+<span class="sd">    """</span>
+    <span class="n">embedding_layer</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">Embedding</span><span class="p">(</span><span class="n">vocab_size</span><span class="p">,</span> <span class="n">d_model</span><span class="p">)</span>
+    <span class="n">embedding_layer</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">({</span><span class="s1">'weight'</span><span class="p">:</span> <span class="n">weights</span><span class="p">})</span>
+    <span class="k">return</span> <span class="n">embedding_layer</span><span class="p">(</span><span class="n">token_ids</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="rmsnorm">RMSNorm</h3>
+<p>RMSNorm相比于普通的层归一化，少了一步减去均值的过程。
+<code>RMS(a)</code> 即是求标准差的过程去掉了减去均值，并且再加上 <code>1e-5</code> 防止underflow。</p>
+<p><img alt="" src="../../migrated/post-images/20260211224857.png"/></p>
+<p>有一个注意的点：在平方之前，需要upcast成float32，防止溢出。
+这也启示了我们：在torch中如果有比较大的数，可能需要upcast成float32进行计算。</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">RMSNorm</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""RMSNorm(a_i) = a_i * g_i / RMS(a)</span>
+<span class="sd">    RMS(a) = \sqrt(\sum_{i=1}^{d_model} a_i^2 + eps)</span>
+<span class="sd">    g_i: (d_model) is a learnable "gain" parameter.</span>
+<span class="sd">    eps: 1e-5. Hyperparameter.</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_model</span><span class="p">,</span> <span class="n">eps</span> <span class="o">=</span> <span class="mf">1e-5</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d_model</span> <span class="o">=</span> <span class="n">d_model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eps</span> <span class="o">=</span> <span class="mf">1e-5</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="c1"># upcast input to torch.float32</span>
+        <span class="c1"># to prevent overflow in x^2</span>
+        <span class="n">in_dtype</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">dtype</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="c1"># mean in d_model</span>
+        <span class="n">rms_a</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">eps</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">x</span> <span class="o">/</span> <span class="n">rms_a</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span>
+        <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">in_dtype</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">run_rmsnorm</span><span class="p">(</span>
+    <span class="n">d_model</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">weights</span><span class="p">:</span> <span class="n">Float</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="s2">" d_model"</span><span class="p">],</span>
+    <span class="n">in_features</span><span class="p">:</span> <span class="n">Float</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="s2">" ... d_model"</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Float</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="s2">" ... d_model"</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Given the weights of a RMSNorm affine transform,</span>
+<span class="sd">    return the output of running RMSNorm on the input features.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        d_model (int): The dimensionality of the RMSNorm input.</span>
+<span class="sd">        eps: (float): A value added to the denominator for numerical stability.</span>
+<span class="sd">        weights (Float[Tensor, "d_model"]): RMSNorm weights.</span>
+<span class="sd">        in_features (Float[Tensor, "... d_model"]): Input features to run RMSNorm on. Can have arbitrary leading</span>
+<span class="sd">            dimensions.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Float[Tensor,"... d_model"]: Tensor of with the same shape as `in_features` with the output of running</span>
+<span class="sd">        RMSNorm of the `in_features`.</span>
+<span class="sd">    """</span>
+    <span class="n">rmsnorm</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">RMSNorm</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">eps</span><span class="p">)</span>
+    <span class="n">rmsnorm</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">({</span><span class="s1">'weight'</span><span class="p">:</span> <span class="n">weights</span><span class="p">})</span>
+    <span class="k">return</span> <span class="n">rmsnorm</span><span class="p">(</span><span class="n">in_features</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="rope">RoPE</h3>
+<p>RoPE 将query向量 <span class="arithmatex">\(q=W_qx\)</span> 利用矩阵 <span class="arithmatex">\(R\)</span> 进行旋转，得到了新的向量 <span class="arithmatex">\(q'\)</span> 。
+矩阵 <span class="arithmatex">\(R_k^i\)</span> 是由角度 <span class="arithmatex">\(\theta_{i,k}\)</span> 构造得到的旋转矩阵。角度满足以下性质：
+- 当dim_position <span class="arithmatex">\(k\)</span> 相同时，角度 <span class="arithmatex">\(\theta_{i,k}=\frac{i}{\Theta^{(2k-2)/d}}\)</span> 随着位置 <span class="arithmatex">\(i\)</span> 线性变化。这保证了无论 token_position的绝对数值大还是小，得到的注意力分数都只依赖于相对位置的差值 <span class="arithmatex">\(i-j\)</span> 。
+- 当token_position <span class="arithmatex">\(i\)</span> 相同时，角度 <span class="arithmatex">\(\theta_{i,k}=\frac{i}{\Theta^{(2k-2)/d}}\)</span> 变化量随着 <span class="arithmatex">\(k\)</span> 的增加而减少，即 <span class="arithmatex">\(k\)</span> 比较小时，角度变化很快，频率很高； <span class="arithmatex">\(k\)</span> 比较大时，角度变化很慢，频率很低。
+（其中 <span class="arithmatex">\(\Theta\)</span> 是常数超参数， <span class="arithmatex">\(d\)</span> 是维度大小，即max_seq_len）</p>
+<p>我们可以预先计算矩阵 <span class="arithmatex">\(R_k^i\)</span> ，在使用时再传入query向量和token_positions。</p>
+<p>第28行的 <code>rearrange</code> 是这样的作用：
+<img alt="" src="../../migrated/post-images/20260212175652.png"/></p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">RoPE</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">d_k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_seq_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">d_k</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="o">=</span> <span class="n">theta</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d_k</span> <span class="o">=</span> <span class="n">d_k</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_seq_len</span> <span class="o">=</span> <span class="n">max_seq_len</span>
+
+        <span class="c1"># precalc frequencies</span>
+        <span class="c1"># freqs[k] = Θ^(-2k/d_k) for 2k = 0, 2, ..., d_k - 2</span>
+        <span class="n">freqs</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">theta</span> <span class="o">**</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">d_k</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span> <span class="o">/</span> <span class="n">d_k</span><span class="p">))</span>
+        <span class="n">positions</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">max_seq_len</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+
+        <span class="c1"># Cartesian product</span>
+        <span class="n">angles</span> <span class="o">=</span> <span class="n">einsum</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">freqs</span><span class="p">,</span> <span class="s1">'seq, half -&gt; seq half'</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">'cos'</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angles</span><span class="p">),</span> <span class="n">persistent</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">'sin'</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angles</span><span class="p">),</span> <span class="n">persistent</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">token_positions</span><span class="p">):</span>
+        <span class="n">orig_dtype</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">dtype</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">device</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cos</span><span class="o">.</span><span class="n">device</span> <span class="o">!=</span> <span class="n">device</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cos</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sin</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+        <span class="n">x_reshaped</span> <span class="o">=</span> <span class="n">rearrange</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">'... seq (half two) -&gt; ... seq half two'</span><span class="p">,</span> <span class="n">two</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">positions</span> <span class="o">=</span> <span class="n">token_positions</span><span class="o">.</span><span class="n">long</span><span class="p">()</span>
+        <span class="n">cos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cos</span><span class="p">[</span><span class="n">positions</span><span class="p">]</span>
+        <span class="n">sin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sin</span><span class="p">[</span><span class="n">positions</span><span class="p">]</span>
+
+        <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span> <span class="o">=</span> <span class="n">x_reshaped</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">x_reshaped</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">rotated_x1</span> <span class="o">=</span> <span class="n">x1</span> <span class="o">*</span> <span class="n">cos</span> <span class="o">-</span> <span class="n">x2</span> <span class="o">*</span> <span class="n">sin</span>
+        <span class="n">rotated_x2</span> <span class="o">=</span> <span class="n">x1</span> <span class="o">*</span> <span class="n">sin</span> <span class="o">+</span> <span class="n">x2</span> <span class="o">*</span> <span class="n">cos</span>
+
+        <span class="n">x_rotated</span> <span class="o">=</span> <span class="n">rearrange</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">rotated_x1</span><span class="p">,</span> <span class="n">rotated_x2</span><span class="p">],</span>
+            <span class="s1">'two ... seq half -&gt; ... seq (half two)'</span><span class="p">,</span>
+            <span class="n">two</span><span class="o">=</span><span class="mi">2</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">x_rotated</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">orig_dtype</span><span class="p">)</span>
+</code></pre></div>
+<p>adapter还是一个道理，而且这个都不用 <code>load_state_dict</code> 了。</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">run_rope</span><span class="p">(</span>
+    <span class="n">d_k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">theta</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">max_seq_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">in_query_or_key</span><span class="p">:</span> <span class="n">Float</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="s2">" ... sequence_length d_k"</span><span class="p">],</span>
+    <span class="n">token_positions</span><span class="p">:</span> <span class="n">Int</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="s2">" ... sequence_length"</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Float</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="s2">" ... sequence_length d_k"</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Run RoPE for a given input tensor.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        d_k (int): Embedding dimension size for the query or key tensor.</span>
+<span class="sd">        theta (float): RoPE parameter.</span>
+<span class="sd">        max_seq_len (int): Maximum sequence length to pre-cache if your implementation does that.</span>
+<span class="sd">        in_query_or_key (Float[Tensor, "... sequence_length d_k"]): Input tensor to run RoPE on.</span>
+<span class="sd">        token_positions (Int[Tensor, "... sequence_length"]): Tensor of shape (batch_size, sequence_length) with the token positions</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        Float[Tensor, " ... sequence_length d_k"]: Tensor with RoPEd input.</span>
+<span class="sd">    """</span>
+    <span class="n">rope</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">RoPE</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">d_k</span><span class="p">,</span> <span class="n">max_seq_len</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">rope</span><span class="p">(</span><span class="n">in_query_or_key</span><span class="p">,</span> <span class="n">token_positions</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">output</span>
+</code></pre></div>
+<h3 id="transformer-lm">Transformer LM</h3>
+<blockquote>
+<p>DEBUG: <code>load_state_dict</code></p>
+</blockquote>
+<p>在默认实现中，顺手加了一个权重绑定：结尾 <code>lm_head</code> 的权重和开头 <code>token_embedding</code> 的权重共享，仅仅转置。
+结果这一个顺手，给我带来了比较大的麻烦：
+在PyTorch中，Parameter如果同名，则它们指向同一个结构。导致我在加载时，前面加载了 <code>token_embedding</code> 的权重，后面加载的 <code>lm_head</code> 的权重覆盖了它。
+这一结果是，在完成了 <code>load_state_dict</code> 之后，逐项比较 <code>transformer_model.named_parameters()</code> 和 <code>state_dict</code> ，发现有且仅有一项 <code>token_embedding</code> 不一致，最大的绝对数值大约差3.1左右。</p>
+<p>解决这一件事情之后，成功通过了这一部分的所有用例。
+<img alt="" src="../../migrated/post-images/20260212230058.png"/></p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">TransformerBlock</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">d_model</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">num_heads</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">d_ff</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">theta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10000.0</span><span class="p">,</span>
+        <span class="n">max_seq_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2048</span><span class="p">,</span>
+        <span class="n">device</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">norm1</span> <span class="o">=</span> <span class="n">RMSNorm</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attention</span> <span class="o">=</span> <span class="n">MultiHeadSelfAttention</span><span class="p">(</span>
+            <span class="n">d_model</span><span class="p">,</span> <span class="n">num_heads</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">max_seq_len</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">dtype</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">norm2</span> <span class="o">=</span> <span class="n">RMSNorm</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ffn</span> <span class="o">=</span> <span class="n">SwiGLU</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">d_ff</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">token_positions</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">attention</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">norm1</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">token_positions</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">ffn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">norm2</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">x</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TransformerLM</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Transformer Language Model</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">vocab_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">context_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">d_model</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">num_heads</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">d_ff</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">num_layers</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">theta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10000.0</span><span class="p">,</span>
+        <span class="n">device</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vocab_size</span> <span class="o">=</span> <span class="n">vocab_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">context_length</span> <span class="o">=</span> <span class="n">context_length</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d_model</span> <span class="o">=</span> <span class="n">d_model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_layers</span> <span class="o">=</span> <span class="n">num_layers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_heads</span> <span class="o">=</span> <span class="n">num_heads</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d_ff</span> <span class="o">=</span> <span class="n">d_ff</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="o">=</span> <span class="n">theta</span>
+
+        <span class="c1"># Token Embedding</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">token_embedding</span> <span class="o">=</span> <span class="n">Embedding</span><span class="p">(</span>
+            <span class="n">vocab_size</span><span class="p">,</span> 
+            <span class="n">d_model</span><span class="p">,</span> 
+            <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span> 
+            <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Transformer Blocks - 注意变量名改为layers以匹配adapter</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layers</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">([</span>
+            <span class="n">TransformerBlock</span><span class="p">(</span>
+                <span class="n">d_model</span><span class="o">=</span><span class="n">d_model</span><span class="p">,</span>
+                <span class="n">num_heads</span><span class="o">=</span><span class="n">num_heads</span><span class="p">,</span>
+                <span class="n">d_ff</span><span class="o">=</span><span class="n">d_ff</span><span class="p">,</span>
+                <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span>
+                <span class="n">max_seq_len</span><span class="o">=</span><span class="n">context_length</span><span class="p">,</span>
+                <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+                <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_layers</span><span class="p">)</span>
+        <span class="p">])</span>
+
+        <span class="c1"># Final Layer Norm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">final_norm</span> <span class="o">=</span> <span class="n">RMSNorm</span><span class="p">(</span>
+            <span class="n">d_model</span><span class="p">,</span> 
+            <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span> 
+            <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Output Projection (权重绑定)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lm_head</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span>
+            <span class="n">d_model</span><span class="p">,</span> 
+            <span class="n">vocab_size</span><span class="p">,</span> 
+            <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span> 
+            <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span>
+        <span class="p">)</span>
+
+        <span class="c1"># 罪魁祸首, 不应该用权重绑定!</span>
+        <span class="c1"># self.lm_head.weight = self.token_embedding.weight</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">token_ids</span><span class="p">:</span> <span class="n">Int</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="s2">"batch seq_len"</span><span class="p">],</span>
+        <span class="n">token_positions</span><span class="p">:</span> <span class="n">Int</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="s2">"batch seq_len"</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Float</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="s2">"batch seq_len vocab_size"</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        前向传播</span>
+<span class="sd">        """</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_embedding</span><span class="p">(</span><span class="n">token_ids</span><span class="p">)</span>  <span class="c1"># [batch, seq_len, d_model]</span>
+
+        <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">token_positions</span><span class="p">)</span>
+
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_norm</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lm_head</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># [batch, seq_len, vocab_size]</span>
+
+        <span class="k">return</span> <span class="n">logits</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">run_transformer_block</span><span class="p">(</span>
+    <span class="n">d_model</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">num_heads</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">d_ff</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">max_seq_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">theta</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">weights</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span>
+    <span class="n">in_features</span><span class="p">:</span> <span class="n">Float</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="s2">" batch sequence_length d_model"</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Float</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="s2">" batch sequence_length d_model"</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Given the weights of a pre-norm Transformer block and input features,</span>
+<span class="sd">    return the output of running the Transformer block on the input features.</span>
+
+<span class="sd">    This function should use RoPE.</span>
+<span class="sd">    Depending on your implementation, you may simply need to pass the relevant args</span>
+<span class="sd">    to your TransformerBlock constructor, or you may need to initialize your own RoPE</span>
+<span class="sd">    class and pass that instead.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        d_model (int): The dimensionality of the Transformer block input.</span>
+<span class="sd">        num_heads (int): Number of heads to use in multi-headed attention. `d_model` must be</span>
+<span class="sd">            evenly divisible by `num_heads`.</span>
+<span class="sd">        d_ff (int): Dimensionality of the feed-forward inner layer.</span>
+<span class="sd">        max_seq_len (int): Maximum sequence length to pre-cache if your implementation does that.</span>
+<span class="sd">        theta (float): RoPE parameter.</span>
+<span class="sd">        weights (dict[str, Tensor]):</span>
+<span class="sd">            State dict of our reference implementation.</span>
+<span class="sd">            The keys of this dictionary are:</span>
+<span class="sd">            - `attn.q_proj.weight`</span>
+<span class="sd">                The query projections for all `num_heads` attention heads.</span>
+<span class="sd">                Shape is (d_model, d_model).</span>
+<span class="sd">                The rows are ordered by matrices of shape (num_heads, d_k),</span>
+<span class="sd">                so `attn.q_proj.weight == torch.cat([q_heads.0.weight, ..., q_heads.N.weight], dim=0)`.</span>
+<span class="sd">            - `attn.k_proj.weight`</span>
+<span class="sd">                The key projections for all `num_heads` attention heads.</span>
+<span class="sd">                Shape is (d_model, d_model).</span>
+<span class="sd">                The rows are ordered by matrices of shape (num_heads, d_k),</span>
+<span class="sd">                so `attn.k_proj.weight == torch.cat([k_heads.0.weight, ..., k_heads.N.weight], dim=0)`.</span>
+<span class="sd">            - `attn.v_proj.weight`</span>
+<span class="sd">                The value projections for all `num_heads` attention heads.</span>
+<span class="sd">                Shape is (d_model, d_model).</span>
+<span class="sd">                The rows are ordered by matrices of shape (num_heads, d_v),</span>
+<span class="sd">                so `attn.v_proj.weight == torch.cat([v_heads.0.weight, ..., v_heads.N.weight], dim=0)`.</span>
+<span class="sd">            - `attn.output_proj.weight`</span>
+<span class="sd">                Weight of the multi-head self-attention output projection</span>
+<span class="sd">                Shape is (d_model, d_model).</span>
+<span class="sd">            - `ln1.weight`</span>
+<span class="sd">                Weights of affine transform for the first RMSNorm</span>
+<span class="sd">                applied in the transformer block.</span>
+<span class="sd">                Shape is (d_model,).</span>
+<span class="sd">            - `ffn.w1.weight`</span>
+<span class="sd">                Weight of the first linear transformation in the FFN.</span>
+<span class="sd">                Shape is (d_model, d_ff).</span>
+<span class="sd">            - `ffn.w2.weight`</span>
+<span class="sd">                Weight of the second linear transformation in the FFN.</span>
+<span class="sd">                Shape is (d_ff, d_model).</span>
+<span class="sd">            - `ffn.w3.weight`</span>
+<span class="sd">                Weight of the third linear transformation in the FFN.</span>
+<span class="sd">                Shape is (d_model, d_ff).</span>
+<span class="sd">            - `ln2.weight`</span>
+<span class="sd">                Weights of affine transform for the second RMSNorm</span>
+<span class="sd">                applied in the transformer block.</span>
+<span class="sd">                Shape is (d_model,).</span>
+<span class="sd">        in_features (Float[Tensor, "batch sequence_length d_model"]):</span>
+<span class="sd">            Tensor to run your implementation on.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Float[Tensor, "batch sequence_length d_model"] Tensor with the output of</span>
+<span class="sd">        running the Transformer block on the input features while using RoPE.</span>
+<span class="sd">    """</span>
+
+    <span class="n">block</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">TransformerBlock</span><span class="p">(</span>
+        <span class="n">d_model</span><span class="o">=</span><span class="n">d_model</span><span class="p">,</span>
+        <span class="n">num_heads</span><span class="o">=</span><span class="n">num_heads</span><span class="p">,</span>
+        <span class="n">d_ff</span><span class="o">=</span><span class="n">d_ff</span><span class="p">,</span>
+        <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">,</span>
+        <span class="n">max_seq_len</span><span class="o">=</span><span class="n">max_seq_len</span>
+    <span class="p">)</span>
+
+    <span class="n">state_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">'norm1.weight'</span><span class="p">:</span> <span class="n">weights</span><span class="p">[</span><span class="s1">'ln1.weight'</span><span class="p">],</span>
+        <span class="s1">'norm2.weight'</span><span class="p">:</span> <span class="n">weights</span><span class="p">[</span><span class="s1">'ln2.weight'</span><span class="p">],</span>
+        <span class="s1">'attention.W_q.weight'</span><span class="p">:</span> <span class="n">weights</span><span class="p">[</span><span class="s1">'attn.q_proj.weight'</span><span class="p">],</span>
+        <span class="s1">'attention.W_k.weight'</span><span class="p">:</span> <span class="n">weights</span><span class="p">[</span><span class="s1">'attn.k_proj.weight'</span><span class="p">],</span>
+        <span class="s1">'attention.W_v.weight'</span><span class="p">:</span> <span class="n">weights</span><span class="p">[</span><span class="s1">'attn.v_proj.weight'</span><span class="p">],</span>
+        <span class="s1">'attention.W_o.weight'</span><span class="p">:</span> <span class="n">weights</span><span class="p">[</span><span class="s1">'attn.output_proj.weight'</span><span class="p">],</span>
+        <span class="s1">'ffn.w1.weight'</span><span class="p">:</span> <span class="n">weights</span><span class="p">[</span><span class="s1">'ffn.w1.weight'</span><span class="p">],</span>
+        <span class="s1">'ffn.w2.weight'</span><span class="p">:</span> <span class="n">weights</span><span class="p">[</span><span class="s1">'ffn.w2.weight'</span><span class="p">],</span>
+        <span class="s1">'ffn.w3.weight'</span><span class="p">:</span> <span class="n">weights</span><span class="p">[</span><span class="s1">'ffn.w3.weight'</span><span class="p">],</span>
+    <span class="p">}</span>
+
+    <span class="n">block</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
+
+    <span class="n">batch_size</span><span class="p">,</span> <span class="n">seq_len</span> <span class="o">=</span> <span class="n">in_features</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">in_features</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">token_positions</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">seq_len</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">in_features</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">token_positions</span> <span class="o">=</span> <span class="n">token_positions</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">block</span><span class="p">(</span><span class="n">in_features</span><span class="p">,</span> <span class="n">token_positions</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">output</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">debug_transformer_weights</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">ref_weights</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    独立调试函数：对比TransformerLM模型权重与参考权重</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        model: 你的TransformerLM模型实例</span>
+<span class="sd">        ref_weights: 测试传进来的weights字典</span>
+<span class="sd">        num_layers: 层数</span>
+<span class="sd">    """</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span> <span class="o">+</span> <span class="s2">"="</span> <span class="o">*</span> <span class="mi">80</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"🔍 TRANSFORMER LM 权重调试"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"="</span> <span class="o">*</span> <span class="mi">80</span><span class="p">)</span>
+
+    <span class="n">total_mismatches</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># 1. Token Embedding</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">【1. Token Embedding】"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"-"</span> <span class="o">*</span> <span class="mi">50</span><span class="p">)</span>
+    <span class="n">model_w</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">token_embedding</span><span class="o">.</span><span class="n">weight</span>
+    <span class="n">ref_w</span> <span class="o">=</span> <span class="n">ref_weights</span><span class="p">[</span><span class="s1">'token_embeddings.weight'</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  模型: shape </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">model_w</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  参考: shape </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">ref_w</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">model_w</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">ref_w</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+        <span class="n">diff</span> <span class="o">=</span> <span class="p">(</span><span class="n">model_w</span> <span class="o">-</span> <span class="n">ref_w</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  ✅ 形状匹配 | 最大差异: </span><span class="si">{</span><span class="n">diff</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">diff</span> <span class="o">&lt;</span> <span class="mf">1e-5</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  ✅ 数值一致"</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  ⚠️ 数值差异较大"</span><span class="p">)</span>
+            <span class="n">total_mismatches</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  ❌ 形状不匹配！"</span><span class="p">)</span>
+        <span class="n">total_mismatches</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="c1"># 2. 遍历每一层</span>
+    <span class="k">for</span> <span class="n">layer_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_layers</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="si">{</span><span class="s1">'='</span><span class="o">*</span><span class="mi">60</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"【2.</span><span class="si">{</span><span class="n">layer_idx</span><span class="si">}</span><span class="s2"> Layer </span><span class="si">{</span><span class="n">layer_idx</span><span class="si">}</span><span class="s2">】"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'='</span><span class="o">*</span><span class="mi">60</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+        <span class="n">layer</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="n">layer_idx</span><span class="p">]</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'layers.</span><span class="si">{</span><span class="n">layer_idx</span><span class="si">}</span><span class="s1">'</span>
+
+        <span class="c1"># ----- Attention 权重 -----</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">  📍 MultiHeadSelfAttention"</span><span class="p">)</span>
+
+        <span class="c1"># Q</span>
+        <span class="n">model_q</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">attention</span><span class="o">.</span><span class="n">W_q</span><span class="o">.</span><span class="n">weight</span>
+        <span class="n">ref_q</span> <span class="o">=</span> <span class="n">ref_weights</span><span class="p">[</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">.attn.q_proj.weight'</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">    [Q]"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      模型: </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">model_q</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      参考: </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">ref_q</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">model_q</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">ref_q</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="p">(</span><span class="n">model_q</span> <span class="o">-</span> <span class="n">ref_q</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      ✅ 形状匹配 | 最大差异: </span><span class="si">{</span><span class="n">diff</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">model_q</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">ref_q</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="p">(</span><span class="n">model_q</span> <span class="o">-</span> <span class="n">ref_q</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      🔄 需要转置 | 转置后差异: </span><span class="si">{</span><span class="n">diff</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">total_mismatches</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      ❌ 形状不匹配 (模型</span><span class="si">{</span><span class="n">model_q</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2"> vs 参考</span><span class="si">{</span><span class="n">ref_q</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
+            <span class="n">total_mismatches</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># K</span>
+        <span class="n">model_k</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">attention</span><span class="o">.</span><span class="n">W_k</span><span class="o">.</span><span class="n">weight</span>
+        <span class="n">ref_k</span> <span class="o">=</span> <span class="n">ref_weights</span><span class="p">[</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">.attn.k_proj.weight'</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">    [K]"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      模型: </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">model_k</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      参考: </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">ref_k</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">model_k</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">ref_k</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="p">(</span><span class="n">model_k</span> <span class="o">-</span> <span class="n">ref_k</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      ✅ 形状匹配 | 最大差异: </span><span class="si">{</span><span class="n">diff</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">model_k</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">ref_k</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="p">(</span><span class="n">model_k</span> <span class="o">-</span> <span class="n">ref_k</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      🔄 需要转置 | 转置后差异: </span><span class="si">{</span><span class="n">diff</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">total_mismatches</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      ❌ 形状不匹配"</span><span class="p">)</span>
+            <span class="n">total_mismatches</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># V</span>
+        <span class="n">model_v</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">attention</span><span class="o">.</span><span class="n">W_v</span><span class="o">.</span><span class="n">weight</span>
+        <span class="n">ref_v</span> <span class="o">=</span> <span class="n">ref_weights</span><span class="p">[</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">.attn.v_proj.weight'</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">    [V]"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      模型: </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">model_v</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      参考: </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">ref_v</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">model_v</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">ref_v</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="p">(</span><span class="n">model_v</span> <span class="o">-</span> <span class="n">ref_v</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      ✅ 形状匹配 | 最大差异: </span><span class="si">{</span><span class="n">diff</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">model_v</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">ref_v</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="p">(</span><span class="n">model_v</span> <span class="o">-</span> <span class="n">ref_v</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      🔄 需要转置 | 转置后差异: </span><span class="si">{</span><span class="n">diff</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">total_mismatches</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      ❌ 形状不匹配"</span><span class="p">)</span>
+            <span class="n">total_mismatches</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># O</span>
+        <span class="n">model_o</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">attention</span><span class="o">.</span><span class="n">W_o</span><span class="o">.</span><span class="n">weight</span>
+        <span class="n">ref_o</span> <span class="o">=</span> <span class="n">ref_weights</span><span class="p">[</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">.attn.output_proj.weight'</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">    [O]"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      模型: </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">model_o</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      参考: </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">ref_o</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">model_o</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">ref_o</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="p">(</span><span class="n">model_o</span> <span class="o">-</span> <span class="n">ref_o</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      ✅ 形状匹配 | 最大差异: </span><span class="si">{</span><span class="n">diff</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">model_o</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">ref_o</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="p">(</span><span class="n">model_o</span> <span class="o">-</span> <span class="n">ref_o</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      🔄 需要转置 | 转置后差异: </span><span class="si">{</span><span class="n">diff</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">total_mismatches</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      ❌ 形状不匹配"</span><span class="p">)</span>
+            <span class="n">total_mismatches</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># ----- FFN 权重 -----</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">  📍 SwiGLU"</span><span class="p">)</span>
+
+        <span class="c1"># w1</span>
+        <span class="n">model_w1</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">ffn</span><span class="o">.</span><span class="n">w1</span><span class="o">.</span><span class="n">weight</span>
+        <span class="n">ref_w1</span> <span class="o">=</span> <span class="n">ref_weights</span><span class="p">[</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">.ffn.w1.weight'</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">    [w1]"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      模型: </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">model_w1</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      参考: </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">ref_w1</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">model_w1</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">ref_w1</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="p">(</span><span class="n">model_w1</span> <span class="o">-</span> <span class="n">ref_w1</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      ✅ 形状匹配 | 最大差异: </span><span class="si">{</span><span class="n">diff</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">model_w1</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">ref_w1</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="p">(</span><span class="n">model_w1</span> <span class="o">-</span> <span class="n">ref_w1</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      🔄 需要转置 | 转置后差异: </span><span class="si">{</span><span class="n">diff</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">total_mismatches</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      ❌ 形状不匹配 (期望 </span><span class="si">{</span><span class="n">ref_w1</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2"> 或 </span><span class="si">{</span><span class="n">ref_w1</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
+            <span class="n">total_mismatches</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># w2</span>
+        <span class="n">model_w2</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">ffn</span><span class="o">.</span><span class="n">w2</span><span class="o">.</span><span class="n">weight</span>
+        <span class="n">ref_w2</span> <span class="o">=</span> <span class="n">ref_weights</span><span class="p">[</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">.ffn.w2.weight'</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">    [w2]"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      模型: </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">model_w2</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      参考: </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">ref_w2</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">model_w2</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">ref_w2</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="p">(</span><span class="n">model_w2</span> <span class="o">-</span> <span class="n">ref_w2</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      ✅ 形状匹配 | 最大差异: </span><span class="si">{</span><span class="n">diff</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">model_w2</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">ref_w2</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="p">(</span><span class="n">model_w2</span> <span class="o">-</span> <span class="n">ref_w2</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      🔄 需要转置 | 转置后差异: </span><span class="si">{</span><span class="n">diff</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">total_mismatches</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      ❌ 形状不匹配"</span><span class="p">)</span>
+            <span class="n">total_mismatches</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># w3</span>
+        <span class="n">model_w3</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">ffn</span><span class="o">.</span><span class="n">w3</span><span class="o">.</span><span class="n">weight</span>
+        <span class="n">ref_w3</span> <span class="o">=</span> <span class="n">ref_weights</span><span class="p">[</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">.ffn.w3.weight'</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">    [w3]"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      模型: </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">model_w3</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      参考: </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">ref_w3</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">model_w3</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">ref_w3</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="p">(</span><span class="n">model_w3</span> <span class="o">-</span> <span class="n">ref_w3</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      ✅ 形状匹配 | 最大差异: </span><span class="si">{</span><span class="n">diff</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">model_w3</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">ref_w3</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="p">(</span><span class="n">model_w3</span> <span class="o">-</span> <span class="n">ref_w3</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      🔄 需要转置 | 转置后差异: </span><span class="si">{</span><span class="n">diff</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">total_mismatches</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      ❌ 形状不匹配"</span><span class="p">)</span>
+            <span class="n">total_mismatches</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># ----- RMSNorm -----</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">  📍 RMSNorm"</span><span class="p">)</span>
+
+        <span class="c1"># norm1</span>
+        <span class="n">model_norm1</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">norm1</span><span class="o">.</span><span class="n">weight</span>
+        <span class="n">ref_norm1</span> <span class="o">=</span> <span class="n">ref_weights</span><span class="p">[</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">.ln1.weight'</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">    [norm1]"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      模型: </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">model_norm1</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      参考: </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">ref_norm1</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">model_norm1</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">ref_norm1</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="p">(</span><span class="n">model_norm1</span> <span class="o">-</span> <span class="n">ref_norm1</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      ✅ 形状匹配 | 最大差异: </span><span class="si">{</span><span class="n">diff</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      ❌ 形状不匹配"</span><span class="p">)</span>
+            <span class="n">total_mismatches</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># norm2</span>
+        <span class="n">model_norm2</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">norm2</span><span class="o">.</span><span class="n">weight</span>
+        <span class="n">ref_norm2</span> <span class="o">=</span> <span class="n">ref_weights</span><span class="p">[</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">.ln2.weight'</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">    [norm2]"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      模型: </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">model_norm2</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      参考: </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">ref_norm2</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">model_norm2</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">ref_norm2</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="p">(</span><span class="n">model_norm2</span> <span class="o">-</span> <span class="n">ref_norm2</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      ✅ 形状匹配 | 最大差异: </span><span class="si">{</span><span class="n">diff</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      ❌ 形状不匹配"</span><span class="p">)</span>
+            <span class="n">total_mismatches</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="c1"># 3. Final Layer Norm</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="si">{</span><span class="s1">'='</span><span class="o">*</span><span class="mi">60</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"【3. Final Layer Norm】"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'='</span><span class="o">*</span><span class="mi">60</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">model_final</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">final_norm</span><span class="o">.</span><span class="n">weight</span>
+    <span class="n">ref_final</span> <span class="o">=</span> <span class="n">ref_weights</span><span class="p">[</span><span class="s1">'ln_final.weight'</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  模型: </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">model_final</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  参考: </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">ref_final</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">model_final</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">ref_final</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+        <span class="n">diff</span> <span class="o">=</span> <span class="p">(</span><span class="n">model_final</span> <span class="o">-</span> <span class="n">ref_final</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  ✅ 形状匹配 | 最大差异: </span><span class="si">{</span><span class="n">diff</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  ❌ 形状不匹配"</span><span class="p">)</span>
+        <span class="n">total_mismatches</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="c1"># 4. LM Head</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="si">{</span><span class="s1">'='</span><span class="o">*</span><span class="mi">60</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"【4. LM Head】"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'='</span><span class="o">*</span><span class="mi">60</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">model_head</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">lm_head</span><span class="o">.</span><span class="n">weight</span>
+    <span class="n">ref_head</span> <span class="o">=</span> <span class="n">ref_weights</span><span class="p">[</span><span class="s1">'lm_head.weight'</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  模型: </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">model_head</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  参考: </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">ref_head</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">model_head</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">ref_head</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+        <span class="n">diff</span> <span class="o">=</span> <span class="p">(</span><span class="n">model_head</span> <span class="o">-</span> <span class="n">ref_head</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  ✅ 形状匹配 | 最大差异: </span><span class="si">{</span><span class="n">diff</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">model_head</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">ref_head</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+        <span class="n">diff</span> <span class="o">=</span> <span class="p">(</span><span class="n">model_head</span> <span class="o">-</span> <span class="n">ref_head</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  🔄 需要转置 | 转置后差异: </span><span class="si">{</span><span class="n">diff</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">total_mismatches</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  ❌ 形状不匹配"</span><span class="p">)</span>
+        <span class="n">total_mismatches</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="c1"># 5. 总结</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span> <span class="o">+</span> <span class="s2">"="</span> <span class="o">*</span> <span class="mi">80</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"📊 调试总结"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"="</span> <span class="o">*</span> <span class="mi">80</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">total_mismatches</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"✅ 所有权重形状匹配！"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"   如果输出仍然不对，检查:"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"   - RoPE是否生效"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"   - 因果掩码是否正确"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"   - forward是否传递了token_positions"</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"❌ 发现 </span><span class="si">{</span><span class="n">total_mismatches</span><span class="si">}</span><span class="s2"> 处形状不匹配"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"   需要根据上述 🔄 标记添加 .T 转置"</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span> <span class="o">+</span> <span class="s2">"="</span> <span class="o">*</span> <span class="mi">80</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">run_transformer_lm</span><span class="p">(</span>
+    <span class="n">vocab_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">context_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">d_model</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">num_layers</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">num_heads</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">d_ff</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">rope_theta</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">weights</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">],</span>
+    <span class="n">in_indices</span><span class="p">:</span> <span class="n">Int</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="s2">" batch_size sequence_length"</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Float</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="s2">" batch_size sequence_length vocab_size"</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Given the weights of a Transformer language model and input indices,</span>
+<span class="sd">    return the output of running a forward pass on the input indices.</span>
+
+<span class="sd">    This function should use RoPE.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        vocab_size (int): The number of unique items in the output vocabulary to be predicted.</span>
+<span class="sd">        context_length (int): The maximum number of tokens to process at once.</span>
+<span class="sd">        d_model (int): The dimensionality of the model embeddings and sublayer outputs.</span>
+<span class="sd">        num_layers (int): The number of Transformer layers to use.</span>
+<span class="sd">        num_heads (int): Number of heads to use in multi-headed attention. `d_model` must be</span>
+<span class="sd">            evenly divisible by `num_heads`.</span>
+<span class="sd">        d_ff (int): Dimensionality of the feed-forward inner layer (section 3.3).</span>
+<span class="sd">        rope_theta (float): The RoPE $\Theta$ parameter.</span>
+<span class="sd">        weights (dict[str, Tensor]):</span>
+<span class="sd">            State dict of our reference implementation. {num_layers} refers to an</span>
+<span class="sd">            integer between `0` and `num_layers - 1` (the layer index).</span>
+<span class="sd">            The keys of this dictionary are:</span>
+<span class="sd">            - `token_embeddings.weight`</span>
+<span class="sd">                Token embedding matrix. Shape is (vocab_size, d_model).</span>
+<span class="sd">            - `layers.{num_layers}.attn.q_proj.weight`</span>
+<span class="sd">                The query projections for all `num_heads` attention heads.</span>
+<span class="sd">                Shape is (num_heads * (d_model / num_heads), d_model).</span>
+<span class="sd">                The rows are ordered by matrices of shape (num_heads, d_k),</span>
+<span class="sd">                so `attn.q_proj.weight == torch.cat([q_heads.0.weight, ..., q_heads.N.weight], dim=0)`.</span>
+<span class="sd">            - `layers.{num_layers}.attn.k_proj.weight`</span>
+<span class="sd">                The key projections for all `num_heads` attention heads.</span>
+<span class="sd">                Shape is (num_heads * (d_model / num_heads), d_model).</span>
+<span class="sd">                The rows are ordered by matrices of shape (num_heads, d_k),</span>
+<span class="sd">                so `attn.k_proj.weight == torch.cat([k_heads.0.weight, ..., k_heads.N.weight], dim=0)`.</span>
+<span class="sd">            - `layers.{num_layers}.attn.v_proj.weight`</span>
+<span class="sd">                The value projections for all `num_heads` attention heads.</span>
+<span class="sd">                Shape is (num_heads * (d_model / num_heads), d_model).</span>
+<span class="sd">                The rows are ordered by matrices of shape (num_heads, d_v),</span>
+<span class="sd">                so `attn.v_proj.weight == torch.cat([v_heads.0.weight, ..., v_heads.N.weight], dim=0)`.</span>
+<span class="sd">            - `layers.{num_layers}.attn.output_proj.weight`</span>
+<span class="sd">                Weight of the multi-head self-attention output projection</span>
+<span class="sd">                Shape is ((d_model / num_heads) * num_heads, d_model).</span>
+<span class="sd">            - `layers.{num_layers}.ln1.weight`</span>
+<span class="sd">                Weights of affine transform for the first RMSNorm</span>
+<span class="sd">                applied in the transformer block.</span>
+<span class="sd">                Shape is (d_model,).</span>
+<span class="sd">            - `layers.{num_layers}.ffn.w1.weight`</span>
+<span class="sd">                Weight of the first linear transformation in the FFN.</span>
+<span class="sd">                Shape is (d_model, d_ff).</span>
+<span class="sd">            - `layers.{num_layers}.ffn.w2.weight`</span>
+<span class="sd">                Weight of the second linear transformation in the FFN.</span>
+<span class="sd">                Shape is (d_ff, d_model).</span>
+<span class="sd">            - `layers.{num_layers}.ffn.w3.weight`</span>
+<span class="sd">                Weight of the third linear transformation in the FFN.</span>
+<span class="sd">                Shape is (d_model, d_ff).</span>
+<span class="sd">            - `layers.{num_layers}.ln2.weight`</span>
+<span class="sd">                Weights of affine transform for the second RMSNorm</span>
+<span class="sd">                applied in the transformer block.</span>
+<span class="sd">                Shape is (d_model,).</span>
+<span class="sd">            - `ln_final.weight`</span>
+<span class="sd">                Weights of affine transform for RMSNorm applied to the output of the final transformer block.</span>
+<span class="sd">                Shape is (d_model, ).</span>
+<span class="sd">            - `lm_head.weight`</span>
+<span class="sd">                Weights of the language model output embedding.</span>
+<span class="sd">                Shape is (vocab_size, d_model).</span>
+<span class="sd">        in_indices (Int[Tensor, "batch_size sequence_length"]) Tensor with input indices to run the language model on. Shape is (batch_size, sequence_length), where</span>
+<span class="sd">            `sequence_length` is at most `context_length`.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Float[Tensor, "batch_size sequence_length vocab_size"]: Tensor with the predicted unnormalized</span>
+<span class="sd">        next-word distribution for each token.</span>
+<span class="sd">    """</span>
+    <span class="n">transformer_model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">TransformerLM</span><span class="p">(</span>
+        <span class="n">vocab_size</span><span class="o">=</span><span class="n">vocab_size</span><span class="p">,</span>
+        <span class="n">context_length</span><span class="o">=</span><span class="n">context_length</span><span class="p">,</span>
+        <span class="n">d_model</span><span class="o">=</span><span class="n">d_model</span><span class="p">,</span>
+        <span class="n">num_heads</span><span class="o">=</span><span class="n">num_heads</span><span class="p">,</span>
+        <span class="n">d_ff</span><span class="o">=</span><span class="n">d_ff</span><span class="p">,</span>
+        <span class="n">num_layers</span><span class="o">=</span><span class="n">num_layers</span><span class="p">,</span>
+        <span class="n">theta</span><span class="o">=</span><span class="n">rope_theta</span>
+    <span class="p">)</span>
+
+    <span class="n">state_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># Token Embedding</span>
+    <span class="n">state_dict</span><span class="p">[</span><span class="s1">'token_embedding.weight'</span><span class="p">]</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="s1">'token_embeddings.weight'</span><span class="p">]</span>
+
+    <span class="c1"># Transformer Block</span>
+    <span class="k">for</span> <span class="n">layer_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_layers</span><span class="p">):</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'layers.</span><span class="si">{</span><span class="n">layer_idx</span><span class="si">}</span><span class="s1">'</span>
+
+        <span class="c1"># attention</span>
+        <span class="n">state_dict</span><span class="p">[</span><span class="sa">f</span><span class="s1">'layers.</span><span class="si">{</span><span class="n">layer_idx</span><span class="si">}</span><span class="s1">.attention.W_q.weight'</span><span class="p">]</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">.attn.q_proj.weight'</span><span class="p">]</span>
+        <span class="n">state_dict</span><span class="p">[</span><span class="sa">f</span><span class="s1">'layers.</span><span class="si">{</span><span class="n">layer_idx</span><span class="si">}</span><span class="s1">.attention.W_k.weight'</span><span class="p">]</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">.attn.k_proj.weight'</span><span class="p">]</span>
+        <span class="n">state_dict</span><span class="p">[</span><span class="sa">f</span><span class="s1">'layers.</span><span class="si">{</span><span class="n">layer_idx</span><span class="si">}</span><span class="s1">.attention.W_v.weight'</span><span class="p">]</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">.attn.v_proj.weight'</span><span class="p">]</span>
+        <span class="n">state_dict</span><span class="p">[</span><span class="sa">f</span><span class="s1">'layers.</span><span class="si">{</span><span class="n">layer_idx</span><span class="si">}</span><span class="s1">.attention.W_o.weight'</span><span class="p">]</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">.attn.output_proj.weight'</span><span class="p">]</span>
+
+        <span class="c1"># FFN</span>
+        <span class="n">w1_weight</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">.ffn.w1.weight'</span><span class="p">]</span>  <span class="c1"># (d_ff, d_model)</span>
+        <span class="n">state_dict</span><span class="p">[</span><span class="sa">f</span><span class="s1">'layers.</span><span class="si">{</span><span class="n">layer_idx</span><span class="si">}</span><span class="s1">.ffn.w1.weight'</span><span class="p">]</span> <span class="o">=</span> <span class="n">w1_weight</span>  <span class="c1"># 转置成 (d_model, d_ff)</span>
+
+        <span class="n">w2_weight</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">.ffn.w2.weight'</span><span class="p">]</span>  <span class="c1"># (d_model, d_ff)</span>
+        <span class="n">state_dict</span><span class="p">[</span><span class="sa">f</span><span class="s1">'layers.</span><span class="si">{</span><span class="n">layer_idx</span><span class="si">}</span><span class="s1">.ffn.w2.weight'</span><span class="p">]</span> <span class="o">=</span> <span class="n">w2_weight</span>  <span class="c1"># 转置成 (d_ff, d_model)</span>
+
+        <span class="n">w3_weight</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">.ffn.w3.weight'</span><span class="p">]</span>  <span class="c1"># (d_ff, d_model)</span>
+        <span class="n">state_dict</span><span class="p">[</span><span class="sa">f</span><span class="s1">'layers.</span><span class="si">{</span><span class="n">layer_idx</span><span class="si">}</span><span class="s1">.ffn.w3.weight'</span><span class="p">]</span> <span class="o">=</span> <span class="n">w3_weight</span>  <span class="c1"># 转置成 (d_model, d_ff)</span>
+
+        <span class="c1"># RMSNorm</span>
+        <span class="n">state_dict</span><span class="p">[</span><span class="sa">f</span><span class="s1">'layers.</span><span class="si">{</span><span class="n">layer_idx</span><span class="si">}</span><span class="s1">.norm1.weight'</span><span class="p">]</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">.ln1.weight'</span><span class="p">]</span>
+        <span class="n">state_dict</span><span class="p">[</span><span class="sa">f</span><span class="s1">'layers.</span><span class="si">{</span><span class="n">layer_idx</span><span class="si">}</span><span class="s1">.norm2.weight'</span><span class="p">]</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">.ln2.weight'</span><span class="p">]</span>
+
+    <span class="n">state_dict</span><span class="p">[</span><span class="s1">'final_norm.weight'</span><span class="p">]</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="s1">'ln_final.weight'</span><span class="p">]</span>
+
+    <span class="n">lm_head_weight</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="s1">'lm_head.weight'</span><span class="p">]</span>
+    <span class="n">state_dict</span><span class="p">[</span><span class="s1">'lm_head.weight'</span><span class="p">]</span> <span class="o">=</span> <span class="n">lm_head_weight</span>
+
+    <span class="c1"># 加载权重</span>
+    <span class="n">transformer_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="c1"># debug_transformer_weights(transformer_model, weights, num_layers) # DEBUG2</span>
+
+    <span class="c1"># DEBUG1: 对比state_dict和named_parameters</span>
+    <span class="c1"># for name, _ in transformer_model.named_parameters():</span>
+    <span class="c1">#     if name in state_dict:</span>
+    <span class="c1">#         print(f"✅ {name}")</span>
+    <span class="c1">#     else:</span>
+    <span class="c1">#         print(f"❌ {name} 不在state_dict中")</span>
+
+    <span class="c1"># 生成位置索引</span>
+    <span class="n">batch_size</span><span class="p">,</span> <span class="n">seq_len</span> <span class="o">=</span> <span class="n">in_indices</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">device</span> <span class="o">=</span> <span class="n">in_indices</span><span class="o">.</span><span class="n">device</span>
+    <span class="n">token_positions</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">seq_len</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">token_positions</span> <span class="o">=</span> <span class="n">token_positions</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># 前向传播</span>
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="n">logits</span> <span class="o">=</span> <span class="n">transformer_model</span><span class="p">(</span><span class="n">in_indices</span><span class="p">,</span> <span class="n">token_positions</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">logits</span>
+</code></pre></div>
+<h2 id="2-bpe">2 BPE</h2>
+<blockquote>
+<p>我们要做什么？实现基于BPE算法的分词器。</p>
+</blockquote>
+<p>2.1 The Unicode Standard
+介绍每个字符的unicode数字转换方法。在python中是 <code>ord</code> 和 <code>chr</code> 。</p>
+<p>2.2 Unicode Encodings
+介绍 <code>.encode</code> 和 <code>.decode</code> 方法，可以将字符串和unicode byte序列进行互相转换。</p>
+<p>2.3 Subword Tokenization
+介绍子词分词。</p>
+<p>2.4 BPE Tokenizer Training
+以简单的例子，介绍BPE Tokenizer的训练。（最终实现效果与 <code>tiktoken</code> 对齐）</p>
+<p>2.5 Experimenting with BPE Tokenizer Training
+在TinyStories数据集上进行BPE Tokenizer训练。</p>
+<p>2.6 BPE Tokenizer: Encoding and Decoding
+实现BPE Tokenizer的编码和解码。</p>
+<p>2.7 Experiments
+一些用于提升理解的问题和实验。</p>
+<h3 id="_1">阅读知识部分</h3>
+<p>通过 <code>ord</code> 将Unicode转为int ，<code>chr</code> 将int转为Unicode。
+可见，<code>chr</code>的返回值得到一个包含了相关字符的Unicode字符串。
+但是，它在print中会自动进行一层解析，例如空字符0。</p>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="nb">ord</span><span class="p">(</span><span class="s1">'牛'</span><span class="p">)</span>
+<span class="mi">29275</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">chr</span><span class="p">(</span><span class="mi">29275</span><span class="p">)</span>
+<span class="s1">'牛'</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">chr</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="s1">'</span><span class="se">\x00</span><span class="s1">'</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">print</span><span class="p">(</span><span class="nb">chr</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="s2">"this is a test"</span> <span class="o">+</span> <span class="nb">chr</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"string"</span>
+<span class="s1">'this is a test</span><span class="se">\x00</span><span class="s1">string'</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">print</span><span class="p">(</span><span class="s2">"this is a test"</span> <span class="o">+</span> <span class="nb">chr</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"string"</span><span class="p">)</span>
+<span class="n">this</span> <span class="ow">is</span> <span class="n">a</span> <span class="n">teststring</span>
+</code></pre></div>
+<p>不直接使用Unicode：词汇表太大，太稀疏，而且需要处理词汇表外的词。
+(原始字符串) -<code>.encode("utf-8")</code> -&gt; (bytes) - <code>list()</code> -&gt; (list of bytes)</p>
+<p>连着几个byte表示一个Unicode字符，那逐byte转utf-8肯定有问题了。
+<del>玩个meme</del></p>
+<div class="highlight"><pre><span></span><code>&gt;&gt;&gt; decode_utf8_bytes_to_str_wrong("锟斤拷".encode("utf-8"))    
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "&lt;stdin&gt;", line 2, in decode_utf8_bytes_to_str_wrong     
+UnicodeDecodeError: 'utf-8' codec can't decode byte 0xe9 in position 0: unexpected end of data
+</code></pre></div>
+<p>参考 <a href="https://en.wikipedia.org/wiki/UTF-8">UTF-8 - Wikipedia</a> ，每个byte的开始位是有要求的。
+<img alt="" src="../../migrated/post-images/20260203183920.png"/>
+In UTF-8, two-byte sequences must match the pattern:</p>
+<div class="highlight"><pre><span></span><code>110xxxxx 10xxxxxx
+</code></pre></div>
+<p>所以可以构造例子 <code>[11111111, 11111111]</code> 不满足条件：</p>
+<div class="highlight"><pre><span></span><code>&gt;&gt;&gt; bytes([255,255]).decode("utf-8")
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte
+</code></pre></div>
+<p>（放空）
+我们刚刚做的事情是<strong>把原始的字符串转化成了连续的byte</strong>：<code>.encode("utf-8")</code>。
+现在文章的表示变得相当长，训练模型需要太多的计算。因此需要压缩。
+压缩的方法是，让词汇表的数量增加（256），添加子词，实现对整个序列的压缩。构造词汇表的过程称作“训练BPE tokenizer”。</p>
+<p>pre-tokenize：例如使用正则表达式，把空格和后面的词汇连在一起。
+使用 <code>re.finditer</code> 。
+For example, the word 'text' might be a pre-token that appears 10 times. In this case, when we count how often the characters ‘t’ and ‘e’ appear next to each other, we will see that the word ‘text’ has ‘t’ and ‘e’ adjacent and we can increment their count by 10 instead of looking through the corpus. Since we’re training a byte-level BPE model, each pre-token is represented as a sequence of UTF-8 bytes.</p>
+<div class="highlight"><pre><span></span><code>&gt;&gt;&gt; PAT = r"""'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+"""
+&gt;&gt;&gt; # requires `regex` package
+&gt;&gt;&gt; import regex as re
+&gt;&gt;&gt; re.findall(PAT, "some text that i'll pre-tokenize")
+['some', ' text', ' that', ' i', "'ll", ' pre', '-', 'tokenize']
+</code></pre></div>
+<p>BPE包括三个步骤：
+- Vocabulary Initialization
+- Pre-tokenization
+- Compute BPE merges（使用频率最高且字典序最大的）
+频率：`dict[tuple[bytes], int]</p>
+<p>eg. pre-token的依次合并：
+<code>{low: 5, lower: 2, widest: 3, newest: 6}</code>
+<code>{(l,o,w): 5, (l,o,w,e,r): 2, (w,i,d,e,st): 3, (n,e,w,e,st): 6}</code>
+<code>{(l,o,w): 5, (l,o,w,e,r): 2, (w,i,d,est): 3, (n,e,w,est): 6}</code>
+Continuing this, the sequence of merges we get in the end will be <code>['s t', 'e st', 'o w', 'l ow', 'w est', 'n e','ne west', 'w i', 'wi d', 'wid est', 'low e', 'lowe r']</code> 。</p>
+<p>此时词汇表从一开始的 <code>[&lt;|endoftext|&gt;, [...256 BYTE CHARS]</code> 变成：
+<code>[&lt;|endoftext|&gt;, [...256 BYTE CHARS], st, est, ow, low, west, ne]</code></p>
+<h3 id="24-bpe-tokenizer-trainingnaive">2.4 BPE Tokenizer Training的naive实现</h3>
+<p>规划模块+逐个模块实现并检查.</p>
+<p><img alt="" src="../../migrated/post-images/20260206150752.png"/>
+对于这样一个问题，将文本文件读入、得到一个BPE tokenizer，
+需要以下几部分：
+(1) 读入文本，得到文本段（chunk）。
+(2) GPT-2的pre-token，<code>re.finditer</code> ，得到一小片被pre-token过的文本。
+(3) 两个数据结构：词汇表和频率表。对这样一小片文本，遍历每个字符，添加更新频率表 <code>dict[tuple[bytes], int]</code> 。
+(4) 在频率表中取出频率最高的（通过 <code>max</code> ），合并 <code>tuple[bytes]</code> 为新的 <code>typle[bytes]</code> 。更新词汇表和频率表。</p>
+<p><img alt="" src="../../migrated/post-images/20260206235808.png"/>
+那么初始实现又慢又错，包括：
+1. <strong>字节级别 vs 字符串级别</strong>：你目前用字符串处理，但要求是字节级别的BPE
+2. <strong>GPT-2正则表达式</strong>：需要特殊处理文本分割
+3. <strong>数据结构</strong>：vocab应该是 <code>dict[int, bytes]</code> 而不是 <code>dict[int, str]</code>
+错在没有搞懂bytes和字符的区别，慢在没有做优化（1.5s）。</p>
+<p>首先搞懂一下字节级别BPE。<a href="https://fancyerii.github.io/2025/09/07/bpe-trainer-1/">动手实现和优化BPE Tokenizer的训练——第1部分：最简单实现 - 李理的博客</a></p>
+<blockquote>
+<p>沉下心来，别着急，慢慢来。
+仔细读test，把自己的函数行为和test搞成完全一致。</p>
+</blockquote>
+<p>之后仔细读了一下，发现一是byte没有存对，二是split应该先按照特殊token，再使用GPT-2的分词。两个问题都解决掉就ok了。</p>
+<h3 id="27-experiments">2.7 Experiments的回答</h3>
+<blockquote>
+<p>(a) 压缩比的含义</p>
+</blockquote>
+<p><strong>压缩比 = 原始文本字节数 / 产生的token数量</strong>
+不同tokenizer的压缩比差异：
+- <strong>TinyStories tokenizer (10K vocab)</strong>：针对儿童故事训练，对简单词汇压缩比较好
+- <strong>OpenWebText tokenizer (32K vocab)</strong>：更大词表，能识别更多复杂词汇和短语
+通常词表越大，压缩比越高（每个token代表更多字节），因为能匹配更长的常见词/子词单元。</p>
+<blockquote>
+<p>(b) 用TinyStories tokenizer处理OpenWebText</p>
+</blockquote>
+<p><strong>会发生什么？</strong>
+- <strong>压缩比下降</strong>：很多OpenWebText中的词汇（技术术语、复杂词汇、特殊符号）在TinyStories词表中不存在，会被切成更小的子词单元
+- <strong>定性描述</strong>：文本会被"过度切分"，例如"neural network"可能变成 <code>["neural", "▁network"]</code> 或者更碎，导致token序列变长
+- <strong>本质</strong>：这是<strong>领域不匹配</strong>问题——tokenizer没见过足够多的该领域词汇</p>
+<p>下面的内容来自我实际的训练日志：</p>
+<div class="highlight"><pre><span></span><code>Step 1/3: train BPE tokenizer
+BPE training configuration:
+  input_path: data/TinyStoriesV2-GPT4-train.txt
+  vocab_size: 10000
+  special_tokens: ['&lt;|endoftext|&gt;']
+  progress_every: 100
+  heartbeat_seconds: 15
+  vocab_out: tokenizer/tinystories_bpe_vocab.pkl
+  merges_out: tokenizer/tinystories_bpe_merges.pkl
+[progress] read_corpus done in 12.2s, chars=2226845268
+Saved tokenizer artifacts:
+  vocab_path: tokenizer/tinystories_bpe_vocab.pkl
+  merges_path: tokenizer/tinystories_bpe_merges.pkl
+  longest_token: b' accomplishment'
+  longest_token_len: 15
+  total_elapsed: 11m42.2s
+</code></pre></div>
+<p>估算一下，总计 <code>2226845268 bytes</code> ，训练BPE tokenizer总计11m42.2s， 大约就是 <code>2226845268/702.2=3171240.76901 bytes/sec</code> ，即大约3MB/s。
+这个表现我觉得挺好了。根据 <a href="https://github.com/openai/tiktoken">openai/tiktoken: tiktoken is a fast BPE tokeniser for use with OpenAI's models.</a> 的说明，他们的tiktoken在同样单线程的情况下目测大约是6MB/s，在只使用了有限数量的工程优化的前提下达成这样的效果挺振奋人心的。
+尽管许多工程优化的实现细节并不是完全我自己一行一行敲的 <del>甚至low level的大部分实现几乎都不是自己一行一行敲的</del> ，仍然收获良多。</p>
+<p><img alt="" src="../../migrated/post-images/20260310093341.png"/></p>
+<blockquote>
+<p>(c) tokenizer吞吐量估算</p>
+</blockquote>
+<p><strong>估算逻辑</strong>：
+1. 先测量tokenizer处理一定量文本的速度（bytes/sec）
+2. 用这个速率计算处理825GB所需时间
+例如：如果tokenizer速度是50 MB/sec，则825GB需要：<br/>
+<code>825 × 1024 MB ÷ 50 MB/sec ≈ 16,896秒 ≈ 4.7小时</code>
+实际速度取决于：
+- tokenizer实现（BPE算法效率）
+- 并行化程度
+- 硬件（CPU/GPU）</p>
+<p>其实这个题是要我估算，我一开始没反应过来。 <del>感谢GPT，差点真去训了。</del> 
+825GB按我的3MB/s大约就是281600s，约为78小时。 <del>差点浪费78小时的算力。</del></p>
+<blockquote>
+<p>(d) 为什么用uint16？</p>
+</blockquote>
+<p>uint16 (无符号16位整数) 是合适选择因为：
+- 取值范围够用：<strong>uint16范围 0-65535</strong>，覆盖vocab_size (10K和32K都在这个范围内)
+- 存储效率高：每个token只占2字节，比int64 (8字节) 节省75%空间
+- 内存友好：处理大规模数据集时，内存占用更小，加载更快
+对比：
+- uint8 (0-255) 不够用（最大256 &lt; 32K）
+- uint32 浪费空间（能存40亿，但只需要3.2万）
+- uint16 刚刚好</p>
+<h2 id="1">1 环境配置</h2>
+<p><a href="https://docs.astral.sh/uv/guides/projects/#viewing-your-version">Working on projects | uv</a></p>
+<blockquote>
+<p>整个作业做完后感慨一下，uv真的是非常好用的工具。
+我前后需要切换环境版本，uv帮我省去了相当多的环境配置的麻烦。</p>
+</blockquote>
+<p>环境为 <code>cs336</code> ，Python=3.12，在WSL中。</p>
+<div class="highlight"><pre><span></span><code>uv run -- flask run -p 3000
+- `uv run`：uv 的命令
+- `--`：分隔符，表示 "uv 的参数到此结束"
+- `flask run -p 3000`：这些参数全部传递给 `flask` 命令
+</code></pre></div>
+<p><a href="https://docs.pytorch.org/docs/stable/nn.html#containers">torch.nn — PyTorch 2.10 documentation</a></p>
+  </div>
+
+  
+  <section class="post-comments">
+    <h2 class="comments-title">评论</h2>
+    <script src="https://giscus.app/client.js"
+      data-repo="Meredith2328/pilog"
+      data-repo-id="R_kgDOTpY2UA"
+      data-category="Announcements"
+      data-category-id="DIC_kwDOTpY2UM4DCZMy"
+      data-mapping="pathname"
+      data-strict="0"
+      data-reactions-enabled="1"
+      data-emit-metadata="0"
+      data-input-position="top"
+      data-theme="light"
+      data-lang="zh-CN"
+      crossorigin="anonymous"
+      async></script>
+  </section>
+  
+</article>
+</main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span>© 2026 Meredith — built with pilog</span>
+      <span class="footer-sep">::</span>
+      <a href="../../../rss.xml">RSS</a>
+      <span class="footer-sep">::</span>
+      <span>powered by <a href="https://github.com/meredith2328/pilog" target="_blank" rel="noopener">pilog</a></span>
+    </div>
+  </footer>
+
+  
+  <div class="dino-widget" data-widget="dino">
+    <div class="dino-panel" hidden>
+      <div class="dino-bar">
+        <span class="dino-title">T-REX RUNNER</span>
+        <span class="dino-hint">点击游戏区域后按 空格</span>
+        <button class="dino-close" type="button" aria-label="关闭">×</button>
+      </div>
+      <iframe class="dino-frame" src="../../../dino/index.html" title="Chrome 断网小恐龙" loading="lazy"></iframe>
+    </div>
+    <button class="dino-toggle" type="button" aria-label="打开小恐龙游戏">
+      <img src="../../../img/dino-icon.png" alt="小恐龙" width="26" height="28">
+      <span>PLAY</span>
+    </button>
+  </div>
+  
+
+  <script src="../../../js/main.js" defer></script>
+  <script>
+    window.PILOG_ROOT = "../../../";
+    window.PILOG_DEFAULT_VIEW = "cards";
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+          onload="try{if(window.renderMathInElement){renderMathInElement(document.body,{delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});}}catch(e){}"></script>
+  <script src="../../../js/search.js" defer></script>
+  
+</body>
+</html>

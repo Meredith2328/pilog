@@ -61,9 +61,8 @@ def main() -> None:
         ok &= check("default view global exposed",
                     page.evaluate("window.PILOG_DEFAULT_VIEW") == "cards")
         first_title = page.locator(".card-title").first.inner_text()
-        ok &= check("pinned post first", "pilog" in first_title and "像素" in first_title,
+        ok &= check("newest post first", "pilog" in first_title and "像素" in first_title,
                     first_title[:30])
-        ok &= check("pin badge shown", page.locator(".pin-badge").count() >= 1)
         ok &= check("highlight card shown", page.locator(".card.is-highlight").count() >= 1)
         body_font = page.evaluate("getComputedStyle(document.body).fontFamily")
         ok &= check("sans font stack", "Inter" in body_font or "Segoe" in body_font, body_font[:60])
@@ -72,7 +71,7 @@ def main() -> None:
         thumb_w = page.locator(".card-thumb img").first.bounding_box()["width"]
         ok &= check("thumb column ~132px", abs(thumb_w - 132) < 6, str(thumb_w))
         pre = page.locator(".card-preview").first.inner_text()
-        ok &= check("manual preview shown", "轻量的静态博客框架" in pre, pre[:40])
+        ok &= check("manual preview shown", "个人自制" in pre and "博客框架" in pre, pre[:40])
         ok &= check("tag chips on cards", page.locator(".card .tag-chip").count() >= 4)
 
         # filter bar: top 3 tags + expandable "more tags" panel
@@ -96,14 +95,14 @@ def main() -> None:
         page.locator(".folder-part[data-folder='posts/tech']").first.click()
         ok &= check("folder chip appears", page.locator(".sel-chip.sel-folder").count() == 1)
         vis = page.locator(".card:visible").count()
-        ok &= check("folder filter narrows cards", vis == 2, str(vis))
+        ok &= check("folder filter narrows cards", vis == 1, str(vis))
         page.locator(".sel-chip .sel-x").first.click()
 
         # multi-condition: tag + folder with no overlap -> empty state
         page.locator(".folder-part[data-folder='posts/tech']").first.click()
         page.click("#filter-more")
-        page.fill("#filter-more-search", "obsidian")
-        page.locator("#filter-more-list .tag-chip[data-tag='obsidian']").click()
+        page.fill("#filter-more-search", "奇怪的东西")
+        page.locator("#filter-more-list .tag-chip[data-tag='奇怪的东西']").click()
         ok &= check("empty cards state", page.locator(".empty-cards").count() == 1)
         page.locator(".sel-chip .sel-x").first.click()
         page.locator(".sel-chip .sel-x").first.click()
@@ -125,10 +124,10 @@ def main() -> None:
         page.wait_for_timeout(300)
 
         # nav folder link in cards view selects the folder filter
-        page.locator(".site-nav a[data-kind='folder']", has_text="技术").click()
+        page.locator(".site-nav a[data-kind='folder']", has_text="CS相关").click()
         ok &= check("nav folder selects filter", page.locator(".sel-chip.sel-folder").count() == 1)
         vis = page.locator(".card:visible").count()
-        ok &= check("nav folder shows only its posts", vis == 2, str(vis))
+        ok &= check("nav folder shows only its posts", vis >= 5, str(vis))
         page.locator(".sel-chip .sel-x").first.click()
 
         # tree view
@@ -140,7 +139,7 @@ def main() -> None:
         page.click("#tree-collapse")
         ok &= check("tree collapse hides children", page.locator(".tree-folder").first.evaluate(
             "el => !el.classList.contains('is-open')"))
-        page.locator(".site-nav a[data-kind='folder']", has_text="技术").click()
+        page.locator(".site-nav a[data-kind='folder']", has_text="CS相关").click()
         ok &= check("tree nav stays in tree", page.locator("#view-tree").evaluate("el => !el.hidden"))
         ok &= check("tree nav flashes folder", page.locator(".tree-row.tree-flash").count() >= 1)
         # clicking a filter tag while in tree view shows a hint that the
@@ -176,7 +175,7 @@ def main() -> None:
         link_count = page.locator(".graph-link").count()
         ref_count = page.locator(".graph-link.ref").count()
         ok &= check("graph nodes >= 8", node_count >= 8, str(node_count))
-        ok &= check("graph ref edges present", ref_count >= 2, str(ref_count))
+        ok &= check("graph legend marks refs", page.locator(".legend-ref").count() == 1)
         ok &= check("graph stats text", "篇文章" in page.locator("#graph-stats").inner_text())
         ok &= check("legend present", page.locator(".graph-legend .legend-item").count() == 5)
         ok &= check("graph highlight node",
@@ -192,19 +191,19 @@ def main() -> None:
 
         # search
         page.click('[data-view="cards"]')
-        page.fill("#search-input", "速查")
+        page.fill("#search-input", "玩具")
         page.wait_for_timeout(700)
         ok &= check("search finds results", page.locator(".search-item").count() >= 1)
         # #tag searches tags only; plain words never match tags
-        page.fill("#search-input", "#workflow")
+        page.fill("#search-input", "#dino")
         page.wait_for_timeout(700)
         ok &= check("#tag search finds tag", page.locator(".search-item").count() >= 1)
-        page.fill("#search-input", "workflow")
+        page.fill("#search-input", "dino")
         page.wait_for_timeout(700)
         ok &= check("plain word ignores tags", page.locator(".search-item").count() == 0)
-        page.fill("#search-input", "#workflow")
+        page.fill("#search-input", "#dino")
         page.wait_for_timeout(700)
-        page.locator(".search-tag[data-tag='workflow']").first.click()
+        page.locator(".search-tag[data-tag='dino']").first.click()
         page.wait_for_timeout(300)
         ok &= check("search tag click selects filter", page.locator(".sel-chip").count() == 1)
         page.locator(".sel-chip .sel-x").first.click()
@@ -224,15 +223,10 @@ def main() -> None:
         iframe = page.frame_locator(".dino-frame")
         ok &= check("dino iframe loaded", iframe.locator("canvas").count() >= 1)
 
-        # markdown cheatsheet: footnotes + task list + blockquote
-        page.goto(base + "/posts/tech/markdown-cheatsheet.html", wait_until="networkidle")
-        ok &= check("blockquote", page.locator("blockquote").count() >= 1)
-        ok &= check("footnotes", page.locator(".footnote").count() >= 1)
-        ok &= check("table rendered", page.locator("table").count() >= 1)
-        ok &= check("task list", page.locator('li input[type="checkbox"]').count() >= 2)
+        # pixel-blog rich markdown: strikethrough + LaTeX math
+        page.goto(base + "/posts/tech/pixel-blog.html", wait_until="networkidle")
         ok &= check("strikethrough renders", page.locator("del").count() >= 1)
         ok &= check("latex math markup present", page.locator(".arithmatex").count() >= 2)
-        ok &= check("cross ref link to pixel-blog", page.locator('a[href*="pixel-blog"]').count() >= 1)
 
         # screenshots sanity
         for name in ["01-cards.png", "02-tree.png", "03-graph.png", "05-post.png", "06-mobile.png"]:
@@ -257,8 +251,8 @@ def main() -> None:
         ok &= check("deep link #folder selects folder", page.locator(".sel-chip.sel-folder").count() == 1)
         # same-document hash changes accumulate (multi-condition); a real visit
         # from a post page reloads with a clean slate
-        page.goto(base + "/posts/notes/obsidian-tips.html", wait_until="networkidle")
-        page.goto(base + "/index.html#tag=obsidian", wait_until="networkidle")
+        page.goto(base + "/posts/toy/notegotya.html", wait_until="networkidle")
+        page.goto(base + "/index.html#tag=奇怪的东西", wait_until="networkidle")
         ok &= check("deep link #tag selects tag", page.locator(".sel-chip").count() == 1)
         vis = page.locator(".card:visible").count()
         ok &= check("deep link #tag filters cards", vis >= 1, str(vis))

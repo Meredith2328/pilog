@@ -706,6 +706,37 @@ a:hover {
   outline-offset: -3px;
 }
 
+.card.is-cover {
+  overflow: hidden;
+}
+
+.card.is-cover .card-cover {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-color: var(--panel);
+}
+
+.card.is-cover .card-cover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(247, 247, 247, 0.6);
+}
+
+.card.is-cover .card-link {
+  position: relative;
+  z-index: 1;
+}
+
+.card.is-cover .card-body {
+  min-height: 250px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
 .card-link {
   display: flex;
   min-height: 190px;
@@ -1279,17 +1310,6 @@ a:hover {
   height: 100%;
   object-fit: cover;
   object-position: center;
-}
-
-.post-hero::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(247, 247, 247, 0.45);
-}
-
-.post-hero:hover::after {
-  background: rgba(247, 247, 247, 0.3);
 }
 
 .comments-title {

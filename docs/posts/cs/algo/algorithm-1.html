@@ -1,0 +1,2574 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="pilog">
+  <title>【数据结构与算法1】数学篇：从几个专题审视算法课的数学部分 · MEREDITH&#39;S LOG</title>
+  <meta name="description" content="总而言之是噼里啪啦一些《算法导论》笔记 时间复杂度，求和公式，分治，哈希，摊还分析，在线算法与竞争分析，线性规划与单纯形法 Lec1 复杂度的严格证明√ Lec2 求和公式，1/n和ln n的关系整理√ Lec2 各种分治递归求解方法及其练习√ Lec4 哈希和布隆过滤器的分析√ Lec8 摊还分析√ Lec12 在线">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="MEREDITH&#39;S LOG">
+  <meta property="og:title" content="【数据结构与算法1】数学篇：从几个专题审视算法课的数学部分">
+  <meta property="og:description" content="总而言之是噼里啪啦一些《算法导论》笔记 时间复杂度，求和公式，分治，哈希，摊还分析，在线算法与竞争分析，线性规划与单纯形法 Lec1 复杂度的严格证明√ Lec2 求和公式，1/n和ln n的关系整理√ Lec2 各种分治递归求解方法及其练习√ Lec4 哈希和布隆过滤器的分析√ Lec8 摊还分析√ Lec12 在线">
+  <link rel="canonical" href="https://meredith2328.github.io/posts/cs/algo/algorithm-1.html">
+  
+  <meta property="og:image" content="https://meredith2328.github.io/assets/.thumbs/255328257592.jpg">
+  <meta property="article:published_time" content="2026-01-04T00:00:00">
+
+  <link rel="icon" href="../../../favicon.png">
+  <link rel="apple-touch-icon" href="../../../favicon.png">
+  <link rel="alternate" type="application/rss+xml" title="MEREDITH&#39;S LOG · RSS" href="../../../rss.xml">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <link rel="stylesheet" href="../../../css/style.css">
+  
+</head>
+<body>
+  <div class="deco deco-left" aria-hidden="true"></div>
+  <div class="deco deco-right" aria-hidden="true"></div>
+  <header class="site-header">
+    <div class="header-banner is-default"
+         style="background-image:url('../../../img/banner-default.svg')"></div>
+    <div class="header-row">
+      <a class="brand" href="../../../index.html">
+        <img class="brand-icon" src="../../../img/dino-icon.png" alt="dino" width="28" height="30">
+        <span class="brand-name">MEREDITH&#39;S LOG</span>
+        <span class="brand-sub">pixel · minimal · notes</span>
+      </a>
+
+      <div class="view-switch" role="tablist" aria-label="视图切换">
+        <button class="view-tab is-active" role="tab" data-view="cards" aria-selected="true">卡片视图</button>
+        <button class="view-tab" role="tab" data-view="tree" aria-selected="false">清单视图</button>
+        <button class="view-tab" role="tab" data-view="graph" aria-selected="false">图谱视图</button>
+      </div>
+
+      <div class="search-wrap" id="search-wrap">
+        <input id="search-input" type="search" placeholder="搜索 标题 / 全文 / 标签…"
+               autocomplete="off" aria-label="搜索">
+        <div class="search-results" id="search-results" hidden></div>
+      </div>
+
+      <div class="socials">
+        
+          
+            <a class="social-icon" href="https://github.com/meredith2328" title="github" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></a>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        
+          <a class="social-icon" href="../../../rss.xml" title="RSS"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg></a>
+        
+      </div>
+    </div>
+    
+    <nav class="site-nav" aria-label="站点导航"><h1 id="_1">导航</h1>
+<ul>
+<li><a href="../../../index.html">首页</a></li>
+<li><a href="../10pi.html">关于</a></li>
+<li><a data-kind="folder" href="../../../index.html#folder=posts/cs">CS相关</a></li>
+<li><a data-kind="folder" href="../../../index.html#folder=posts/toy">玩具</a></li>
+<li><a href="../../../dino/index.html">恐龙游戏</a></li>
+</ul></nav>
+    
+  </header>
+
+  <main class="site-main">
+<article class="post">
+  <header class="post-header">
+    <a class="back-link" href="../../../index.html">← 返回首页</a>
+    <h1 class="post-title">【数据结构与算法1】数学篇：从几个专题审视算法课的数学部分</h1>
+    <div class="post-meta">
+      <time datetime="2026-01-04T00:00:00">2026-01-04</time>
+      
+      <a class="tag-chip" href="../../../index.html#tag=%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95">#数据结构与算法</a>
+      
+      <span class="post-folder">▣ posts/cs/algo</span>
+    </div>
+  </header>
+
+  
+
+  <div class="post-body markdown-body">
+    <p>总而言之是噼里啪啦一些《算法导论》笔记
+时间复杂度，求和公式，分治，哈希，摊还分析，在线算法与竞争分析，线性规划与单纯形法</p>
+<!-- more -->
+<blockquote>
+<p>基于复旦大学2025-2026秋软件工程专业黄橙老师“算法设计与分析”课程内容，感谢老师的辛勤付出！
+相关配套书籍为《算法导论》，课程中选取了其中的大部分主干内容，不涉及过难的内容。
+本文是学习过程中的两篇笔记中的第一篇（数学篇），加入了个人的理解和一些辅助学习的脚手架。
+如有不妥当之处还望多指正，可以在下面评论区或者 https://github.com/Meredith2328/meredith2328.github.io 里提issues反馈。</p>
+</blockquote>
+<ol>
+<li>Lec1 复杂度的严格证明√</li>
+<li>Lec2 求和公式，1/n和ln n的关系整理√</li>
+<li>Lec2 各种分治递归求解方法及其练习√</li>
+<li>Lec4 哈希~~和布隆过滤器~~的分析√</li>
+<li>Lec8 摊还分析√</li>
+<li>Lec12 在线算法及竞争性分析√</li>
+<li>Lec13 线性规划与单纯形法√</li>
+</ol>
+<p>ps. 感觉Lec4 哈希和Lec5 布隆过滤器写得太糙了
+回头可以连带简单实验和分析搞一个整体一点的小专题</p>
+<h2 id="lec1">Lec1 渐进复杂度</h2>
+<blockquote>
+<p>这一节大部分内容来自笔记 Lec1 算法基础 。</p>
+<p>直觉：<span class="arithmatex">\(f(n)=O(g(n))\)</span> 
+1. 在n很大时，f(n)的一个上界是g(n)。
+2. f(n)是g(n)的小量。
+3. （如果n的次数相同，大O符号允许相差常数加法和乘法）</p>
+</blockquote>
+<h3 id="_1">定义</h3>
+<ol>
+<li>
+<p>直觉图片
+<img alt="" src="../../migrated/post-images/20250911103953.png"/></p>
+</li>
+<li>
+<p>朴素理解：</p>
+</li>
+</ol>
+<blockquote>
+<p><strong><em>当n很大时的上界或下界。</em></strong>
+<em>注意这里的等于是属于的意思，而不是等价的意思。</em></p>
+</blockquote>
+<p><span class="arithmatex">\(\Theta (n)\)</span>：<strong>渐进确界</strong>。 c1g(n)&lt;=f(n)&lt;=c2g(n)
+<span class="arithmatex">\(O(n)\)</span>：<span class="arithmatex">\(f(n)=O(g(n))\)</span>表示 <span class="arithmatex">\(f(n)\)</span><strong>的渐进上界是</strong><span class="arithmatex">\(g(n)\)</span> ，比如最坏时间。 f(n)&lt;=cg(n)
+eg. <span class="arithmatex">\(n = O(n^2)\)</span>，但<span class="arithmatex">\(n^2 \ne O(n)\)</span>
+<span class="arithmatex">\(\Omega(n)\)</span>：用来刻画“<strong>渐进下界</strong>”，比如最好时间。f(n)&gt;=cg(n)</p>
+<ol start="3">
+<li>精确定义
+<img alt="" src="../../migrated/post-images/20250911103121.png"/></li>
+</ol>
+<p><img alt="" src="../../migrated/post-images/20250911103208.png"/></p>
+<p><img alt="" src="../../migrated/post-images/20250911103239.png"/></p>
+<h3 id="_2">判定的简单例子</h3>
+<p>证明：<span class="arithmatex">\(\frac{1}{2}n^2-3n=\Theta(n^2)\)</span>。</p>
+<p><img alt="" src="../../migrated/post-images/20250911144849.png"/></p>
+<p>证明：<span class="arithmatex">\(6n^3 \ne \Theta(n^2)\)</span>。</p>
+<blockquote>
+<p>直觉：<strong>当n很大时</strong>，<span class="arithmatex">\(6n^3\)</span> 一定比 <span class="arithmatex">\(c_2n^2\)</span> 大。
+为了证明，反设存在 <span class="arithmatex">\(c_2,n_0\)</span> 使得 <span class="arithmatex">\(\forall n \ge n_0, 6n^3 \le c_2n^2\)</span> 。
+一定能推出矛盾：这个式子只对不那么大的 <span class="arithmatex">\(n\)</span> 成立，从而对任意大不成立，推出矛盾。</p>
+</blockquote>
+<p><img alt="" src="../../migrated/post-images/20250911145009.png"/></p>
+<p><img alt="" src="../../migrated/post-images/20250911145031.png"/></p>
+<p>证明：<span class="arithmatex">\(an+b=O(n^2)\)</span>。</p>
+<p><img alt="" src="../../migrated/post-images/20250911145054.png"/>
+即证明存在<span class="arithmatex">\(n_0 \ge 0\)</span>，当<span class="arithmatex">\(n \ge n_0\)</span>时，有<span class="arithmatex">\(0 \le f(n)=an+b \le cn^2,a&gt;0\)</span>。
+首先证明左边。
+因为<span class="arithmatex">\(a&gt;0\)</span>，只要取得满足<span class="arithmatex">\(an_0+b \ge 0\)</span>的<span class="arithmatex">\(n_0\)</span>，即可使<span class="arithmatex">\(an+b \ge an_0 +b \ge 0\)</span>成立。
+即<span class="arithmatex">\(n_0\)</span>可取<span class="arithmatex">\(\ge -b/a\)</span>的任意值。
+再证明右边。
+因为<span class="arithmatex">\(f(n)=an+b \le an+|b|\)</span>，只要取<span class="arithmatex">\(n_0 \ge 1\)</span>，就有<span class="arithmatex">\(an+|b| \le (a+|b|)n \le (a+|b|)n^2\)</span>。
+这符合所求的形式，即取 <span class="arithmatex">\(c=a+|b|\)</span> 。
+综上所述，通过取 <span class="arithmatex">\(c=a+|b|\)</span>和<span class="arithmatex">\(n_0=\max (1,-b/a)\)</span>，原结论得证。</p>
+<h3 id="_3">性质</h3>
+<p>自反性（<span class="arithmatex">\(O\)</span>、<span class="arithmatex">\(\Theta\)</span>、<span class="arithmatex">\(\Omega\)</span>），对称性（仅 <span class="arithmatex">\(\Theta\)</span> ），传递性（全部五个），转置对称性。
+<img alt="" src="../../migrated/post-images/20250911152314.png"/>
+<img alt="" src="../../migrated/post-images/20250911152337.png"/></p>
+<p>不存在的性质：
+<img alt="" src="../../migrated/post-images/20250911152359.png"/></p>
+<h3 id="_4">对阶乘的额外说明</h3>
+<p>要一眼看到 <span class="arithmatex">\(\lg n!\)</span> 和 <span class="arithmatex">\(\sum_{k=1}^n \lg k\)</span> 这两种形式，就能想到它们的互相转换。</p>
+<p><img alt="" src="../../migrated/post-images/20251225144900.png"/>
+除了结论，
+下面两个对数求和转积分得到复杂度也要熟练掌握：
+<span class="arithmatex">\(\int_1^n \lg xdx \le \sum_{k=1}^n \lg k = \lg n! \le \int_2^{n+1} \lg xdx\)</span>
+（下界是从1到n的积分，上界是从2到n+1的积分。）</p>
+<p>可参见下述“求和符号及其上界”部分的说明。</p>
+<h3 id="1">习题1</h3>
+<blockquote>
+<p>至少要做到能从“小量”的直觉上判断，而不是硬记那些反例。</p>
+</blockquote>
+<p><img alt="" src="../../migrated/post-images/20250910203548.png"/></p>
+<p>a. 不正确。如 <span class="arithmatex">\(f(n)=n=O(n^2)\)</span>，即<span class="arithmatex">\(n\)</span>的一个渐进上界是<span class="arithmatex">\(n^2\)</span>，但不满足<span class="arithmatex">\(n^2=O(n)\)</span>。
+b. <strong>不正确</strong>。如 <span class="arithmatex">\(f(n)=n, g(n)=n^2\)</span>，则<span class="arithmatex">\(f(n)+g(n)=\Theta(n^2)\)</span>，但<span class="arithmatex">\(min(f(n),g(n))=n\)</span>。</p>
+<blockquote>
+<p>直觉：f(n)+g(n)和min(f(n), g(n))同阶。这肯定是未必的。</p>
+</blockquote>
+<p>c. 正确。
+由<span class="arithmatex">\(f(n)=O(g(n))\)</span>有存在<span class="arithmatex">\(n_0\)</span>，对于<span class="arithmatex">\(n \ge n_0\)</span>，<span class="arithmatex">\(f(n) \le cg(n)\)</span>。
+由题目条件 <span class="arithmatex">\(f(n) \ge 1\)</span>, 且可取得适当的 <span class="arithmatex">\(c&gt;0\)</span> 使得 <span class="arithmatex">\(cg(n) \ge 1\)</span>，
+则有 <span class="arithmatex">\(0 \le \lg f(n) \le \lg c + \lg g(n) \le c_2 \lg (g(n))\)</span>，即<span class="arithmatex">\(\lg f(n) = O(\lg g(n))\)</span>成立。
+d. <strong>不正确。</strong>
+如<span class="arithmatex">\(f(n)=2n,g(n)=n\)</span>，有<span class="arithmatex">\(f(n)=O(g(n))\)</span>，但不满足<span class="arithmatex">\(2^{2n}=(2^n)^2=O(2^n)\)</span>。</p>
+<blockquote>
+<p>和c是特别好的对照。
+对数把f(n)和g(n)常数乘法的差距缩小到了常数加减的差距，仍然保留大O性质。
+但是指数会把常数加减的差距放大到常数乘法的差距、或者把常数乘法的差距放大到指数的差距，后者不再保留大O性质。</p>
+</blockquote>
+<p>e. 不正确。
+如<span class="arithmatex">\(f(n)=n^{-1}\)</span>，不满足<span class="arithmatex">\(n^{-1}=O(n^{-2})\)</span>。证明如下：
+反设对于<span class="arithmatex">\(n \ge n_0\)</span>，有 <span class="arithmatex">\(0 \le n^{-1} \le cn^{-2}\)</span> 。
+选取<span class="arithmatex">\(k\)</span>使得 <span class="arithmatex">\(kc \ge n_0,k&gt;1\)</span> 成立，
+则有 <span class="arithmatex">\((kc)^{-1} \le c(kc)^{-2} = k^{-1}(kc)^{-1}\)</span>，推得<span class="arithmatex">\(k^{-1} \ge 1\)</span>与<span class="arithmatex">\(k&gt;1\)</span>矛盾。
+f. 正确。
+由 <span class="arithmatex">\(f(n)=O(g(n))\)</span>可得对于<span class="arithmatex">\(n \ge n_0\)</span>，<span class="arithmatex">\(0 \le f(n) \le cg(n)\)</span>，
+故对于相同的<span class="arithmatex">\(n_0\)</span>，有 <span class="arithmatex">\(0 \le c^{-1}f(n) \le g(n)\)</span>，
+<span class="arithmatex">\(g(n)\)</span>的渐进下确界为<span class="arithmatex">\(f(n)\)</span>，即<span class="arithmatex">\(g(n)=\Omega (f(n))\)</span>成立。
+g. 不正确。
+类似于d题目。设<span class="arithmatex">\(f(n) = 2^{2n}\)</span>，则<span class="arithmatex">\(f(n/2)=2^n\)</span>，根据d题目可知不成立。
+h. <strong>正确。</strong>
+设<span class="arithmatex">\(g(n)=o(f(n))\)</span>，存在<span class="arithmatex">\(n_0\)</span>，使得<span class="arithmatex">\(n \ge n_0\)</span>时<span class="arithmatex">\(g(n) \ge 0\)</span>。
+则有<span class="arithmatex">\(f(n)+o(f(n))=f(n)+g(n) \ge f(n)\)</span>，取<span class="arithmatex">\(c_1=1\)</span>，即<span class="arithmatex">\(f(n)+o(f(n))=\Omega (f(n))\)</span>成立。
+存在<span class="arithmatex">\(n_1\)</span>，使得<span class="arithmatex">\(n \ge n_1\)</span>时<span class="arithmatex">\(g(n) \le f(n)\)</span>。
+则有<span class="arithmatex">\(f(n)+o(f(n))=f(n)+g(n) \le 2f(n)\)</span>，取<span class="arithmatex">\(c_2=2\)</span>，即<span class="arithmatex">\(f(n)+o(f(n))=O(f(n))\)</span>成立。
+故有<span class="arithmatex">\(f(n)+o(f(n))=\Theta (f(n))\)</span>。</p>
+<blockquote>
+<p>直觉：给f(n) 加了一个小量。</p>
+</blockquote>
+<h3 id="2">习题2</h3>
+<blockquote>
+<p>edit time: 2025-12-25 14:43:50</p>
+</blockquote>
+<p><img alt="" src="../../migrated/post-images/20251225143325.png"/></p>
+<ol>
+<li>
+<p>不正确。
+直觉上，g(n)单纯是一个包装，题目要问的是f(n)&lt;=h(n)是否有h(n)&lt;=f(n)。
+反例：
+f(n)=n，g(n)=2n，h(n)=n^2。</p>
+</li>
+<li>
+<p>不正确。
+直觉上，f(n)&lt;=g(n)，h(n)&lt;=g(n)，那么f(n)和h(n)没关系。题设说h(n)&lt;=f(n)，所以反着找一个f(n)&lt;=h(n)，并且它们都&lt;=g(n)的例子即可。
+反例：
+f(n)=n，h(n)=n^2，g(n)=n^3。</p>
+</li>
+<li>
+<p>不正确。
+f(n)=n，g(n)=2n，
+0 &lt;= 0.5g(n) &lt;= f(n) &lt;= g(n) ，
+0 &lt;= f(n) &lt;= g(n) &lt;= 2f(n)。</p>
+</li>
+<li>
+<p>不正确。
+主因是创造子元组 <code>atuple[i:j]</code> 的过程需要读取约 <span class="arithmatex">\(j-i\)</span> 个元素，是 <span class="arithmatex">\(\Theta(n)\)</span> 的，而不是常数执行时间。
+那么再加上外面两层循环，总共应该是 <span class="arithmatex">\(\Theta(n^3)\)</span> 了。</p>
+</li>
+</ol>
+<h2 id="lec2">Lec2 求和符号及其上界</h2>
+<p>常数从1到n求和： <span class="arithmatex">\(\Theta(n)\)</span>
+<span class="arithmatex">\(i\)</span> 从1到n求和： <span class="arithmatex">\(\Theta(n^2)\)</span>
+<span class="arithmatex">\(i^2\)</span> 从1到n求和： <span class="arithmatex">\(\Theta(n^3)\)</span></p>
+<p>回顾一下等差等比公式。</p>
+<p><img alt="" src="../../migrated/post-images/20251225151810.png"/></p>
+<h3 id="_5">求和简单练习</h3>
+<p>DeepSeek说想到这个拆项是通过离散分部积分。 什么是离散分部积分 
+（没仔细检查，因为类似求和式一般化的求解并不在本课程主干内容中，先去看别的了。但是拆差分这个事情确实有点像分部积分。如果有兴趣回头可以捣鼓一下。）</p>
+<p><img alt="" src="../../migrated/post-images/20251225152252.png"/></p>
+<h3 id="_6">和式的上界</h3>
+<p>第一种：<strong>利用大小关系</strong> <span class="arithmatex">\(a_k \le \max a_k\)</span>
+第二种：<strong>利用比值</strong> <span class="arithmatex">\(a_k \le a_1r^k\)</span></p>
+<p><img alt="" src="../../migrated/post-images/20251225153046.png"/>
+<img alt="" src="../../migrated/post-images/20251225153054.png"/></p>
+<h3 id="1n-ln-n">1/n 和 ln n的关系：用积分近似求和</h3>
+<blockquote>
+<p>总结：1/x积分一下是 <span class="arithmatex">\(\ln x\)</span> ，所以1/n求和和 <span class="arithmatex">\(\Theta(\ln n)\)</span> 同阶。
+详细证明可以通过积分上限多取一个、积分下限多取一个得到。</p>
+</blockquote>
+<p><img alt="" src="../../migrated/post-images/20251225145728.png"/>
+ps. 以上这个也可以作为一种调和级数发散的证明。虽然ln n发散得慢，但它也是发散的。</p>
+<p>具体而言，有：</p>
+<blockquote>
+<p>直觉：（<strong>积分和求和的关系</strong>）（微元法）
+对于减函数 <span class="arithmatex">\(f(x)= {1 \over x}\)</span> 的求和式和积分式，
+<strong>求和式 &gt;= 积分上限多取一个</strong>（积分多取一个小的），
+即 <span class="arithmatex">\(\sum^{n}_{k=1} {1 \over k} \ge \int^{n+1}_{1} {1 \over x}dx=\ln(n+1)\)</span> 。
+<img alt="" src="../../migrated/post-images/20251225150606.png"/>
+<strong>求和式 &lt;= 积分下限多取一个</strong>（积分多取一个大的）。
+即 <span class="arithmatex">\(\sum^{n}_{k=2} {1 \over k} \le \int^{n}_{1} {1 \over x}dx=\ln n+1\)</span> 。
+<img alt="" src="../../migrated/post-images/20251225150536.png"/></p>
+</blockquote>
+<p>从而有以下上下界证明过程：</p>
+<p><img alt="" src="../../migrated/post-images/20251225150100.png"/>
+<img alt="" src="../../migrated/post-images/20251225150107.png"/></p>
+<h4 id="_7">用积分近似求和</h4>
+<p>上述微元法所揭示的积分和求和的关系，还可以用于近似。
+例如下式
+<img alt="" src="../../migrated/post-images/20251229220646.png"/>
+可以近似为上限多1的积分：
+<img alt="" src="../../migrated/post-images/20251229221006.png"/>
+（顺便把 <span class="arithmatex">\(\log_2i\)</span> 写成 <span class="arithmatex">\(\ln x \over \ln 2\)</span> 了）</p>
+<p>下述是后面的具体计算的说明。关键是上面，<strong>可以用积分来近似求和</strong>。
+这个积分是可以积出来的，比如把x塞进dx里然后再分部积分之类的。
+<img alt="" src="../../migrated/post-images/20251229221056.png"/>
+<img alt="" src="../../migrated/post-images/20251229221106.png"/></p>
+<h4 id="ln-nn-ln-n">再练一下 ln n和n ln n的关系</h4>
+<blockquote>
+<p>总结：<span class="arithmatex">\(\ln x\)</span>积分一下差不多是 <span class="arithmatex">\(x \ln x\)</span> ，所以<span class="arithmatex">\(\ln n\)</span>求和和 <span class="arithmatex">\(\Theta(n \ln n)\)</span> 同阶。
+详细证明可以通过积分上限多取一个、积分下限多取一个得到。</p>
+</blockquote>
+<p><img alt="" src="../../migrated/post-images/20251225144900.png"/></p>
+<h3 id="_8">递归方程的和式</h3>
+<p><img alt="" src="../../migrated/post-images/20251225154650.png"/>
+思考：
+为了解上述递归方程，我们希望能够<strong>构造出两个上下限不同的和式作差</strong>。
+因此，首先把 <span class="arithmatex">\(n\)</span> 乘上去，然后变限，即可进行进一步求解。
+<img alt="" src="../../migrated/post-images/20251225154832.png"/>
+<img alt="" src="../../migrated/post-images/20251225154857.png"/>
+将上述<strong>递归方程的和式</strong>转换成了一个<strong>递归方程</strong>。
+接下来就可以通过下述“递归方程求解的四种方法”求解了。
+比如设 <span class="arithmatex">\(G(n) = {T(n) \over {n+1}}\)</span> 然后代入法解出来之类的。</p>
+<h2 id="lec2_1">Lec2 递归方程求解</h2>
+<blockquote>
+<p>四种方法：<strong>代入法、递归树、尝试法、主定理。</strong>
+全部掌握。</p>
+</blockquote>
+<h3 id="_9">代入法</h3>
+<blockquote>
+<p>题型：
+- 两个函数参数有加减关系 （及含求和式的递归方程）
+- 两个函数参数有乘除关系
+也可以用数学归纳法严格证明。</p>
+</blockquote>
+<hr/>
+<p>例1：加减
+<img alt="" src="../../migrated/post-images/20251225153319.png"/></p>
+<p>例1的解：两个变量有加减关系，直接代入。
+<img alt="" src="../../migrated/post-images/20251225153347.png"/></p>
+<hr/>
+<p>例2：比值
+<img alt="" src="../../migrated/post-images/20251225153406.png"/></p>
+<p>例2的解：两个变量有比值关系，需要换元到指数再代入。
+<img alt="" src="../../migrated/post-images/20251225153716.png"/></p>
+<hr/>
+<p>例3：如何分析快速排序的<strong>最坏情况</strong>复杂度？</p>
+<p>解：最坏情况是分治时每次都把所有元素分到同侧，另一侧元素为空。
+此时，原来问题是 <span class="arithmatex">\(n\)</span> 的，子问题是 <span class="arithmatex">\(n-1\)</span> 和 <span class="arithmatex">\(0\)</span> 的。
+<img alt="" src="../../migrated/post-images/20251225154004.png"/>
+用代入法容易解出 <span class="arithmatex">\(\Theta(n^2)\)</span> 。</p>
+<hr/>
+<p>例4：如何分析快速排序的<strong>平均情况</strong>复杂度？</p>
+<p>解：分治时可能有子问题是 <span class="arithmatex">\(0\)</span> 和 <span class="arithmatex">\(n-1\)</span> ， <span class="arithmatex">\(1\)</span> 和 <span class="arithmatex">\(n-2\)</span> ，...，<span class="arithmatex">\(n-1\)</span> 和 <span class="arithmatex">\(0\)</span> 共n种情况。
+对于每个情况，需要进行 <span class="arithmatex">\(n-1\)</span> 次比较之后把划分元素放到合理位置。
+即它们的递归方程为
+<img alt="" src="../../migrated/post-images/20251225154243.png"/></p>
+<p>接下来<strong>假设各种情况是等概率的</strong>，总共 <span class="arithmatex">\(n\)</span> 种情况，每种情况的概率是 <span class="arithmatex">\(1/n\)</span> 。
+则平均情况即将 <span class="arithmatex">\(T(n)\)</span> 置为期望值，为
+<img alt="" src="../../migrated/post-images/20251225154514.png"/>
+即
+<img alt="" src="../../migrated/post-images/20251225154526.png"/>
+这是一个递归方程的和式，可以参见前述“求和符号及其上界-递归方程的和式”部分，通过<strong>构造不同上下限的和式进行相减</strong>，把它转化成如下递归方程。
+<img alt="" src="../../migrated/post-images/20251225155216.png"/>
+然后就可以通过代入法进行求解了。
+<img alt="" src="../../migrated/post-images/20251225155235.png"/></p>
+<p>我们也可以用积分近似上述和式，直观验证我们得到的结果。
+<img alt="" src="../../migrated/post-images/20251225162649.png"/></p>
+<h3 id="_10">递归树</h3>
+<blockquote>
+<p>题型：比值关系
+解法：
+1. 求每个节点的复杂度，得到<strong>每一层的复杂度</strong>
+2. 求<strong>树的深度</strong>，具体而言求“降低得最慢”的比值什么时候把<span class="arithmatex">\(n\)</span>降低到<span class="arithmatex">\(1\)</span></p>
+</blockquote>
+<p>除了代入法，也可以通过递归树求解具有比值关系的递归方程。
+具体而言，
+通过求 <strong>每个节点的复杂度 =&gt; 每一层的复杂度</strong> 和 <strong>树的深度</strong>，再把它们加起来，
+就得到了整个递归树的复杂度，即原问题的解。</p>
+<hr/>
+<p>例1
+<img alt="" src="../../migrated/post-images/20251225155513.png"/></p>
+<p>例1解：
+1. 求每个节点 <span class="arithmatex">\(kn\)</span> 的复杂度，即 <span class="arithmatex">\(ckn\)</span> 。从而求和得到<strong>每一层的复杂度</strong>，即 <span class="arithmatex">\(cn\)</span> 。
+2. <strong>求树的深度</strong>，只有一个比值 <span class="arithmatex">\(1/2\)</span> ，令 <span class="arithmatex">\(n(1/2)^h=1\)</span> 得到 <span class="arithmatex">\(h \approx \lg n\)</span> ，从而有 <span class="arithmatex">\(\Theta (n \lg n)\)</span> 。
+<img alt="" src="../../migrated/post-images/20251225144649.png"/></p>
+<hr/>
+<p>例2
+<img alt="" src="../../migrated/post-images/20251225155528.png"/>
+例2解：
+1. 求每个节点的复杂度，即 <span class="arithmatex">\(n\)</span> ，<span class="arithmatex">\(n/3\)</span> 和 <span class="arithmatex">\(2n/3\)</span> 之类的。求和得到每层复杂度是 <span class="arithmatex">\(\Theta(n)\)</span> 。
+2. 求树的深度。两个比值中把 <span class="arithmatex">\(n\)</span> 更慢弄到 <span class="arithmatex">\(1\)</span> 的是 <span class="arithmatex">\(2/3\)</span> ，所以 <span class="arithmatex">\(n (2/3)^h=1\)</span> ，得到 <span class="arithmatex">\(h \approx \lg n\)</span> 。</p>
+<p><img alt="" src="../../migrated/post-images/20251225155543.png"/></p>
+<hr/>
+<p>例3
+<img alt="" src="../../migrated/post-images/20251225193006.png"/>
+例3解：
+<img alt="" src="../../migrated/post-images/20251225193018.png"/>
+左边的求和式好解，求和内与 <span class="arithmatex">\(i\)</span> 无关，所以直接是 <span class="arithmatex">\(n \log n \lfloor \log n \rfloor\)</span> 。下取整不影响阶数，可以直接理解为 <span class="arithmatex">\(n \log^2 n\)</span> ，只是为了方便而额外说明。
+右边的求和式可以理解成 <span class="arithmatex">\(0 + 1 + \dots + x, x \le \log n\)</span> ，从而 <span class="arithmatex">\(x = \lfloor \log n \rfloor\)</span> 。项数是 <span class="arithmatex">\(\lfloor \log n \rfloor + 1\)</span> ，首项是 <span class="arithmatex">\(0\)</span> ，尾项是 <span class="arithmatex">\(\lfloor \log n \rfloor\)</span> ，则求和结果为 <span class="arithmatex">\(\lfloor \log n \rfloor (\lfloor \log n \rfloor + 1)/2\)</span> 。
+一减，仍然留下来 <span class="arithmatex">\(\Theta(n \log^2 n)\)</span> 的主项。</p>
+<h3 id="_11">尝试法</h3>
+<blockquote>
+<p>题型：含求和式的递归方程，可能比代入法快，但要看你眼力如何。</p>
+<p><strong>假设 <span class="arithmatex">\(T(n) = cf(n)\)</span> ，验证代入后右边确实为 <span class="arithmatex">\(cf(n) + 小量\)</span> 的形式。
+注意 <span class="arithmatex">\(c\)</span> 需要 <em>严格</em> 相同 ，而不是同阶就可以了。</strong></p>
+</blockquote>
+<hr/>
+<p>例1
+<img alt="" src="../../migrated/post-images/20251225160633.png"/></p>
+<p>思考：
+之前快排平均复杂度这道题咱们先构造了和式相减、转化成简单递归方程然后求解的。这个事情还是比较麻烦。
+如果你的眼睛比较强大 ~~或者本来就知道快排的平均复杂度是 <span class="arithmatex">\(O(n \log n)\)</span> ~~，完全可以进行一个猜：<strong>假设 <span class="arithmatex">\(T(n)=cn \log n\)</span> ，验证代入后右边确实是 <span class="arithmatex">\(cn \log n + 小量\)</span> 。</strong></p>
+<p>例1解：
+<img alt="" src="../../migrated/post-images/20251225162040.png"/>
+一定要注意最终得到的<strong>严格</strong>是 <span class="arithmatex">\(cn \log n + \Theta(n)\)</span> ，连<strong>系数 <span class="arithmatex">\(c\)</span> 也是完全一致的</strong>。
+ps. 对于ilogi求和的说明，参见前述“求和符号”一章的“用积分近似求和”。</p>
+<p>请仔细比较以下三个不成功的尝试：</p>
+<p>1.
+<img alt="" src="../../migrated/post-images/20251225162148.png"/>
+这是因为主导项是 <span class="arithmatex">\(\Theta(n)\)</span> ，<span class="arithmatex">\(T(n)=\Theta(n)\)</span> 和 <span class="arithmatex">\(T(n)=C\)</span> 矛盾。</p>
+<p>2.
+<img alt="" src="../../migrated/post-images/20251225162224.png"/>
+<strong>这个错误比较隐蔽，是因为系数不严格相同</strong>。
+对于 <span class="arithmatex">\(\Theta(n)\)</span> ，我们设它是 <span class="arithmatex">\(bn\)</span> ，则实际上右边是 <span class="arithmatex">\((c+b)n\)</span> ，和我们设的 <span class="arithmatex">\(T(n)=cn\)</span> 系数对不上。右边比我们的假设增长更快，这是不允许的。</p>
+<p>3.
+<img alt="" src="../../migrated/post-images/20251225162348.png"/>
+右边是 <span class="arithmatex">\(2cn^2/3\)</span> ，系数上多了一个 <span class="arithmatex">\(2/3\)</span> ，这也是不允许的。一定严格地让系数也相同。</p>
+<hr/>
+<h3 id="_12">主定理</h3>
+<blockquote>
+<p>含比值关系的递归方程。比递归树做得快，毕竟相当于直接背结论。
+主要步骤是把 <span class="arithmatex">\(f(n)\)</span> 和 <span class="arithmatex">\(n^{\log _ba}\)</span> 进行比较。
+如果 <span class="arithmatex">\(f(n)\)</span> 比 <span class="arithmatex">\(n^{\log _ba}\)</span> 增长快，而且 <span class="arithmatex">\(f(n)\)</span> <em>满足子问题总工作量比原问题小一点</em> （<span class="arithmatex">\(af(n/b) \le cf(n), c \le 1\)</span>）<del>，不然主导的不是根层 <span class="arithmatex">\(f(n)\)</span> 了</del>，则 <span class="arithmatex">\(T(n)\)</span> 是 <span class="arithmatex">\(\Theta(f(n))\)</span> 。
+如果 <span class="arithmatex">\(f(n)\)</span> 比 <span class="arithmatex">\(n^{\log _ba}\)</span> 增长慢，<span class="arithmatex">\(T(n)\)</span> 是 <span class="arithmatex">\(\Theta(n^{\log _ba})\)</span> 。
+如果 <span class="arithmatex">\(f(n)\)</span> 和 <span class="arithmatex">\(n^{\log _ba}\)</span> 增长一样快，<span class="arithmatex">\(T(n) = \Theta(n^{\log _ba}) \lg n\)</span> 。
+<img alt="" src="../../migrated/post-images/20251225191202.png"/></p>
+</blockquote>
+<p><del>主定理证明直觉：
+<span class="arithmatex">\(T(n)\)</span> 变 <span class="arithmatex">\(T(n/b)\)</span> ，说明递归树深度为 <span class="arithmatex">\(log_bn\)</span> ，最多进行了 <span class="arithmatex">\(log_bn\)</span> 次分裂。
+而每个节点分裂成 <span class="arithmatex">\(a\)</span> 个子节点，所以大致地叶子结点个数为 <span class="arithmatex">\(a ^{\log _bn} = n^{\log _ba}\)</span> 。</del></p>
+<hr/>
+<p>eg1.
+<img alt="" src="../../migrated/post-images/20251225191124.png"/>
+解：<span class="arithmatex">\(log_24=2\)</span>，<span class="arithmatex">\(f(n)=n=O(n^{2-1})\)</span> ，<span class="arithmatex">\(\epsilon=1\)</span>，则 <span class="arithmatex">\(T(n)=\Theta(n^2)\)</span> 。</p>
+<hr/>
+<p>eg2.
+<img alt="" src="../../migrated/post-images/20251225191326.png"/>
+解：<span class="arithmatex">\(T(n)=\Theta(n^2 \lg n)\)</span> 。</p>
+<hr/>
+<p>eg3.
+<img alt="" src="../../migrated/post-images/20251225191353.png"/>
+解：
+首先 <span class="arithmatex">\(f(n)=n^3=n^{log_24+1}\)</span>，<span class="arithmatex">\(\epsilon=1\)</span>。
+然后 <span class="arithmatex">\(f(n)\)</span> 要满足根层主导，即要求存在 <span class="arithmatex">\(c\)</span> ， <span class="arithmatex">\(4f(n/2) \le cf(n),c &lt; 1\)</span> ，
+即要求存在 <span class="arithmatex">\(c\)</span> ，<span class="arithmatex">\(0.5n^3 \le cn^3\)</span> ，可取 <span class="arithmatex">\(c=0.5\)</span> 。
+两个条件同时满足。故 <span class="arithmatex">\(T(n)=\Theta(f(n))=\Theta(n^3)\)</span> 。</p>
+<hr/>
+<p>eg4.
+<img alt="" src="../../migrated/post-images/20251225192311.png"/>
+解：
+先验证条件1。
+<span class="arithmatex">\(n^{log_ba}=n\)</span> ，<span class="arithmatex">\(f(n)=n \log n\)</span> 。
+首先 <span class="arithmatex">\(f(n)\)</span> 比 <span class="arithmatex">\(n\)</span> 还是增长得快一点的，<span class="arithmatex">\(n^{1-\epsilon}\)</span>和<span class="arithmatex">\(n\)</span>都不是同阶，应该往 <span class="arithmatex">\(n^{1+\epsilon}\)</span> 那个方向凑。
+但是根据高数的结论，<span class="arithmatex">\(\forall \epsilon &gt; 0,\log n = O(n^{\epsilon})\)</span> ，则不可能满足 <span class="arithmatex">\(f(n)=\Omega(n^{1+\epsilon})\)</span> 。
+从而条件1不满足，无法使用主定理进行求解。
+实际上条件2也不满足：
+不存在 <span class="arithmatex">\(c&lt;1\)</span> 使得 <span class="arithmatex">\(\exists n_0,\forall n \ge n_0\)</span>，<span class="arithmatex">\(2f(n/2) \le cf(n)\)</span> 即 <span class="arithmatex">\(\log n \le {1 \over {1-c}}\)</span> 。</p>
+<p>但是可以使用其他方式，如递归树。见递归树例3。</p>
+<h3 id="_13">练习</h3>
+<p><img alt="" src="../../migrated/post-images/20251225212157.png"/>
+<img alt="" src="../../migrated/post-images/20251225212751.png"/>
+<img alt="" src="../../migrated/post-images/20251225212757.png"/>
+g. <span class="arithmatex">\(n^2 + (n-2)^2 + ... + 2^2 = \sum_{i=0}^{n-1} (n-2i)^2 = \sum_{i=0}^{n-1} (n^2 - 4ni + i^2)\)</span>
+拆分开的三个求和式我们都会算。所以是 <span class="arithmatex">\(\Theta(n^3)\)</span> 。</p>
+<p><img alt="" src="../../migrated/post-images/20251225193831.png"/></p>
+<p>a. 优先考虑主定理。
+<span class="arithmatex">\(n^{log_34}=O(n \lg n)\)</span> ，取 <span class="arithmatex">\(\epsilon = log_34-1&gt;0\)</span> 。则有 <span class="arithmatex">\(T(n)=\Theta(n^{log_34})\)</span> 。</p>
+<p>b. 这道题难一些，相当于考虑 <strong><span class="arithmatex">\(n/\lg n\)</span> 的尽量紧确的上下界</strong>。
+可以利用尝试法证明，<strong>它的上界是 <span class="arithmatex">\(n \lg n\)</span> ，下界是 <span class="arithmatex">\(n^{1-\epsilon}\)</span></strong> 。
+<img alt="" src="../../migrated/post-images/20251225213831.png"/>
+备注：
+第一个不等式串最后：当 <span class="arithmatex">\(n\)</span> 充分大时， 1/lg n - clg 3 &lt;= 0肯定是有的。
+第二个不等式串原书答案有笔误，上图已经修改好了。</p>
+<p>c. 主定理，<span class="arithmatex">\(\Theta(n^2 \sqrt{n})\)</span> ，不解释。</p>
+<p>d. 对于足够大的n，加减的影响远远小于乘除，所以 <span class="arithmatex">\(T(n/3-2)\)</span> 直接考虑成 <span class="arithmatex">\(T(n/3)\)</span> 就行。然后主定理一下就有 <span class="arithmatex">\(\Theta(n \lg n)\)</span> 。</p>
+<p>e. 和b压根就是同一道题。</p>
+<p>f. 这里顺手写两种解法。
+直觉上你可以画个递归树，从n到1减得最慢的是 <span class="arithmatex">\(T(n/2)\)</span> 那一项，贡献了 <span class="arithmatex">\(\lg n\)</span> 的深度。
+所以整个下来就肯定是 <span class="arithmatex">\(\Theta(n \lg n)\)</span> 了。
+另一种解法是尝试法，目测是同阶的一堆 <span class="arithmatex">\(n\)</span> 加起来、并且数量是指数减少的。所以设 <span class="arithmatex">\(T(n) \le cn \lg n\)</span> ，则右边&lt;=
+<img alt="" src="../../migrated/post-images/20251225214605.png"/>
+这一团在n充分大的时候肯定是 &lt;= cnlgn的，
+因为左边那个只有 7/8，右边那个是一团系数倍的n，都差个阶呢。</p>
+<p>g. 很难忍住不代入法。1/n求和，根据积分可知肯定是 <span class="arithmatex">\(\Theta(\ln n)\)</span> 了，看不出来的话看我前面求和符号那一章。</p>
+<p>（下面h和i算法导论答案用的方法超纲了）</p>
+<p>h. 跟g同理，ln n求和是 <span class="arithmatex">\(\Theta(n \ln n)\)</span> 这个阶的。
+直觉上，n个ln n求和，子问题个数线性变少，那大概率就是给ln n乘个n了。
+但是答案用<span class="arithmatex">\(\chi\)</span>弄了个很紧确的界，超出本课程范围了，看看就行。</p>
+<p>i. 1/lg n求和，就算只取奇数项或者只取偶数项，类似h，直觉上还是 <span class="arithmatex">\(\Theta({n \over \lg n})\)</span> 这个阶的。</p>
+<p>j. 
+直觉上，我们只见过加减性和乘性的递归方程诶，这种乘方怎么办呢？
+说得对！拿指数换元把它变成加减性和乘性就好了~</p>
+<p>对于充分大的n，设<span class="arithmatex">\(n=2^x\)</span> ，如果不能取整那就下取整一下之类的。
+这个换元好处是，现在 <span class="arithmatex">\(\sqrt{n}=2^{x \over 2}\)</span>，一代入发现
+<span class="arithmatex">\(T(2^x)=2^{x \over 2}T(2^{x \over 2})+2^x\)</span>
+再设<span class="arithmatex">\(G(x)=T(2^x)\)</span> ，把函数换掉，则有
+<span class="arithmatex">\(G(x)=2^{x \over 2}G(x/2)+2^x\)</span>
+我们甚至还能继续化简
+<span class="arithmatex">\(G(x)/{2^x}=G(x/2)/{2^{x \over 2}}+1\)</span>
+设 <span class="arithmatex">\(H(x)=G(x)/2^x\)</span> ，则有
+<span class="arithmatex">\(H(x)=H(x/2)+1\)</span>
+故由主定理， <span class="arithmatex">\(H(x) = \Theta(\lg x)\)</span> ，则 <span class="arithmatex">\(G(x) = \Theta(2^x \lg x)\)</span> 
+再把 <span class="arithmatex">\(2^x\)</span> 换回 <span class="arithmatex">\(n\)</span> 有 <span class="arithmatex">\(T(n)=G(x)=\Theta(n \lg \lg n)\)</span> 。</p>
+<h3 id="_14">一类考试常见题型的说明</h3>
+<blockquote>
+<p>在整理往年题时，发现这类子问题划分不均等的递归式求解比较常见。
+关键是，“<strong>递归树每层子问题复杂度加起来是否与原问题相等</strong>”。
+如果相等，意味着最终得到的复杂度<strong>可能</strong>阶数比 <span class="arithmatex">\(f(n)\)</span> 更高。
+如果小于，最终得到的复杂度<strong>可能</strong>与 <span class="arithmatex">\(f(n)\)</span> 同阶。</p>
+</blockquote>
+<p>具体而言，以以下例题为例。</p>
+<hr/>
+<p>例1
+<img alt="" src="../../migrated/post-images/20251228174203.png"/>
+一种递归树的解法是，每一层的复杂度加起来（<span class="arithmatex">\(1/4+3/4\)</span>）<strong>恰好等于</strong> <span class="arithmatex">\(\Theta(n)\)</span> ，
+深度<span class="arithmatex">\(h\)</span>由最大的系数 <span class="arithmatex">\(3/4\)</span> 决定，是 <span class="arithmatex">\(\Theta(\log n)\)</span> 的。（具体而言，<span class="arithmatex">\(n/(3/4)^h=1\)</span>）
+则 <span class="arithmatex">\(T(n)=\sum_{i=0}^{\log n} n = \Theta(n \log n)\)</span> 。
+ps. 求和上界含义是 &lt;= log n的最大整数，也即 <span class="arithmatex">\(\lfloor \log n \rfloor\)</span> ，和<span class="arithmatex">\(\log n\)</span>是同阶的。</p>
+<p>当然也可以用尝试法分别解得 <span class="arithmatex">\(O(n \log n)\)</span> 和 <span class="arithmatex">\(\Omega(n \log n)\)</span> ，得到相同结果。</p>
+<hr/>
+<p>例2
+<img alt="" src="../../migrated/post-images/20251228173853.png"/>
+注意这里的区别：每一层的复杂度加起来（<span class="arithmatex">\(1/4+1/2\)</span>）<strong>是小于</strong> <span class="arithmatex">\(\Theta(n)\)</span> 的。
+具体而言，第一层加起来是n，第二层加起来是3/4n，第三层加起来是9/16n，...
+尽管它的层数仍然是 <span class="arithmatex">\(\Theta(\log n)\)</span> 的，但是因为每一层的复杂度不到 <span class="arithmatex">\(\Theta(n)\)</span> ，不像例1，整个加起来很可能不到 <span class="arithmatex">\(\Theta(n \log n)\)</span> 。
+这个直觉也可以由递归树及其求和验证：
+<span class="arithmatex">\(T(n)=\sum_{i=0}^{\log n} (3/4)^in = \Theta(n)\)</span> 。</p>
+<p>类似的也有以下这道题。同理，不做额外说明。
+<img alt="" src="../../migrated/post-images/20251228175132.png"/></p>
+<hr/>
+<p>例3
+<img alt="" src="../../migrated/post-images/20251228174238.png"/>
+这个只是一个代入法，不知道为什么写在了这里。
+<span class="arithmatex">\(T(n)=\log n + 1/2\log n + 1/4\log n + \dots = \Theta(\log n)\)</span></p>
+<hr/>
+<p>扩展：例1、例2的通解方法在算法导论本章的末尾有介绍，叫做Akra-Bazzi方法。
+我们只要通过递归函数系数<span class="arithmatex">\(a_i\)</span>和参数系数<span class="arithmatex">\(b_i\)</span>构造方程并解出指数<span class="arithmatex">\(p\)</span>，
+然后对<span class="arithmatex">\(g(x)\)</span>进行一个积分，就可以获得 <span class="arithmatex">\(T(x)\)</span> 的渐进紧确界。</p>
+<p>对于前面例2的说明，如果半信半疑，可以参考下述算法导论第4版对类似题型的Akra-Bazzi方法的讲解。
+<img alt="" src="../../migrated/post-images/20251228224504.png"/>
+<img alt="" src="../../migrated/post-images/20251228224519.png"/></p>
+<p><a href="https://zhuanlan.zhihu.com/p/311690676">从主方法到Akra-Bazzi定理 - 知乎</a>
+<img alt="" src="../../migrated/post-images/20251228175530.png"/></p>
+<p><img alt="" src="../../migrated/post-images/20251228175546.png"/>
+<img alt="" src="../../migrated/post-images/20251228175650.png"/>
+<img alt="" src="../../migrated/post-images/20251228175659.png"/></p>
+<h2 id="lec3">Lec3 指示器随机变量</h2>
+<blockquote>
+<p>关键是要引出新工具：指示器随机变量，对随机算法进行分析。
+用于<strong>把原来的求和式转换成对随机变量的求和</strong>，从而便于求解期望。</p>
+</blockquote>
+<h3 id="_15">指示器随机变量</h3>
+<p>我们首先定义指示器随机变量，用于表示“划分 <span class="arithmatex">\(k:n-k-1\)</span> ”。
+<img alt="" src="../../migrated/post-images/20251229224334.png"/></p>
+<p>接下来分析这个随机变量单个的期望。
+<img alt="" src="../../migrated/post-images/20251229224518.png"/></p>
+<p>再接下来假设所有划分都是等可能的，则<strong>可以利用 <span class="arithmatex">\(E(X_k)\)</span> 帮助计算其他期望</strong>。</p>
+<h3 id="_16">随机快速排序分析</h3>
+<p>下述是随机快速排序<strong>最坏情况</strong>的递归式的各种情况，
+它假设了第𝑖个元素总是落在分区的较大一侧（上界）得到以下这些式子。
+<img alt="" src="../../migrated/post-images/20251229224703.png"/>
+为了求 <span class="arithmatex">\(T(n)\)</span> 的期望，我们需要把所有n种情况统一在一个求和式里。
+这是通过上述随机变量实现的。
+<img alt="" src="../../migrated/post-images/20251229224740.png"/></p>
+<p>接下来 <span class="arithmatex">\(T(n)\)</span> 就也是一个随机变量了，可以对它求期望。
+使用期望的性质，以及 <span class="arithmatex">\(X_k\)</span> 与其他随机选择相互独立的性质，有
+<img alt="" src="../../migrated/post-images/20251229224822.png"/></p>
+<p><img alt="" src="../../migrated/post-images/20251229224901.png"/>
+<img alt="" src="../../migrated/post-images/20251229224909.png"/>
+（前两个求和式其实是同一个，只不过一个是从0往n-1加，一个是从n-1往0加）
+化简即得
+<img alt="" src="../../migrated/post-images/20251229224955.png"/>
+我们可以利用第二类数学归纳法处理这个期望递归式，证明它是 <span class="arithmatex">\(O(n \log n)\)</span> 。
+<strong>关键是，随机快速排序T(n)最坏情况的期望是<span class="arithmatex">\(O(n\log n)\)</span>，
+这是好于一般的快速排序最坏情况为 <span class="arithmatex">\(O(n^2)\)</span> 的。</strong>
+细节见下。
+<img alt="" src="../../migrated/post-images/20251229225129.png"/></p>
+<h3 id="_17">随机快速选择分析</h3>
+<p>每个情况比随机快速排序少个子问题，只剩一个子问题。
+毕竟随机快速选择我们只要一直往要选的那个元素那边走就行，另外一半不需要管。
+<img alt="" src="../../migrated/post-images/20251229225537.png"/>
+求期望有
+<img alt="" src="../../migrated/post-images/20251229225645.png"/>
+应该可以类似地使用第二类数学归纳法进行证明。我没有详细尝试过。</p>
+<p>总之随机快速选择算法最坏情况是 <span class="arithmatex">\(\Theta(n^2)\)</span> 的，期望是 <span class="arithmatex">\(O(n)\)</span> 的。</p>
+<h2 id="lec4">Lec4 哈希</h2>
+<h3 id="_18">全域哈希</h3>
+<blockquote>
+<p>直觉很简单：
+对于确定的哈希函数，可以构造很坏的输入，使得这个哈希函数冲突严重。
+因此选取一个哈希函数族，<strong>随机从其中选择某个哈希函数，消除最坏情况</strong>。
+其余都是对这个的证明。</p>
+</blockquote>
+<p><img alt="" src="../../migrated/post-images/20251226232533.png"/>
+<img alt="" src="../../migrated/post-images/20251226232539.png"/>
+<img alt="" src="../../migrated/post-images/20251226232544.png"/>
+<img alt="" src="../../migrated/post-images/20251226232621.png"/>
+<img alt="" src="../../migrated/post-images/20251226232626.png"/>
+<img alt="" src="../../migrated/post-images/20251226232636.png"/>
+<img alt="" src="../../migrated/post-images/20251226232641.png"/>
+<img alt="" src="../../migrated/post-images/20251226232649.png"/>
+<img alt="" src="../../migrated/post-images/20251226232653.png"/>
+<img alt="" src="../../migrated/post-images/20251226232658.png"/>
+<img alt="" src="../../migrated/post-images/20251226232705.png"/>
+<img alt="" src="../../migrated/post-images/20251226232710.png"/>
+<img alt="" src="../../migrated/post-images/20251226232716.png"/></p>
+<h3 id="_19">完全哈希</h3>
+<blockquote>
+<p>在<strong>全部键已知且不变</strong>的情况下，
+这里的<strong>两级哈希</strong>是一种完全哈希的实现方式，
+能保证 <span class="arithmatex">\(\Theta(1)\)</span> 查找、无冲突、使用的空间为 <span class="arithmatex">\(O(n)\)</span> 。</p>
+</blockquote>
+<p>思路是，首先用一个哈希把 <span class="arithmatex">\(n\)</span> 个键映射到 <span class="arithmatex">\(m\)</span> 个桶中，
+然后对每个桶使用一个从全域哈希族中选出的哈希函数，再次进行哈希。
+下述证明这种方式能够 <span class="arithmatex">\(\Theta(1)\)</span> 查找、无冲突、使用的空间为 <span class="arithmatex">\(O(n)\)</span> 。</p>
+<ol>
+<li>
+<p><span class="arithmatex">\(\Theta(1)\)</span> 查找：只是进行了两次哈希。</p>
+</li>
+<li>
+<p>无冲突
+<img alt="" src="../../migrated/post-images/20251226231954.png"/>
+<img alt="" src="../../migrated/post-images/20251226232012.png"/></p>
+</li>
+<li>
+<p>使用的空间为 <span class="arithmatex">\(O(n)\)</span>
+<img alt="" src="../../migrated/post-images/20251226232046.png"/>
+<img alt="" src="../../migrated/post-images/20251226232051.png"/>
+<img alt="" src="../../migrated/post-images/20251226232056.png"/></p>
+</li>
+</ol>
+<p>举例：<strong>为每个桶建二级哈希表</strong></p>
+<p>二级表大小 mj 取 nj2 或更大，这里为了无冲突，取 mj=nj2​。
+<strong>桶 0 (n0=1)</strong>：
+- 大小 m0=1，随便一个哈希函数即可。<br/>
+    比如 h2,0(k)=0，键 60 放位置 0。
+<strong>桶 1 (n1=2)</strong>：
+- m1=4，需要选 h2,1​ 使得 10 和 52 不冲突。<br/>
+    尝试 h2,1(k)=(k  mod 5)  mod 4：
+    - 10mod5=0 → 0
+    - 52mod5=2 → 2<br/>
+    不冲突，可以。于是表大小 4，位置 0 放 10，位置 2 放 52。
+<strong>桶 2 (n2=1)</strong>：
+- m2=1，任意。
+<strong>桶 3 (n3=1)</strong>：
+- m3=1。
+<strong>桶 4 (n4=2)</strong>：
+- m4=4，键 72 和 89。<br/>
+    尝试 h2,4​(k)=(kmod7)mod4：
+    - 72mod7=2 → 2
+    - 89mod7=5 → 1<br/>
+        不冲突，可以。
+<strong>桶 5、6 类似</strong>。</p>
+<h3 id="_20">习题</h3>
+<p><img alt="" src="../../migrated/post-images/20251226234503.png"/>
+<img alt="" src="../../migrated/post-images/20251226234524.png"/>
+<img alt="" src="../../migrated/post-images/20251226234535.png"/></p>
+<h2 id="lec8">Lec8 摊还分析</h2>
+<blockquote>
+<p>“对于长度为n的操作序列”</p>
+</blockquote>
+<p>其实题型不多，最主要的是二进制位的这个问题</p>
+<p>聚合法：分析每个操作的代价上界 <span class="arithmatex">\(t_i\)</span> ，从而求得总序列的 <span class="arithmatex">\(T(n) / n\)</span>
+核算 法（记账法）：存钱花钱
+势能法：不绑定在每个操作上，而是绑定在整体能否做功上</p>
+<h3 id="_21">栈操作序列</h3>
+<blockquote>
+<p>设push和pop都是O(1)的，
+Multipop(S, k)即pop k次的代价为 min(|S|, k) 。
+请分析<strong>n个栈操作序列的平摊代价</strong>。</p>
+</blockquote>
+<p>（粗略分析：假设n个操作序列每个操作都是代价最大的操作的最坏情况；
+精细分析：代价最大的操作可能只出现少数次）</p>
+<p>如果粗糙地分析，每个Multipop最坏是 <span class="arithmatex">\(O(n)\)</span> ，最坏情况是n个序列都是Multipop，这样的话 <span class="arithmatex">\(T(n)=O(n^2)\)</span> ，平摊代价 <span class="arithmatex">\(T(n)/n=O(n)\)</span> 。
+实际上，精细地分析，每个对象在压入之后最多被弹出一次，即pop数（包括在multipop内）不会超过push数。
+对于长度为n的序列，最多有n次push（其实n-1也差不多，我们这里看阶数即可），从而最多有n次pop。因此，n个栈操作序列的代价 <span class="arithmatex">\(T(n) \le 2n = O(n)\)</span> 。则平摊代价 <span class="arithmatex">\(T(n)/n = O(1)\)</span> 。</p>
+<h3 id="_22">二进制计数器</h3>
+<blockquote>
+<p>对于<strong>n个二进制计数递增（increment）操作的序列，请分析序列的平摊代价。</strong>
+设二进制计数器总位数为k。
+<strong>每次操作的代价</strong>即“需要翻转的比特数”，例如从11到100需要翻转3个二进制位。</p>
+</blockquote>
+<p>粗略分析：
+代价最大的操作是 <span class="arithmatex">\(O(k)\)</span> 的，假设n个操作序列每个操作都是代价最大的操作的最坏情况，从而 <span class="arithmatex">\(T(n)=O(kn)\)</span> ，<span class="arithmatex">\(T(n)/n=O(k)\)</span> 。</p>
+<p>精细分析：对于长度为n的操作序列，设二进制计数器的位数为k。
+n次递增从0加到了n，需要使用<span class="arithmatex">\(\log_2 n+1\)</span>位存储数<span class="arithmatex">\(n\)</span>。（例如16需要五位，10000）</p>
+<p><code>A[0]</code> 每1次操作发生1次改变，则n次操作发生n次改变。
+<code>A[1]</code> 每2次操作发生1次改变，则n次操作发生n/2次改变。
+<code>A[2]</code> ...4...n/(2^2)...
+...
+<code>A[lg n]</code> 每n次操作发生1次改变，则n次操作发生1次改变。 <del>废话文学</del>
+故对 <code>i = 0, 1, ..., lg n</code> ，<code>A[i]</code> 发生 <span class="arithmatex">\(n/2^i\)</span> 次改变。
+（总共k位中的其余位不改变）</p>
+<p>根据<strong>对每个位的改变的精确分析</strong>，可知
+<span class="arithmatex">\(T(n)=\sum_{i=0}^{\lg n}n/2^i &lt; n\sum_{i=0}^{\infty}1/2^i=2n=O(n)\)</span>
+则每个递增操作的平摊代价是 <span class="arithmatex">\(T(n)/n=O(1)\)</span> 。</p>
+<h3 id="_23">核算法</h3>
+<blockquote>
+<p>平摊代价总和 比 实际代价总和 大。
+核算法分析平摊代价：“提前付一下” “已经付过了”
+你这个操作以后还会有代价，所以你多付一下</p>
+</blockquote>
+<p><img alt="" src="../../migrated/post-images/20251226170426.png"/></p>
+<p>例1 栈操作序列</p>
+<p>cost(push)=2，
+cost(pop)=0，
+cost(multipop)=0</p>
+<p><img alt="" src="../../migrated/post-images/20251226170453.png"/></p>
+<p>例2 二进制计数器</p>
+<p>cost(Increment)=2</p>
+<h3 id="_24">势能法</h3>
+<p>与核算法不同，它将势能作为一个整体储存，
+而不是将信用与数据结构中单个对象关联分开储存。
+“势能”：“能够做功”</p>
+<blockquote>
+<p><strong>势能法定义每个操作的摊还代价是实际代价加上势差。</strong>
+<img alt="" src="../../migrated/post-images/20251226174833.png"/></p>
+<p>直觉上，如果第t个操作的<strong>势差</strong> <span class="arithmatex">\(\Phi(D_i)-\Phi(D_{i-1})\)</span> <strong>是正的</strong>，则摊还代价<span class="arithmatex">\(c_i\)</span>表示第i个操作多付费了，数据结构的<strong>势增加</strong>，”以后能做的功就增加“。
+如果势差为负，则摊还代价表示第i个操作少付费了，势减少用于支付操作的实际代价。</p>
+<p>总实际代价是 <span class="arithmatex">\(\sum_i c_i\)</span> ，
+势能法定义的总摊还代价是 <span class="arithmatex">\(\sum_i \hat{c_i} = \sum_i c_i + \Phi(D_n)-\Phi(D_0)\)</span> 。
+<strong>由于我们要求 <span class="arithmatex">\(\Phi(D_i) \ge \Phi(D_0) = 0\)</span> ，</strong>
+所以有 <span class="arithmatex">\(\sum_i c_i \le \sum_i \hat{c_i}\)</span> ，即<strong>我们定义的总平摊代价是总实际代价的一个上界</strong>，进而完成了平摊分析。</p>
+</blockquote>
+<hr/>
+<p>eg1 <strong>栈操作序列</strong> </p>
+<p><em>定义势函数为栈的元素个数，则push操作的平摊代价是2，其余操作是0。证明如下：</em></p>
+<p>定义势函数为栈的元素个数，一开始为空栈， <span class="arithmatex">\(\Phi(D_0)=0\)</span> 。
+设第i个操作为push操作，此时栈中元素个数为 <span class="arithmatex">\(s\)</span> ，则push操作的摊还代价为实际代价加势能差，即 <span class="arithmatex">\(1 + (s+1) - s = 2\)</span> 。（push除了操作本身，还让“pop操作能够做的功”增加了）
+设第i个操作为pop操作，此时栈中元素个数为 <span class="arithmatex">\(s\)</span> ，则pop操作的摊还代价为实际代价加势能差，即 <span class="arithmatex">\(1 + (s-1) - s = 0\)</span> 。
+multipop同理，平摊代价为0。</p>
+<p>（这个势函数也不是乱定义的，毕竟push和pop就会改变元素个数，所以定义为元素个数）</p>
+<p>从而总实际代价的一个上界是我们得到的总平摊代价 <span class="arithmatex">\(O(n)\)</span> 。</p>
+<p><img alt="" src="../../migrated/post-images/20251226175012.png"/></p>
+<hr/>
+<p>eg2. <strong>二进制计数器</strong></p>
+<p><em>定义势能函数为i次操作后，二进制计数器的1的个数 <span class="arithmatex">\(b_i\)</span> 。
+则每个Increment操作的平摊代价上界是2。</em></p>
+<p>证明如下：
+直觉上，设第i个操作将 <span class="arithmatex">\(t_i\)</span> 个1复位为0，则第 <span class="arithmatex">\(i\)</span> 个操作的实际代价最多为 <span class="arithmatex">\(t_i+1\)</span> 。
+例如从01111变成10000，<span class="arithmatex">\(t_i=4\)</span> ，实际代价为5。</p>
+<p>第 <span class="arithmatex">\(i\)</span> 个操作得到的势能 <span class="arithmatex">\(b_i\)</span>，
+可能是从 <span class="arithmatex">\(b_{i-1}\)</span> 变成 <span class="arithmatex">\(0\)</span> （唯一一种情况，把所有 <span class="arithmatex">\(k\)</span> 位全部复位），
+也可能是从 <span class="arithmatex">\(b_{i-1}\)</span> 变成 <span class="arithmatex">\(b_{i-1}-t_i+1\)</span> （复位 <span class="arithmatex">\(t_i\)</span> 个1，再置位一个1的所有情况）。
+则势能差为
+<span class="arithmatex">\(\Phi(D_i)-\Phi(D_{i-1}) \le (b_{i-1}-t_i+1) - b_{i-1} = 1-t_i\)</span></p>
+<p>故摊还代价\=实际代价 + 势能差 <span class="arithmatex">\(\le (t_i+1) + (1-t_i)=2\)</span> 得证。</p>
+<h3 id="_25">动态表</h3>
+<hr/>
+<p>聚合法：
+<img alt="" src="../../migrated/post-images/20251226184522.png"/>
+除了一堆的1，还需要很散地加一些2、4、8等等。
+n次插入的总开销 &lt;= n + (2^j)从0加到lg n-1 &lt;= 3n = O(n)
+<img alt="" src="../../migrated/post-images/20251226184709.png"/></p>
+<hr/>
+<p>核算法：
+<strong>每次插入平摊代价为3。</strong></p>
+<p>这是因为，当时插入需要1，移动该元素自身需要1，移动该元素的拖油瓶需要1。
+<em>随着元素增加，后面的元素还需要负责前面的元素的移动。
+例如插入第5-8个元素，它们自身插入需要代价，扩容时移动它们自身需要代价，而且它们还需要负责第1-4个元素的移动。</em>
+<img alt="" src="../../migrated/post-images/20251226184306.png"/></p>
+<hr/>
+<p>势能法原理差不多，但是过程有点繁，不写了。</p>
+<h3 id="_26">习题</h3>
+<p><img alt="" src="../../migrated/post-images/20251226172413.png"/></p>
+<p>a.
+通过一个简单数值例子说明这种数据结构，它将整个集合按照二进制划分成相应的元素个数。
+查找算法：在所有划分块中进行二分查找（每个划分块内部是有序的，但划分块之间没有全局有序）。
+如n=11=0b1011，
+则有序数组可能为：
+<span class="arithmatex">\(A_0 = \{5\}\)</span> （满），
+<span class="arithmatex">\(A_1 = \emptyset\)</span>  （空），
+<span class="arithmatex">\(A_2 = \{3,7,9,13\}\)</span>（满），
+<span class="arithmatex">\(A_3 = \{1,6,8,10,11,12,14,15\}\)</span> （满）。
+数字 <span class="arithmatex">\(n\)</span> 的二进制位表示长度为 <span class="arithmatex">\(k=\lceil \lg(n+1) \rceil\)</span> ，即为划分块的个数。
+划分块中元素为 <span class="arithmatex">\(2^i\)</span> 或 <span class="arithmatex">\(0\)</span> ，元素最多的个数为 <span class="arithmatex">\(2^k\)</span>，则最坏二分查找为 <span class="arithmatex">\(O(\lg 2^k) = O(k)\)</span> ，
+需要查找所有的划分块，故最坏情况运行时间为 <span class="arithmatex">\(O(k^2) = O(\lg^2n)\)</span> 。
+b.
+仍然从数值例子着手，从n=11=0b1011更新到n=12=0b1100时，需要更新3位即3个数组。
+最坏情况是需要更新所有数组（例如从0b0111更新到0b1000，或溢出），假设每个元素在数组中的插入和移动开销均为 <span class="arithmatex">\(O(1)\)</span>，则此时总元素个数为 <span class="arithmatex">\(n\)</span> ，运行时间为 <span class="arithmatex">\(O(n)\)</span> 。
+摊还时间：使用核算法，为每个位分配2的价值，其中1的价值用于从0更新为1、1的价值用于在未来从1更新回0，则从 <span class="arithmatex">\(0\)</span> 个元素插入到 <span class="arithmatex">\(n\)</span> 个元素的摊还时间为 <span class="arithmatex">\(2k = O(\lg n)\)</span> 。
+c.
+仍然从数值例子着手，从n=11=0b1011更新到n=10=0b1010时，需要更新1位即1个数组。
+如果待删除的元素在数组 <span class="arithmatex">\(A_0\)</span> 中，则在 <span class="arithmatex">\(A_0\)</span> 中直接删除该元素。
+如果待删除的元素在数组 <span class="arithmatex">\(A_k (k \ne 0)\)</span> 中，则将该元素删除后，从下标最小的满数组（记为 <span class="arithmatex">\(A_j\)</span> ）中取出任一元素插入到 <span class="arithmatex">\(A_k\)</span> 中并保证有序 （通过二分查找，<span class="arithmatex">\(O(\lg k)\)</span>）。则数组 <span class="arithmatex">\(A_k\)</span> 仍然为满，<span class="arithmatex">\(A_j\)</span> 距离满数组差1个元素、且没有比 <span class="arithmatex">\(A_j\)</span> 下标更小的满数组，满足 <span class="arithmatex">\(|A_j|=\sum_{0 \le i \le j-1}|A_i|\)</span>。再将 <span class="arithmatex">\(A_j\)</span> 中的元素依次取出并添加到 <span class="arithmatex">\(A_0, A_1, \dots, A_{j-1}\)</span> 中（此时自然有序，<span class="arithmatex">\(O(j)\)</span>），所有数组完成更新，实现DELETE操作。</p>
+<p><img alt="" src="../../migrated/post-images/20251226161452.png"/></p>
+<p>1.
+每个数组内进行检查的开销是 O(lg 2^i) = O(i) ，
+最坏情况需要检查所有 <span class="arithmatex">\(k=\lg n\)</span> 个数组，
+故总开销为 <span class="arithmatex">\(\sum_{i=0}^{k-1} O(i)=O(k^2)=O(\lg^2n)\)</span> 。
+2.
+元素个数为n。
+- 数组个数为lg n，
+- 对于数组i，大约 <span class="arithmatex">\(2^{i+1}\)</span> 次插入发生一次合并，则n次插入对该数组的合并发生频率是 <span class="arithmatex">\(n/{2^{i+1}}\)</span> ，每次合并开销是 <span class="arithmatex">\(2^{i+1}\)</span> ，故对数组i的开销是 <span class="arithmatex">\(O(n)\)</span> 。
+- 综上，聚合法求得的总开销是 <span class="arithmatex">\(O(n \lg n)\)</span> ，平摊代价是 <span class="arithmatex">\(O(\lg n)\)</span> 。</p>
+<p><img alt="" src="../../migrated/post-images/20251226161510.png"/>
+<img alt="" src="../../migrated/post-images/20251226161517.png"/>
+<img alt="" src="../../migrated/post-images/20251226161525.png"/></p>
+<h2 id="lec13">Lec13 线性规划</h2>
+<blockquote>
+<p>狠狠做题。</p>
+</blockquote>
+<h3 id="_27">读题建模</h3>
+<p><img alt="" src="../../migrated/post-images/20251226234849.png"/>
+<img alt="" src="../../migrated/post-images/20251226234856.png"/>
+<img alt="" src="../../migrated/post-images/20251226235255.png"/>
+<img alt="" src="../../migrated/post-images/20251226235304.png"/>
+<img alt="" src="../../migrated/post-images/20251226235318.png"/>
+<img alt="" src="../../migrated/post-images/20251226235445.png"/></p>
+<h3 id="_28"><del>对偶单纯形法</del></h3>
+<blockquote>
+<p>建议只做熟两阶段法，不然条件可能会混。</p>
+<p>步骤：
+- 看 <span class="arithmatex">\(C\)</span> 和 <span class="arithmatex">\(C_B\)</span>。
+- 看 <span class="arithmatex">\(b\)</span> ，确定换出变量。
+- 算 <span class="arithmatex">\(\lambda\)</span> ，确定换入变量。
+- 根据换入换出，变基，即把新基变量系数变成单位矩阵。</p>
+<p>换出变量是<strong>b最小的变量</strong>（是哪个变量？看哪个列只有一个系数为1、其他全0！），换入变量是 <strong><span class="arithmatex">\(\lambda_j / \alpha_j\)</span> 比值绝对值最小的变量</strong>，
+ <span class="arithmatex">\(\lambda\)</span> 是 <span class="arithmatex">\(c_i-C_B^T \cdot \alpha\)</span> 的值。
+ （其中 <span class="arithmatex">\(C_B\)</span> 和 <span class="arithmatex">\(\alpha\)</span> 是两个向量，而我们提到的所有其他符号都是常量。）</p>
+<p>停止换入换出的两条条件要同时满足：
+1. b不包含负值
+2. 基变量包含目标函数中尽可能多的变量</p>
+</blockquote>
+<h4 id="eg1">eg1</h4>
+<hr/>
+<p>eg1.
+<img alt="" src="../../migrated/post-images/20251201160519.png"/>
+<span class="arithmatex">\(C=(12,16,15,0,0)\)</span> 。</p>
+<hr/>
+<p>基变量： <span class="arithmatex">\(x_4\)</span> 和 <span class="arithmatex">\(x_5\)</span>（单位矩阵I所在的变量），此时的 <span class="arithmatex">\(C_B=(0,0)\)</span>
+1. 换出变量是 <span class="arithmatex">\(x_5\)</span> 。因为它的 <span class="arithmatex">\(b\)</span> 是-3更小一点。<strong>我们只计算第二行的比值。</strong>
+2. 算算，lambda 1 = 12-(-2, 2)bia ji(0, 0) =12，则lambda 1/a1 = -6；lambda 2 = 16-(-4, 0)bia ji(0, 0) = 16，则lambda 2/a2 = 超大；lambda 3 = 15 - (0, -5)bia ji(0, 0) = 15，则lambda 3/a3 = -3。那 <span class="arithmatex">\(\lambda_3\)</span> 很小了，换入 <span class="arithmatex">\(x_3\)</span>。
+进行一个矩阵初等变换。</p>
+<table>
+<thead>
+<tr>
+<th>x1</th>
+<th>x2</th>
+<th>x3</th>
+<th>x4</th>
+<th>x5</th>
+<th>b</th>
+<th>行对应基变量</th>
+<th><span class="arithmatex">\(C_B\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-2</td>
+<td>-4</td>
+<td></td>
+<td>1</td>
+<td></td>
+<td>-2</td>
+<td>x4</td>
+<td>0</td>
+</tr>
+<tr>
+<td><strong>-2</strong></td>
+<td></td>
+<td><strong>-5</strong></td>
+<td></td>
+<td><strong>1</strong></td>
+<td><strong>-3</strong></td>
+<td><strong>x5</strong></td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>特意记录“行对应基变量”，是为了预防一个易错点。
+选 <span class="arithmatex">\(b\)</span> 最小的变量，这里每行的 <span class="arithmatex">\(b\)</span> 对应的是哪个变量呢？
+pivot column。比如b=1对应x4（x4所在的列的主元1位于它这一行，列其余部分全0）。
+而b=3/2对应x1。
+而<span class="arithmatex">\(C_B\)</span>的顺序也是这样对应的。<span class="arithmatex">\(x_4\)</span>和<span class="arithmatex">\(x_5\)</span>对应的<span class="arithmatex">\(C_B=(0,0)\)</span>。</p>
+</blockquote>
+<p>换出x_5，换入x_3（<strong>第二行</strong>直接除以-5，然后拿pivot搞一下单位矩阵）变成</p>
+<table>
+<thead>
+<tr>
+<th>x1</th>
+<th>x2</th>
+<th>x3</th>
+<th>x4</th>
+<th>x5</th>
+<th>b</th>
+<th>行对应基变量</th>
+<th><span class="arithmatex">\(C_B\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>-2</strong></td>
+<td><strong>-4</strong></td>
+<td></td>
+<td><strong>1</strong></td>
+<td></td>
+<td><strong>-2</strong></td>
+<td><strong>x4</strong></td>
+<td><strong>0</strong></td>
+</tr>
+<tr>
+<td>2/5</td>
+<td></td>
+<td>1</td>
+<td></td>
+<td>-1/5</td>
+<td>3/5</td>
+<td>x3</td>
+<td>15</td>
+</tr>
+</tbody>
+</table>
+<p>先看<span class="arithmatex">\(b\)</span>再看比值。看<span class="arithmatex">\(b\)</span>发现我们要换出第一行的x4。
+<span class="arithmatex">\(\lambda_1=12-(-2,2/5)(0,15)=6, \lambda/\alpha_1=-3\)</span>
+<span class="arithmatex">\(\lambda_2=16-(-4,0)(0,15)=16,\lambda/\alpha_2=-4\)</span>
+<span class="arithmatex">\(\lambda_5/\alpha_5=(0-(0,-1/5)(0,15))/0=\infty\)</span></p>
+<p>换出x4，换入x1，变成</p>
+<p>（ <span class="arithmatex">\(C=(12,16,15,0,0)\)</span> ）</p>
+<table>
+<thead>
+<tr>
+<th>x1</th>
+<th>x2</th>
+<th>x3</th>
+<th>x4</th>
+<th>x5</th>
+<th>b</th>
+<th>行对应基变量</th>
+<th><span class="arithmatex">\(C_B\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>2</td>
+<td></td>
+<td>-1/2</td>
+<td></td>
+<td>1</td>
+<td>x1</td>
+<td>12</td>
+</tr>
+<tr>
+<td></td>
+<td>-4/5</td>
+<td>1</td>
+<td>1/5</td>
+<td>-1/5</td>
+<td>1/5</td>
+<td>x3</td>
+<td>15</td>
+</tr>
+</tbody>
+</table>
+<p>现在没有负值b了，停止。
+成功把两个我们新增的变量x4，x5给换出去了。
+则解为x1=1，x2=0，x3=1/5。min值为15。</p>
+<hr/>
+<p>eg1再练一遍。
+<img alt="" src="../../migrated/post-images/20251227123217.png"/>
+解：将其转化成min和&lt;=得到的=。</p>
+<div class="arithmatex">\[\min 12x_1+16x_2+15x_3\]</div>
+<div class="arithmatex">\[s.t.-2x_1-4x_2+x_4 = -2\]</div>
+<div class="arithmatex">\[-2x_1-5x_3+x_5 = -3\]</div>
+<div class="arithmatex">\[x_j \ge 0, 1 \le j \le 5\]</div>
+<p>一直有 <span class="arithmatex">\(C=(12,16,15,0,0)\)</span> 。</p>
+<hr/>
+<table>
+<thead>
+<tr>
+<th>x1</th>
+<th>x2</th>
+<th>x3</th>
+<th>x4</th>
+<th>x5</th>
+<th>b</th>
+<th>基变量</th>
+<th><span class="arithmatex">\(C_B\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-2</td>
+<td>-4</td>
+<td></td>
+<td>1</td>
+<td></td>
+<td>-2</td>
+<td>x4</td>
+<td>0</td>
+</tr>
+<tr>
+<td><strong>-2</strong></td>
+<td></td>
+<td><strong>-5</strong></td>
+<td></td>
+<td><strong>1</strong></td>
+<td><strong>-3</strong></td>
+<td><strong>x5</strong></td>
+<td><strong>0</strong></td>
+</tr>
+</tbody>
+</table>
+<p><span class="arithmatex">\(\lambda_1 / \alpha_1 = (12-(-2,-2)(0,0)) / (-2)=-6\)</span>
+<span class="arithmatex">\(\lambda_2 / \alpha_2 = (16-(-4,0)(0,0))/0=\infty\)</span>
+<span class="arithmatex">\(\lambda_3/\alpha_3=(15-(0,-5)(0,0))/(-5)=-3\)</span>
+故换出x5，换入x3。（b取数值最小，比值取绝对值最小！）</p>
+<hr/>
+<table>
+<thead>
+<tr>
+<th>x1</th>
+<th>x2</th>
+<th>x3</th>
+<th>x4</th>
+<th>x5</th>
+<th>b</th>
+<th>基变量</th>
+<th><span class="arithmatex">\(C_B\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>-2</strong></td>
+<td><strong>-4</strong></td>
+<td></td>
+<td><strong>1</strong></td>
+<td></td>
+<td><strong>-2</strong></td>
+<td><strong>x4</strong></td>
+<td><strong>0</strong></td>
+</tr>
+<tr>
+<td>2/5</td>
+<td></td>
+<td>1</td>
+<td></td>
+<td>-1/5</td>
+<td>3/5</td>
+<td>x3</td>
+<td>15</td>
+</tr>
+</tbody>
+</table>
+<p><span class="arithmatex">\(\lambda_1/\alpha_1=(12-(-2,2/5)(0,15))/(-2)=-3\)</span>
+<span class="arithmatex">\(\lambda_2/\alpha_2=(16-(-4,0)(0,15))/(-4)=-4\)</span>
+<span class="arithmatex">\(\lambda_5/\alpha_5=(0-(0,-1/5)(0,15))/(0)=\infty\)</span>
+故换出x4，换入x1。</p>
+<hr/>
+<table>
+<thead>
+<tr>
+<th>x1</th>
+<th>x2</th>
+<th>x3</th>
+<th>x4</th>
+<th>x5</th>
+<th>b</th>
+<th>基变量</th>
+<th><span class="arithmatex">\(C_B\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>2</td>
+<td></td>
+<td>-1/2</td>
+<td></td>
+<td>1</td>
+<td>x4</td>
+<td>12</td>
+</tr>
+<tr>
+<td></td>
+<td>-4/5</td>
+<td>1</td>
+<td>1/5</td>
+<td>-1/5</td>
+<td>1/5</td>
+<td>x3</td>
+<td>15</td>
+</tr>
+</tbody>
+</table>
+<p>b没有负值，所以换入换出停止。此时基变量为x1和x3。
+最终解为除了基变量之外的变量全取0，即x1=1，x2=0，x3=1/5。
+代入得原式min值为15。</p>
+<h4 id="eg2">eg2</h4>
+<p>再把两阶段法讲过的题都拿对偶做一遍，应该就熟了。
+<img alt="" src="../../migrated/post-images/20251227125228.png"/></p>
+<p>解：对偶单纯形法要全转化成min和&lt;=，然后全转化成min和=。
+原式化简一下即</p>
+<div class="arithmatex">\[\min -12x-15y\]</div>
+<div class="arithmatex">\[s.t.x+2y \le 480\]</div>
+<div class="arithmatex">\[x+y \le 300\]</div>
+<div class="arithmatex">\[x \le 200\]</div>
+<div class="arithmatex">\[x,y \ge 0\]</div>
+<p>化为对偶单纯形法，问题为</p>
+<div class="arithmatex">\[\min -12x - 15y\]</div>
+<div class="arithmatex">\[s.t.x_1+2x_2+x_3 = 480\]</div>
+<div class="arithmatex">\[x_1+x_2+x_4=300\]</div>
+<div class="arithmatex">\[x_1+x_5=200\]</div>
+<div class="arithmatex">\[x_j \ge 0, 1 \le j \le 5\]</div>
+<p><span class="arithmatex">\(C=(-12,-15,0,0,0)\)</span></p>
+<hr/>
+<p>第一轮</p>
+<table>
+<thead>
+<tr>
+<th>x1</th>
+<th>x2</th>
+<th>x3</th>
+<th>x4</th>
+<th>x5</th>
+<th>b</th>
+<th>基变量</th>
+<th><span class="arithmatex">\(C_B\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>2</td>
+<td>1</td>
+<td></td>
+<td></td>
+<td>480</td>
+<td>x3</td>
+<td>0</td>
+</tr>
+<tr>
+<td>1</td>
+<td>1</td>
+<td></td>
+<td>1</td>
+<td></td>
+<td>300</td>
+<td>x4</td>
+<td>0</td>
+</tr>
+<tr>
+<td><strong>1</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td><strong>1</strong></td>
+<td><strong>200</strong></td>
+<td><strong>x5</strong></td>
+<td><strong>0</strong></td>
+</tr>
+<tr>
+<td>虽然b没问题了，但是还没有把x1和x2换入基，所以需要继续。</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\lambda_1/\alpha_1=(-12-()())/(1)=\)</span></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\lambda_2/\alpha_2=(-15-()())/(0)=\infty\)</span></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>所以肯定换入x1了，换出x5。</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>****</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>第二轮</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>x1</th>
+<th>x2</th>
+<th>x3</th>
+<th>x4</th>
+<th>x5</th>
+<th>b</th>
+<th>基变量</th>
+<th><span class="arithmatex">\(C_B\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td>2</td>
+<td>1</td>
+<td></td>
+<td></td>
+<td>280</td>
+<td>x3</td>
+<td>0</td>
+</tr>
+<tr>
+<td></td>
+<td><strong>1</strong></td>
+<td></td>
+<td><strong>1</strong></td>
+<td></td>
+<td><strong>100</strong></td>
+<td><strong>x4</strong></td>
+<td><strong>0</strong></td>
+</tr>
+<tr>
+<td>1</td>
+<td></td>
+<td></td>
+<td></td>
+<td>1</td>
+<td>200</td>
+<td>x1</td>
+<td>-12</td>
+</tr>
+<tr>
+<td>虽然b没问题了，但是还没有把x2换入基，所以需要继续。</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>x5之前换出过，不要再换进来了。那能换进来的就只有x2。</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>然后一看b，发现换出的是x4。</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>****</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>x1</th>
+<th>x2</th>
+<th>x3</th>
+<th>x4</th>
+<th>x5</th>
+<th>b</th>
+<th>基变量</th>
+<th><span class="arithmatex">\(C_B\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td>1</td>
+<td></td>
+<td></td>
+<td>80</td>
+<td>x3</td>
+<td>0</td>
+</tr>
+<tr>
+<td></td>
+<td>1</td>
+<td></td>
+<td>1</td>
+<td></td>
+<td>100</td>
+<td>x2</td>
+<td>-15</td>
+</tr>
+<tr>
+<td>1</td>
+<td></td>
+<td></td>
+<td></td>
+<td>1</td>
+<td>200</td>
+<td>x1</td>
+<td>-12</td>
+</tr>
+<tr>
+<td>现在b全正了，而且把x1和x2都搞进来了。搞定。</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>最终解为 x1=200，x2=100，min值为-4100，取个反，原式max值为4100。</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>那么很大的问题来了
+这玩意解出的值只是一个最值
+却不一定是全局最值
+实际上全局最值是180，120的4140
+恭喜你浪费了很多时间去看对偶单纯形法，，</p>
+<h3 id="_29">两阶段法</h3>
+<blockquote>
+<p>分两阶段：
+第一阶段 设松弛变量和人工变量
+优化人工变量，人工变量是每个&gt;=和=式子需要添加的变量（&lt;=不添加）。
+要求优化结果是所有人工变量全取0。
+第二阶段 设松弛变量
+优化目标函数。</p>
+<p>第一/二阶段每一步做的事情：
+先利用 <span class="arithmatex">\(\lambda\)</span> 最小确定换入变量，后利用<span class="arithmatex">\(\theta=b/\alpha\)</span>正值最小确定换出变量。</p>
+<p>停止条件：
+（第一阶段） <span class="arithmatex">\(\lambda\)</span> 全部非负 且 人工变量全部换出 时停止。
+（第二阶段） <span class="arithmatex">\(\lambda\)</span> 全部非负 时停止。
+<strong>注意两个阶段都只能选择非负最小的 <span class="arithmatex">\(\theta\)</span> ，不能选择负值 <span class="arithmatex">\(\theta\)</span> 。</strong>
+两个阶段只有目标函数，即 <span class="arithmatex">\(C\)</span> 和 <span class="arithmatex">\(C_B\)</span> 不同，其余的 <span class="arithmatex">\(\alpha\)</span> 和 <span class="arithmatex">\(b\)</span> 全部共享。</p>
+</blockquote>
+<p><del>浪费了好多时间看对偶单纯形法，气死我了</del></p>
+<h4 id="eg1_1">eg1</h4>
+<hr/>
+<p>eg1
+<img alt="" src="../../migrated/post-images/20251227135409.png"/>
+转换成标准形
+min -12x1-15x2
+s.t. x1+2x2+x3=480
+x1+x2+x4=300
+x1+x5=200
+xi&gt;=0
+C=(-12, -15, 0, 0, 0)</p>
+<table>
+<thead>
+<tr>
+<th>x1</th>
+<th>x2</th>
+<th>x3</th>
+<th>x4</th>
+<th>x5</th>
+<th>b</th>
+<th>theta</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>2</strong></td>
+<td>1</td>
+<td></td>
+<td></td>
+<td>480</td>
+<td>240</td>
+<td>x3</td>
+</tr>
+<tr>
+<td>1</td>
+<td><strong>1</strong></td>
+<td></td>
+<td>1</td>
+<td></td>
+<td>300</td>
+<td>300</td>
+<td>x4</td>
+</tr>
+<tr>
+<td>1</td>
+<td></td>
+<td></td>
+<td></td>
+<td>1</td>
+<td>200</td>
+<td></td>
+<td>x5</td>
+</tr>
+<tr>
+<td>-12</td>
+<td><strong>-15</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>lambda</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><del>先lambda=c-a^TC_B最小（换入x2），然后theta=b/a绝对值最小（换出x4）</del>
+这里应该theta换出x3的，但反正最后解是对的，因为只要最后把x1和x2给换入就行，其余变量留下来谁几个不重要，，</p>
+<hr/>
+<table>
+<thead>
+<tr>
+<th>x1</th>
+<th>x2</th>
+<th>x3</th>
+<th>x4</th>
+<th>x5</th>
+<th>b</th>
+<th>theta</th>
+<th></th>
+<th><span class="arithmatex">\(C_B\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>-1</strong></td>
+<td></td>
+<td>1</td>
+<td>-2</td>
+<td></td>
+<td>-120</td>
+<td>120</td>
+<td>x3</td>
+<td>0</td>
+</tr>
+<tr>
+<td><strong>1</strong></td>
+<td>1</td>
+<td></td>
+<td>1</td>
+<td></td>
+<td>300</td>
+<td>300</td>
+<td>x2</td>
+<td>-15</td>
+</tr>
+<tr>
+<td><strong>1</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td>1</td>
+<td>200</td>
+<td>200</td>
+<td>x5</td>
+<td>0</td>
+</tr>
+<tr>
+<td><strong>3</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>lambda</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>虽然lambda都为正了，但是还有x1没有换入，所以要继续
+先lambda只有x1还没换入了，然后theta=b/a绝对值最小的是x3，所以x1换掉x3</p>
+<table>
+<thead>
+<tr>
+<th>x1</th>
+<th>x2</th>
+<th>x3</th>
+<th>x4</th>
+<th>x5</th>
+<th>b</th>
+<th>theta</th>
+<th></th>
+<th><span class="arithmatex">\(C_B\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td></td>
+<td>-1</td>
+<td>2</td>
+<td></td>
+<td>120</td>
+<td></td>
+<td>x1</td>
+<td>-12</td>
+</tr>
+<tr>
+<td></td>
+<td>1</td>
+<td>1</td>
+<td>-1</td>
+<td></td>
+<td>180</td>
+<td></td>
+<td>x2</td>
+<td>-15</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>1</td>
+<td>-2</td>
+<td>1</td>
+<td>80</td>
+<td></td>
+<td>x5</td>
+<td>0</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>lambda</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>容易验证，现在lambda都为非负，而且x1和x2都换入了基变量。结束。
+故最后的解是x1=120，x2=180，z=12*120+15*180=4140。</p>
+<h4 id="eg1_2">eg1再练一遍</h4>
+<p><img alt="" src="../../migrated/post-images/20251227135409.png"/></p>
+<p>解：转化成标准形
+min -12x1-15x2
+s.t.
+x1+2x2+x3=480
+x1+x2+x4=300
+x1+x5=200</p>
+<p>C=(-12,-15,0,0,0)</p>
+<blockquote>
+<p>先看lambda再看theta。</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>x1</th>
+<th>x2</th>
+<th>x3</th>
+<th>x4</th>
+<th>x5</th>
+<th>b</th>
+<th>基变量</th>
+<th><span class="arithmatex">\(C_B\)</span></th>
+<th><span class="arithmatex">\(\theta\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>2</strong></td>
+<td>1</td>
+<td></td>
+<td></td>
+<td>480</td>
+<td>x3</td>
+<td>0</td>
+<td><strong>240</strong></td>
+</tr>
+<tr>
+<td>1</td>
+<td><strong>1</strong></td>
+<td></td>
+<td>1</td>
+<td></td>
+<td>300</td>
+<td>x4</td>
+<td>0</td>
+<td>300</td>
+</tr>
+<tr>
+<td>1</td>
+<td></td>
+<td></td>
+<td></td>
+<td>1</td>
+<td>200</td>
+<td>x5</td>
+<td>0</td>
+<td></td>
+</tr>
+<tr>
+<td>-12</td>
+<td><strong>-15</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td><span class="arithmatex">\(\lambda\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>换出x3，换入x2。</p>
+<table>
+<thead>
+<tr>
+<th>x1</th>
+<th>x2</th>
+<th>x3</th>
+<th>x4</th>
+<th>x5</th>
+<th>b</th>
+<th>基变量</th>
+<th><span class="arithmatex">\(C_B\)</span></th>
+<th><span class="arithmatex">\(\theta\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>0.5</strong></td>
+<td>1</td>
+<td>0.5</td>
+<td></td>
+<td></td>
+<td>240</td>
+<td>x2</td>
+<td>-15</td>
+<td>480</td>
+</tr>
+<tr>
+<td><strong>0.5</strong></td>
+<td></td>
+<td>-0.5</td>
+<td>1</td>
+<td></td>
+<td>60</td>
+<td>x4</td>
+<td>0</td>
+<td><strong>120</strong></td>
+</tr>
+<tr>
+<td><strong>1</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td>1</td>
+<td>200</td>
+<td>x5</td>
+<td>0</td>
+<td>200</td>
+</tr>
+<tr>
+<td>-4.5</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td><span class="arithmatex">\(\lambda\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>换出x4，换入x1。</p>
+<table>
+<thead>
+<tr>
+<th>x1</th>
+<th>x2</th>
+<th>x3</th>
+<th>x4</th>
+<th>x5</th>
+<th>b</th>
+<th>基变量</th>
+<th><span class="arithmatex">\(C_B\)</span></th>
+<th><span class="arithmatex">\(\theta\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td>1</td>
+<td>1</td>
+<td>-1</td>
+<td></td>
+<td>180</td>
+<td>x2</td>
+<td>-15</td>
+<td></td>
+</tr>
+<tr>
+<td>1</td>
+<td></td>
+<td>-1</td>
+<td>2</td>
+<td></td>
+<td>120</td>
+<td>x1</td>
+<td>-12</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>1</td>
+<td>-2</td>
+<td>1</td>
+<td>80</td>
+<td>x5</td>
+<td>0</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td><span class="arithmatex">\(\lambda\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>容易验证此时lambda全部非负。（0, 0, 3, 9, 0)，则也不需要计算theta。
+则结果为x1=120，x2=180。最优值为4140。</p>
+<h4 id="eg2_1">eg2</h4>
+<p><img alt="" src="../../migrated/post-images/20251227144915.png"/></p>
+<p>解：
+min z = -3x1+x2+x3
+s.t. x1-2x2+x3+x4=11
+4x1-x2-2x3+x5+x6=-3
+-2x1+x3+x7=1</p>
+<p><strong>1. 先解辅助问题，C=(0, 0, 0, 0, 0, 1, 1)。</strong>
+<img alt="" src="../../migrated/post-images/20251227144927.png"/></p>
+<table>
+<thead>
+<tr>
+<th>x1</th>
+<th>x2</th>
+<th>x3</th>
+<th>x4</th>
+<th>x5</th>
+<th>x6</th>
+<th>x7</th>
+<th>b</th>
+<th>基变量</th>
+<th><span class="arithmatex">\(C_B\)</span></th>
+<th><span class="arithmatex">\(\theta\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>1</strong></td>
+<td>-2</td>
+<td>1</td>
+<td>1</td>
+<td></td>
+<td></td>
+<td></td>
+<td>11</td>
+<td>x4</td>
+<td>0</td>
+<td>11</td>
+</tr>
+<tr>
+<td><strong>4</strong></td>
+<td>-1</td>
+<td>-2</td>
+<td></td>
+<td>1</td>
+<td>1</td>
+<td></td>
+<td>-3</td>
+<td>x6</td>
+<td>1</td>
+<td>-3/4</td>
+</tr>
+<tr>
+<td><strong>-2</strong></td>
+<td></td>
+<td>1</td>
+<td></td>
+<td></td>
+<td></td>
+<td>1</td>
+<td>1</td>
+<td>x7</td>
+<td>1</td>
+<td>-1/2</td>
+</tr>
+<tr>
+<td><strong>-2</strong></td>
+<td>1</td>
+<td>1</td>
+<td></td>
+<td>1</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>用x1换x7</p>
+<table>
+<thead>
+<tr>
+<th>x1</th>
+<th>x2</th>
+<th>x3</th>
+<th>x4</th>
+<th>x5</th>
+<th>x6</th>
+<th>x7</th>
+<th>b</th>
+<th>基变量</th>
+<th><span class="arithmatex">\(C_B\)</span></th>
+<th><span class="arithmatex">\(\theta\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td>-2</td>
+<td>3/2</td>
+<td>1</td>
+<td></td>
+<td></td>
+<td>1/2</td>
+<td>23/2</td>
+<td>x4</td>
+<td>0</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>-1</td>
+<td></td>
+<td></td>
+<td><strong>1</strong></td>
+<td>1</td>
+<td>2</td>
+<td>-1</td>
+<td>x6</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td>1</td>
+<td></td>
+<td>-1/2</td>
+<td></td>
+<td></td>
+<td></td>
+<td>-1/2</td>
+<td>-1/2</td>
+<td>x1</td>
+<td>0</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>1</td>
+<td>0</td>
+<td></td>
+<td><strong>-1</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>用x5换x6</p>
+<table>
+<thead>
+<tr>
+<th>x1</th>
+<th>x2</th>
+<th>x3</th>
+<th>x4</th>
+<th>x5</th>
+<th>x6</th>
+<th>x7</th>
+<th>b</th>
+<th>基变量</th>
+<th><span class="arithmatex">\(C_B\)</span></th>
+<th><span class="arithmatex">\(\theta\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td>-2</td>
+<td>3/2</td>
+<td>1</td>
+<td></td>
+<td></td>
+<td>1/2</td>
+<td>23/2</td>
+<td>x4</td>
+<td>0</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>-1</td>
+<td></td>
+<td></td>
+<td>1</td>
+<td>1</td>
+<td>2</td>
+<td>-1</td>
+<td>x5</td>
+<td>0</td>
+<td></td>
+</tr>
+<tr>
+<td>1</td>
+<td></td>
+<td>-1/2</td>
+<td></td>
+<td></td>
+<td></td>
+<td>-1/2</td>
+<td>-1/2</td>
+<td>x1</td>
+<td>0</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>则可取 (-1/2, 0, 0, 23/2, -1, 0, 0) 为初始解。</p>
+<p><img alt="" src="../../migrated/post-images/20251227144949.png"/></p>
+<p><strong>2. 解原问题，C=(-3, 1, 1, 0, 0, 0, 0)。</strong></p>
+<table>
+<thead>
+<tr>
+<th>x1</th>
+<th>x2</th>
+<th>x3</th>
+<th>x4</th>
+<th>x5</th>
+<th>b</th>
+<th>基变量</th>
+<th><span class="arithmatex">\(C_B\)</span></th>
+<th><span class="arithmatex">\(\theta\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td>-2</td>
+<td>3/2</td>
+<td>1</td>
+<td></td>
+<td>23/2</td>
+<td>x4</td>
+<td>0</td>
+<td>23</td>
+</tr>
+<tr>
+<td></td>
+<td>-1</td>
+<td></td>
+<td></td>
+<td>1</td>
+<td>-1</td>
+<td>x5</td>
+<td>0</td>
+<td></td>
+</tr>
+<tr>
+<td>1</td>
+<td></td>
+<td>-1/2</td>
+<td></td>
+<td></td>
+<td>-1/2</td>
+<td>x1</td>
+<td>-3</td>
+<td>1</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>用x3换x4。</p>
+<table>
+<thead>
+<tr>
+<th>x1</th>
+<th>x2</th>
+<th>x3</th>
+<th>x4</th>
+<th>x5</th>
+<th>b</th>
+<th>基变量</th>
+<th><span class="arithmatex">\(C_B\)</span></th>
+<th><span class="arithmatex">\(\theta\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3</td>
+<td>-2</td>
+<td></td>
+<td>1</td>
+<td></td>
+<td>10</td>
+<td>x4</td>
+<td>0</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>-1</td>
+<td></td>
+<td></td>
+<td>1</td>
+<td>-1</td>
+<td>x5</td>
+<td>0</td>
+<td></td>
+</tr>
+<tr>
+<td>-2</td>
+<td></td>
+<td>1</td>
+<td></td>
+<td></td>
+<td>1</td>
+<td>x3</td>
+<td>1</td>
+<td></td>
+</tr>
+<tr>
+<td>-1</td>
+<td>1</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h4 id="eg3">eg3</h4>
+<p><img alt="" src="../../migrated/post-images/20251227145010.png"/></p>
+<h4 id="eg4">eg4</h4>
+<p><img alt="" src="../../migrated/post-images/20251227145029.png"/>
+首先添加人工变量说是</p>
+<p><span class="arithmatex">\(\min x_5+x_6+x_7\)</span>
+C=(0,0,0,0,1,1,1)，别的懒得写了</p>
+<table>
+<thead>
+<tr>
+<th>x1</th>
+<th>x2</th>
+<th>x3</th>
+<th>x4</th>
+<th>x5</th>
+<th>x6</th>
+<th>x7</th>
+<th>b</th>
+<th>基变量</th>
+<th><span class="arithmatex">\(C_B\)</span></th>
+<th>theta</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>6</td>
+<td>3</td>
+<td>-4</td>
+<td><strong>3</strong></td>
+<td>1</td>
+<td></td>
+<td></td>
+<td>12</td>
+<td>x5</td>
+<td>1</td>
+<td>4</td>
+</tr>
+<tr>
+<td></td>
+<td>-1</td>
+<td></td>
+<td><strong>3</strong></td>
+<td></td>
+<td>1</td>
+<td></td>
+<td>6</td>
+<td>x6</td>
+<td>1</td>
+<td>2</td>
+</tr>
+<tr>
+<td>-6</td>
+<td></td>
+<td>4</td>
+<td><strong>3</strong></td>
+<td></td>
+<td></td>
+<td>1</td>
+<td>0</td>
+<td>x7</td>
+<td>1</td>
+<td><strong>0</strong></td>
+</tr>
+<tr>
+<td>0</td>
+<td>-3</td>
+<td>0</td>
+<td><strong>-9</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>换出x7，换入x4
+（换过的不要再管了）</p>
+<table>
+<thead>
+<tr>
+<th>x1</th>
+<th>x2</th>
+<th>x3</th>
+<th>x4</th>
+<th>x5</th>
+<th>x6</th>
+<th>x7</th>
+<th>b</th>
+<th>基变量</th>
+<th><span class="arithmatex">\(C_B\)</span></th>
+<th>theta</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>12</strong></td>
+<td>3</td>
+<td>-8</td>
+<td></td>
+<td>1</td>
+<td></td>
+<td>-1</td>
+<td>12</td>
+<td>x5</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td><strong>6</strong></td>
+<td>-1</td>
+<td>-4</td>
+<td></td>
+<td></td>
+<td>1</td>
+<td>-1</td>
+<td>6</td>
+<td>x6</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td><strong>-2</strong></td>
+<td></td>
+<td>4/3</td>
+<td>1</td>
+<td></td>
+<td></td>
+<td>1/3</td>
+<td>0</td>
+<td>x4</td>
+<td>0</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>-18</strong></td>
+<td>-2</td>
+<td>12</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>换出x5，换入x1</p>
+<table>
+<thead>
+<tr>
+<th>x1</th>
+<th>x2</th>
+<th>x3</th>
+<th>x4</th>
+<th>x5</th>
+<th>x6</th>
+<th>x7</th>
+<th>b</th>
+<th>基变量</th>
+<th><span class="arithmatex">\(C_B\)</span></th>
+<th>theta</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>1/4</td>
+<td>-2/3</td>
+<td></td>
+<td>1/12</td>
+<td></td>
+<td>-1/12</td>
+<td>1</td>
+<td>x1</td>
+<td>0</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td><strong>-5/2</strong></td>
+<td></td>
+<td></td>
+<td>-1/2</td>
+<td>1</td>
+<td>-1/2</td>
+<td>0</td>
+<td>x6</td>
+<td>1</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>1</td>
+<td>1/6</td>
+<td></td>
+<td>1/6</td>
+<td>2</td>
+<td>x4</td>
+<td>0</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>5/2</td>
+<td>0</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>人工变量必须全部换出。能换入的有x2和x3，但是x3的比值无意义，所以x2换入，x6换出。</p>
+<table>
+<thead>
+<tr>
+<th>x1</th>
+<th>x2</th>
+<th>x3</th>
+<th>x4</th>
+<th>x5</th>
+<th>x6</th>
+<th>x7</th>
+<th>b</th>
+<th>基变量</th>
+<th><span class="arithmatex">\(C_B\)</span></th>
+<th>theta</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td></td>
+<td>-2/3</td>
+<td></td>
+<td>1/30</td>
+<td>1/10</td>
+<td>-2/15</td>
+<td>1</td>
+<td>x1</td>
+<td>0</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>1</td>
+<td></td>
+<td></td>
+<td>1/5</td>
+<td>-2/5</td>
+<td>1/5</td>
+<td>0</td>
+<td>x2</td>
+<td>0</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>1</td>
+<td>1/6</td>
+<td></td>
+<td>1/6</td>
+<td>2</td>
+<td>x4</td>
+<td>0</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>第一阶段结束。</p>
+<p><span class="arithmatex">\(\min x_1+x_2+x_3-x_4\)</span>
+C=(1,1,1,-1)</p>
+<table>
+<thead>
+<tr>
+<th>x1</th>
+<th>x2</th>
+<th>x3</th>
+<th>x4</th>
+<th>b</th>
+<th>基变量</th>
+<th><span class="arithmatex">\(C_B\)</span></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td></td>
+<td>-2/3</td>
+<td></td>
+<td>1</td>
+<td>x1</td>
+<td>1</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>1</td>
+<td></td>
+<td></td>
+<td>0</td>
+<td>x2</td>
+<td>1</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>1</td>
+<td>2</td>
+<td>x4</td>
+<td>-1</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>5/3</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><span class="arithmatex">\(\lambda\)</span> 全部非负，并且不是人工变量那个阶段，所以停止。
+取 <span class="arithmatex">\(x_1=1,x_2=0,x_3=0,x_4=2\)</span>
+此时 <span class="arithmatex">\(x_1+x_2+x_3-x_4=-1\)</span></p>
+<blockquote>
+<p>超级无敌总结！两阶段法！
+第一阶段： <span class="arithmatex">\(\lambda\)</span> 全部非负 且 人工变量全部换出 时停止。
+第二阶段： <span class="arithmatex">\(\lambda\)</span> 全部非负 时停止。
+两个阶段只有目标函数，即 <span class="arithmatex">\(C\)</span> 和 <span class="arithmatex">\(C_B\)</span> 不同，其余的 <span class="arithmatex">\(\alpha\)</span> 和 <span class="arithmatex">\(b\)</span> 全部共享。
+edit time: 2025-12-30 11:49:07</p>
+</blockquote>
+  </div>
+
+  
+  <section class="post-comments">
+    <h2 class="comments-title">评论</h2>
+    <script src="https://giscus.app/client.js"
+      data-repo="Meredith2328/pilog"
+      data-repo-id="R_kgDOTpY2UA"
+      data-category="Announcements"
+      data-category-id="DIC_kwDOTpY2UM4DCZMy"
+      data-mapping="pathname"
+      data-strict="0"
+      data-reactions-enabled="1"
+      data-emit-metadata="0"
+      data-input-position="top"
+      data-theme="light"
+      data-lang="zh-CN"
+      crossorigin="anonymous"
+      async></script>
+  </section>
+  
+</article>
+</main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span>© 2026 Meredith — built with pilog</span>
+      <span class="footer-sep">::</span>
+      <a href="../../../rss.xml">RSS</a>
+      <span class="footer-sep">::</span>
+      <span>powered by <a href="https://github.com/meredith2328/pilog" target="_blank" rel="noopener">pilog</a></span>
+    </div>
+  </footer>
+
+  
+  <div class="dino-widget" data-widget="dino">
+    <div class="dino-panel" hidden>
+      <div class="dino-bar">
+        <span class="dino-title">T-REX RUNNER</span>
+        <span class="dino-hint">点击游戏区域后按 空格</span>
+        <button class="dino-close" type="button" aria-label="关闭">×</button>
+      </div>
+      <iframe class="dino-frame" src="../../../dino/index.html" title="Chrome 断网小恐龙" loading="lazy"></iframe>
+    </div>
+    <button class="dino-toggle" type="button" aria-label="打开小恐龙游戏">
+      <img src="../../../img/dino-icon.png" alt="小恐龙" width="26" height="28">
+      <span>PLAY</span>
+    </button>
+  </div>
+  
+
+  <script src="../../../js/main.js" defer></script>
+  <script>
+    window.PILOG_ROOT = "../../../";
+    window.PILOG_DEFAULT_VIEW = "cards";
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+          onload="try{if(window.renderMathInElement){renderMathInElement(document.body,{delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});}}catch(e){}"></script>
+  <script src="../../../js/search.js" defer></script>
+  
+</body>
+</html>

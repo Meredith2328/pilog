@@ -2,7 +2,7 @@
 title: Markdown 速查表
 date: 2026-07-28
 tags: [pilog, markdown]
-highlight: true
+hidden: true
 ---
 
 # Markdown 速查表

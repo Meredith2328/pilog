@@ -14,9 +14,11 @@ from .utils import rel_output
 
 IMG_TOKEN = "__PILOG_IMG__:"
 LINK_TOKEN = "__PILOG_LINK__:"
+BLOCK_MATH_TOKEN = "PILOG-BLOCKMATH-"
 
 WIKI_IMAGE_RE = re.compile(r"!\[\[([^\]|]+?)(?:\|([^\]]*))?\]\]")
 WIKI_LINK_RE = re.compile(r"\[\[([^\]|]+?)(?:\|([^\]]*))?\]\]")
+CODE_TOKEN = "__PILOG_CODE__:"
 
 
 @dataclass
@@ -39,7 +41,11 @@ class Rendered:
 
 
 def _parse_wiki(text: str) -> str:
-    """Convert Obsidian [[...]] / ![[...]] into standard markdown tokens."""
+    """Convert Obsidian [[...]] / ![[...]] into standard markdown tokens.
+
+    Inline code spans and fenced code blocks are stashed first, so wiki
+    syntax shown as an example (e.g. ``![[a.png]]``) stays literal.
+    """
 
     def img(m: re.Match) -> str:
         name = m.group(1).strip()
@@ -55,9 +61,86 @@ def _parse_wiki(text: str) -> str:
         payload = quote(target)
         return f"[{label}]({LINK_TOKEN}{payload})"
 
-    text = WIKI_IMAGE_RE.sub(img, text)
-    text = WIKI_LINK_RE.sub(link, text)
-    return text
+    out: list = []
+    in_fence = False
+    fence = ""
+    for line in text.splitlines(keepends=True):
+        stripped = line.strip()
+        if not in_fence and stripped.startswith(("```", "~~~")):
+            in_fence = True
+            fence = stripped[:3]
+            out.append(line)
+            continue
+        if in_fence:
+            if stripped.startswith(fence):
+                in_fence = False
+            out.append(line)  # wiki syntax inside fenced code stays literal
+            continue
+        spans: list = []
+
+        def stash(m: re.Match) -> str:
+            spans.append(m.group(0))
+            return f"{CODE_TOKEN}{len(spans) - 1}"
+
+        line = re.sub(r"(`+)([^`\n]+?)\1", stash, line)
+        line = WIKI_IMAGE_RE.sub(img, line)
+        line = WIKI_LINK_RE.sub(link, line)
+        for i, code in enumerate(spans):
+            line = line.replace(f"{CODE_TOKEN}{i}", code)
+        out.append(line)
+    return "".join(out)
+
+
+def _extract_block_math(text: str) -> tuple[str, list]:
+    r"""Pull `$$...$$` blocks out of the source so they always render as
+    display math (KaTeX `\[...\]`), even when the pair is written inline
+    inside a paragraph instead of on its own lines."""
+    maths: list = []
+    out: list = []
+    in_code = False
+    fence = ""
+    pending: list | None = None
+    for line in text.splitlines(keepends=True):
+        stripped = line.strip()
+        if in_code:
+            if fence and stripped.startswith(fence):
+                in_code = False
+            out.append(line)
+            continue
+        if stripped.startswith(("```", "~~~")):
+            in_code = True
+            fence = stripped[:3]
+            out.append(line)
+            continue
+        if pending is not None:
+            end = line.find("$$")
+            if end >= 0:
+                pending.append(line[:end])
+                maths.append("".join(pending))
+                token = f"{BLOCK_MATH_TOKEN}{len(maths) - 1}"
+                out.append("\n\n" + token + "\n\n" + line[end + 2 :])
+                pending = None
+            else:
+                pending.append(line)
+            continue
+        while True:
+            idx = line.find("$$")
+            if idx < 0:
+                out.append(line)
+                break
+            rest = line[idx + 2 :]
+            end = rest.find("$$")
+            if end < 0:
+                pending = [rest]
+                out.append(line[:idx])
+                break
+            maths.append(rest[:end])
+            token = f"{BLOCK_MATH_TOKEN}{len(maths) - 1}"
+            out.append(line[:idx] + "\n\n" + token + "\n\n")
+            line = rest[end + 2 :]
+    if pending is not None:
+        out.append("".join(pending))
+    return "".join(out), maths
 
 
 def _md_instance() -> md_lib.Markdown:
@@ -224,6 +307,7 @@ def render_markdown(text: str, src_file: Path, page_url: str,
     refs: list = []
     image_sources: list = []
     text = _parse_wiki(text)
+    text, block_maths = _extract_block_math(text)
 
     body = _md_instance()
     html = body.reset().convert(text)
@@ -300,6 +384,27 @@ def render_markdown(text: str, src_file: Path, page_url: str,
         else:
             new_href = _rewrite_href(href, src_file, page_url, ctx, refs)
             a["href"] = new_href
+
+    # restore `$$...$$` blocks as display math (KaTeX `\[...\]`), regardless
+    # of whether they were written on their own lines
+    for i, content in enumerate(block_maths):
+        token = f"{BLOCK_MATH_TOKEN}{i}"
+        div = soup.new_tag("div")
+        div["class"] = "arithmatex"
+        div.string = "\\[" + content + "\\]"
+        p = soup.find("p", string=token)
+        if p is not None:
+            p.replace_with(div)
+            continue
+        node = soup.find(string=lambda s: s and token in s)
+        if node is None:
+            continue
+        head, _, tail = node.split(token)
+        node.replace_with(div)
+        if head:
+            div.insert_before(head)
+        if tail:
+            div.insert_after(tail)
 
     return Rendered(html=str(soup), refs=refs, image_sources=image_sources)
 

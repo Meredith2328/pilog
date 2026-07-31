@@ -365,6 +365,7 @@ def build_site(
                 "preview_html": post.preview_html,
                 "preview_plain": post.preview_plain,
                 "thumb_url": post.thumb_url or "",
+                "feature": post.feature_url or "",
             }
         )
     (out_root / "data" / "cards.json").write_text(
