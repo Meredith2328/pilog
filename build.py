@@ -256,8 +256,7 @@ def build_site(
         if thumb_src is None and post.image_sources:
             thumb_src = post.image_sources[0]
         if thumb_src is None:
-            placeholder = make_pixel_placeholder(thumbs_dir, post.rel)
-            post.thumb_url = "assets/.thumbs/" + placeholder.name
+            post.thumb_url = None
         else:
             original_rel = resolve_asset_out(thumb_src, ctx)
             thumb = make_thumbnail(thumb_src, thumbs_dir, width=420)

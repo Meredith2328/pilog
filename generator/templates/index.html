@@ -34,13 +34,15 @@
           {% endif %}
           <div class="card-tags">
             {% for tag in post.tags %}
-            <span class="tag-chip">#{{ tag }}</span>
+            <button class="tag-chip" type="button" data-tag="{{ tag }}">#{{ tag }}</button>
             {% endfor %}
           </div>
         </div>
+        {% if post.thumb_url %}
         <div class="card-thumb">
           <img src="{{ root }}{{ post.thumb_url }}" alt="" loading="lazy">
         </div>
+        {% endif %}
       </a>
     </article>
     {% endfor %}

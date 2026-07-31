@@ -77,12 +77,10 @@
   var cardGrid = document.getElementById("card-grid");
   if (filterBar && cardGrid) {
     var cards = Array.prototype.slice.call(cardGrid.querySelectorAll(".card"));
-    filterBar.addEventListener("click", function (e) {
-      var chip = e.target.closest(".filter-chip");
-      if (!chip) return;
-      var tag = chip.dataset.tag;
+
+    function applyFilter(tag) {
       filterBar.querySelectorAll(".filter-chip").forEach(function (c) {
-        c.classList.toggle("is-active", c === chip);
+        c.classList.toggle("is-active", c.dataset.tag === tag);
       });
       var empty = cardGrid.querySelector(".empty-cards");
       if (empty) empty.remove();
@@ -99,6 +97,21 @@
         div.textContent = "没有匹配「" + tag + "」的文章";
         cardGrid.appendChild(div);
       }
+    }
+
+    filterBar.addEventListener("click", function (e) {
+      var chip = e.target.closest(".filter-chip");
+      if (!chip) return;
+      applyFilter(chip.dataset.tag);
+    });
+
+    // clicking a tag shown on a card filters by that tag instead of navigating
+    cardGrid.addEventListener("click", function (e) {
+      var chip = e.target.closest(".tag-chip");
+      if (!chip) return;
+      e.preventDefault();
+      e.stopPropagation();
+      applyFilter(chip.dataset.tag);
     });
   }
 

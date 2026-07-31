@@ -42,21 +42,27 @@ a{color:var(--accent)}
 .pv-logo img{width:34px;height:34px;image-rendering:pixelated;border:2px solid var(--ink);padding:2px;background:var(--paper)}
 .pv-logo .pv-hint{position:absolute;left:0;top:110%;font-family:var(--mono);font-size:10px;color:var(--accent);background:var(--paper);border:1px solid var(--hairline);padding:1px 5px;display:none;white-space:nowrap;z-index:5}
 .pv-logo:hover .pv-hint{display:block}
+.pv-logo .logo-del{position:absolute;right:-10px;top:-10px;background:var(--ink);color:var(--paper);border:none;font-family:var(--mono);cursor:pointer;padding:0 5px;display:none}
+.pv-logo:hover .logo-del{display:block}
 .pv-title{font-family:var(--mono);font-weight:700;font-size:17px;letter-spacing:.08em}
 .pv-sub{font-family:var(--mono);font-size:10px;color:var(--mute);letter-spacing:.12em}
 .pv-nav{border-top:1px solid var(--hairline);border-bottom:1px solid var(--hairline);background:var(--panel);padding:4px 22px;display:flex;gap:2px;flex-wrap:wrap;align-items:center}
 .pv-nav-item{position:relative;font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--text);padding:6px 10px;border:1px dashed transparent}
 .pv-nav-item:hover{border-color:var(--accent);color:var(--ink);background:var(--paper)}
-.pv-nav-item .nav-ops{position:absolute;top:100%;left:0;display:none;background:var(--paper);border:2px solid var(--ink);box-shadow:3px 3px 0 var(--shadow);padding:4px;z-index:20;min-width:200px}
+.pv-nav-item .nav-ops{position:absolute;top:100%;left:0;display:none;background:var(--paper);border:2px solid var(--ink);box-shadow:3px 3px 0 var(--shadow);padding:6px;z-index:20;min-width:300px}
 .pv-nav-item:hover .nav-ops{display:block}
-.nav-edit{display:flex;gap:4px;flex-wrap:wrap;padding:4px;align-items:center;font-family:var(--mono);font-size:11px}
-.nav-edit input{font-family:var(--mono);font-size:11px;border:1px solid var(--hairline);padding:2px 5px;width:110px}
+.nav-edit{display:flex;gap:4px;flex-wrap:wrap;padding:3px 0;align-items:center;font-family:var(--mono);font-size:11px}
+.nav-edit label{color:var(--mute);min-width:52px}
+.nav-edit input{font-family:var(--mono);font-size:11px;border:1px solid var(--hairline);padding:2px 5px;width:120px}
 .nav-edit input.nav-href{width:180px}
+.nav-child{padding-left:14px;border-left:2px solid var(--hairline);margin-left:6px}
+.nav-hint{font-family:var(--mono);font-size:10px;color:var(--mute);padding:2px 0}
 .pv-nav-add{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent);background:none;border:1px dashed var(--accent);padding:4px 10px;cursor:pointer;margin-left:6px}
 .pv-tabs{display:flex;padding:12px 22px 0;gap:0}
-.pv-tab{font-family:var(--mono);font-size:12px;font-weight:700;border:2px solid var(--ink);border-right-width:1px;padding:5px 14px;color:var(--ink);background:var(--paper)}
-.pv-tab.off{color:var(--text);border-color:var(--hairline)}
-.pv-body{padding:18px 22px 30px}
+.pv-tab{appearance:none;font-family:var(--mono);font-size:12px;font-weight:700;border:2px solid var(--ink);border-right-width:1px;padding:5px 14px;color:var(--ink);background:var(--paper);cursor:pointer}
+.pv-tab.is-active{background:var(--ink);color:var(--paper)}
+.pv-pane{display:none;padding:18px 22px 30px}
+.pv-pane.is-active{display:block}
 .zone-label{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--mute);border-bottom:1px solid var(--hairline);padding-bottom:4px;margin:18px 0 10px;display:flex;align-items:center;gap:8px}
 .zone-label .zone-del{font-size:10px;color:var(--mute);border:1px solid var(--hairline);padding:0 4px;cursor:pointer}
 .pv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:18px}
@@ -78,36 +84,66 @@ a{color:var(--accent)}
 .pv-card .card-hints{position:absolute;bottom:0;left:0;right:0;font-family:var(--mono);font-size:9.5px;color:var(--mute);background:rgba(247,247,247,.9);border-top:1px solid var(--hairline);padding:2px 8px;display:none;justify-content:space-between}
 .pv-card:hover .card-hints{display:flex}
 .drop-ind{height:4px;background:var(--accent);margin:2px 0;display:none}
+.import-ph{position:relative;border:3px dashed var(--accent);background:rgba(232,240,254,.55);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;color:var(--accent);min-height:80px;grid-column:1/-1}
 .pv-footer{border-top:2px solid var(--ink);padding:14px 22px;font-family:var(--mono);font-size:11px;color:var(--mute);display:flex;gap:10px;flex-wrap:wrap}
 .ghost-card{position:fixed;z-index:200;pointer-events:none;opacity:.85;transform:rotate(1deg)}
 
+/* preview tree */
+.pv-tree-wrap{background:var(--paper);border:2px solid var(--ink);box-shadow:4px 4px 0 var(--shadow);padding:14px 18px;max-height:560px;overflow:auto}
+.pv-tree{list-style:none;margin:0;padding:0;font-family:var(--mono);font-size:13px}
+.pv-tree ul{list-style:none;margin:0;padding-left:22px;border-left:1px solid var(--hairline);margin-left:10px}
+.pv-tree .tr{display:flex;align-items:center;gap:6px;padding:4px 6px;cursor:pointer;border:1px solid transparent}
+.pv-tree .tr:hover{background:var(--panel);border-color:var(--hairline)}
+.pv-tree .tr.toggle{font-size:10px;width:16px}
+.pv-tree .folder > .tr{font-weight:700}
+.pv-tree .file.is-hl > .tr{outline:3px solid var(--hl);outline-offset:-3px;background:#fffbe8}
+.pv-tree .tr .date{margin-left:auto;font-size:10px;color:var(--mute)}
+.pv-tree .folder:not(.open) > ul{display:none}
+.pv-tree .folder:not(.open) > .tr .toggle{transform:rotate(-90deg)}
+.tree-drop{outline:3px solid var(--accent);outline-offset:-3px;background:#e8f0fe}
+
+/* preview graph */
+.pv-graph-box{position:relative;height:520px;background-color:var(--paper);background-image:radial-gradient(var(--hairline) 1.2px,transparent 1.2px);background-size:14px 14px;border:2px solid var(--ink);box-shadow:4px 4px 0 var(--shadow);overflow:hidden}
+.pv-graph-box svg{width:100%;height:100%;display:block;shape-rendering:crispEdges}
+.pv-graph-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);color:var(--mute)}
+.pv-graph-toolbar{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.pv-graph-stats{font-family:var(--mono);font-size:11px;color:var(--text);margin-right:auto}
+
 /* ---------- change drawer ---------- */
-.drawer{position:fixed;right:0;top:0;bottom:0;width:360px;background:var(--paper);border-left:2px solid var(--ink);box-shadow:-5px 0 0 var(--shadow);z-index:100;transform:translateX(105%);transition:transform .18s}
+.drawer-mask{position:fixed;inset:0;background:rgba(60,64,67,.3);z-index:99;display:none}
+.drawer-mask.open{display:block}
+.drawer{position:fixed;right:0;top:0;bottom:0;width:380px;background:var(--paper);border-left:2px solid var(--ink);box-shadow:-5px 0 0 var(--shadow);z-index:100;transform:translateX(105%);transition:transform .18s}
 .drawer.open{transform:none}
-.drawer h2{margin:0;padding:12px 14px;background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:13px;letter-spacing:.1em}
+.drawer h2{margin:0;padding:12px 14px;background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:13px;letter-spacing:.1em;display:flex;align-items:center}
+.drawer h2 .drawer-close{margin-left:auto;background:none;border:1px solid var(--paper);color:var(--paper);cursor:pointer;font-size:13px;padding:0 7px}
 .drawer .log{padding:10px 12px;overflow-y:auto;max-height:calc(100vh - 60px)}
 .log-item{border:1px solid var(--hairline);padding:8px 10px;margin-bottom:8px;font-family:var(--mono);font-size:11px}
 .log-item b{display:block;margin-bottom:4px}
 .log-item .f{color:var(--text)}
-.log-item .act-mod{color:var(--accent)}
-.log-item .act-new{color:#188038}
+.log-item .act-mod,.log-item .act-restored{color:var(--accent)}
+.log-item .act-imported,.log-item .act-new{color:#188038}
 .log-item .act-del{color:#c5221f}
 
 /* ---------- modal ---------- */
 .modal-mask{position:fixed;inset:0;background:rgba(60,64,67,.45);z-index:120;display:none;align-items:flex-start;justify-content:center;padding:40px 16px}
 .modal-mask.open{display:flex}
-.modal{background:var(--paper);border:2px solid var(--ink);box-shadow:8px 8px 0 rgba(0,0,0,.2);width:640px;max-width:100%;max-height:88vh;overflow-y:auto}
+.modal{background:var(--paper);border:2px solid var(--ink);box-shadow:8px 8px 0 rgba(0,0,0,.2);width:680px;max-width:100%;max-height:88vh;overflow-y:auto}
 .modal h3{margin:0;padding:10px 14px;background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:13px}
 .modal .body{padding:14px;display:flex;flex-direction:column;gap:10px}
 .field{display:flex;flex-direction:column;gap:4px;font-family:var(--mono);font-size:11.5px;color:var(--text)}
 .field input,.field textarea,.field select{font-family:var(--mono);font-size:12.5px;border:2px solid var(--hairline);background:var(--paper);padding:5px 8px;color:var(--ink)}
 .field input:focus,.field textarea:focus{border-color:var(--ink)}
-.checks{display:flex;gap:16px;font-family:var(--mono);font-size:12px}
+.checks{display:flex;gap:16px;font-family:var(--mono);font-size:12px;flex-wrap:wrap}
 .checks label{display:flex;gap:6px;align-items:center}
 .img-pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px;max-height:180px;overflow-y:auto}
 .img-pick img{width:100%;height:48px;object-fit:contain;border:2px solid var(--hairline);cursor:pointer;image-rendering:pixelated}
 .img-pick img:hover{border-color:var(--accent)}
 .modal .actions{display:flex;gap:8px;justify-content:flex-end;padding:0 14px 14px}
+.import-item{border:1px solid var(--hairline);padding:8px 10px}
+.import-item h4{margin:0 0 6px;font-family:var(--mono);font-size:12px}
+.import-item .ref-row{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;padding:2px 0;flex-wrap:wrap}
+.import-item .ref-row .st-missing{color:#c5221f}
+.import-item .ref-row .st-found{color:#188038}
 
 /* ---------- config tab ---------- */
 .cfg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;max-width:1100px}
@@ -120,23 +156,29 @@ a{color:var(--accent)}
 .cfg-row input[type=text]{flex:1;min-width:0;font-family:var(--mono);font-size:12px;border:1px solid var(--hairline);padding:3px 6px}
 .cfg-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
 
-/* ---------- images tab (workbench) ---------- */
-.img-layout{display:grid;grid-template-columns:200px 1fr 320px;gap:14px;align-items:start}
+/* ---------- files tab ---------- */
+.img-layout{display:grid;grid-template-columns:200px 1fr 340px;gap:14px;align-items:start}
 .panel{background:var(--paper);border:2px solid var(--ink);box-shadow:4px 4px 0 var(--shadow)}
 .panel h2{margin:0;font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;background:var(--ink);color:var(--paper);padding:6px 10px}
-.folders{padding:8px;max-height:60vh;overflow:auto}
+.folders{padding:8px;max-height:50vh;overflow:auto}
 .folder-item{padding:3px 8px;cursor:pointer;font-family:var(--mono);font-size:12px;border:1px solid transparent}
 .folder-item:hover{background:var(--panel)}
 .folder-item.is-active{background:var(--ink);color:var(--paper)}
 .dropzone{margin:10px;border:2px dashed var(--hairline);padding:18px;text-align:center;color:var(--mute);font-family:var(--mono);font-size:12px;cursor:pointer}
 .dropzone.dragover{border-color:var(--accent);color:var(--accent);background:#e8f0fe}
 .dropzone input{display:none}
-.grid{margin:0 10px 10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;max-height:46vh;overflow:auto}
+.grid{margin:0 10px 10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;max-height:34vh;overflow:auto}
 .thumb{border:2px solid var(--hairline);cursor:pointer;background:var(--panel);padding:3px;text-align:center}
 .thumb:hover{border-color:var(--ink)}
 .thumb.is-active{border-color:var(--ink);box-shadow:2px 2px 0 var(--shadow)}
 .thumb img{width:100%;height:56px;object-fit:contain;image-rendering:pixelated}
 .thumb .tname{font-family:var(--mono);font-size:9.5px;color:var(--text);word-break:break-all;display:block}
+.docs{margin:0 10px 12px;border-top:2px solid var(--hairline)}
+.docs h4{margin:6px 0;font-family:var(--mono);font-size:10.5px;color:var(--mute);letter-spacing:.12em}
+.doc-row{display:flex;gap:8px;align-items:center;font-family:var(--mono);font-size:12px;padding:4px 6px;border:1px solid transparent;cursor:pointer}
+.doc-row:hover{background:var(--panel);border-color:var(--hairline)}
+.doc-row .dpath{color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.doc-row .dopen{margin-left:auto;color:var(--accent);font-size:11px}
 .editor{padding:10px}
 .canvas-box{position:relative;height:220px;background:var(--panel);border:2px solid var(--hairline);overflow:hidden;margin-bottom:8px}
 #editor-canvas{display:block;width:100%;height:100%}
@@ -144,6 +186,12 @@ a{color:var(--accent)}
 .controls{display:flex;flex-direction:column;gap:8px}
 .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:var(--mono);font-size:11px;color:var(--text)}
 .row input[type=range]{flex:1}
+.tools{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tool-btn{appearance:none;font-family:var(--mono);font-size:11px;font-weight:700;border:2px solid var(--hairline);background:var(--paper);color:var(--text);padding:3px 9px;cursor:pointer}
+.tool-btn.is-active{border-color:var(--ink);background:var(--ink);color:var(--paper)}
+.swatches{display:flex;gap:4px;align-items:center}
+.swatch{width:18px;height:18px;border:2px solid var(--hairline);cursor:pointer}
+.swatch.is-active{border-color:var(--ink);outline:2px solid var(--ink);outline-offset:1px}
 .actions{display:flex;gap:6px;flex-wrap:wrap}
 .snippet{font-family:var(--mono);font-size:10.5px;background:var(--panel);border:1px solid var(--hairline);padding:5px 8px;word-break:break-all;display:flex;gap:6px;align-items:center}
 .snippet code{flex:1}
@@ -161,7 +209,7 @@ a{color:var(--accent)}
   <span class="local-badge">仅本机可见</span>
   <div class="tabs">
     <button class="tab is-active" data-tab="preview">预览编辑</button>
-    <button class="tab" data-tab="images">图片管理</button>
+    <button class="tab" data-tab="files">文件管理</button>
     <button class="tab" data-tab="config">配置</button>
   </div>
   <span class="spacer"></span>
@@ -176,13 +224,14 @@ a{color:var(--accent)}
 <div class="layout is-active" id="tab-preview">
   <div class="pv-stage" id="pv-stage">
     <div class="pv-banner" id="pv-banner" title="点击替换背景长图">
-      <span class="pv-hint">点击替换背景长图 · 拖入图片也可以</span>
+      <span class="pv-hint">点击或拖入图片替换背景长图</span>
       <button class="pv-del" id="banner-del" type="button" title="删除背景图">× 删除</button>
     </div>
     <div class="pv-header">
       <div class="pv-logo" id="pv-logo" title="点击更换头图">
         <img id="pv-logo-img" alt="logo">
-        <span class="pv-hint">点击更换头图（小恐龙）</span>
+        <span class="pv-hint">点击或拖入图片更换头图</span>
+        <button class="logo-del" id="logo-del" type="button" title="恢复默认小恐龙">×</button>
       </div>
       <div>
         <div class="pv-title" id="pv-title"></div>
@@ -192,45 +241,85 @@ a{color:var(--accent)}
     </div>
     <div class="pv-nav" id="pv-nav"></div>
     <div class="pv-tabs">
-      <span class="pv-tab">卡片</span><span class="pv-tab off">清单</span><span class="pv-tab off">图谱</span>
+      <button class="pv-tab is-active" data-pvview="cards" type="button">卡片视图</button>
+      <button class="pv-tab" data-pvview="tree" type="button">清单视图</button>
+      <button class="pv-tab" data-pvview="graph" type="button">图谱视图</button>
     </div>
-    <div class="pv-body">
+    <div class="pv-pane is-active" id="pv-pane-cards">
       <div class="zone-label" id="pin-zone-label" style="display:none">▣ 置顶区（拖入即置顶）<span class="zone-del" id="pin-clear" title="取消全部置顶">清空</span></div>
       <div class="pv-grid" id="pin-grid" style="margin-bottom:18px"></div>
-      <div class="zone-label">▤ 全部文章（拖拽排序 · 双击编辑）</div>
+      <div class="zone-label">▤ 全部文章（拖拽排序 · 双击编辑 · 可拖入 Markdown）</div>
       <div class="pv-grid" id="main-grid"></div>
+    </div>
+    <div class="pv-pane" id="pv-pane-tree">
+      <div class="pv-tree-wrap" id="pv-tree-wrap">
+        <ul class="pv-tree" id="pv-tree"></ul>
+      </div>
+      <p class="hint">双击文章行编辑；把 Markdown 或文件夹拖到某个目录上即可导入到该目录。</p>
+    </div>
+    <div class="pv-pane" id="pv-pane-graph">
+      <div class="pv-graph-toolbar">
+        <span class="pv-graph-stats" id="graph-stats"></span>
+        <button class="btn small" id="graph-expand-all" type="button">展开全部</button>
+        <button class="btn small" id="graph-collapse-all" type="button">折叠全部</button>
+        <button class="btn small is-on" id="graph-snake" type="button">贪吃蛇 开</button>
+        <button class="btn small" id="graph-fit" type="button">适应视图</button>
+      </div>
+      <div class="pv-graph-box" id="graph-wrap">
+        <svg id="graph-svg"></svg>
+        <div id="graph-tip" hidden></div>
+        <div class="pv-graph-loading" id="graph-loading">正在准备图谱…</div>
+      </div>
+      <script type="application/json" id="graph-data" data-root="/" data-collapse="25"></script>
+      <p class="hint">图谱数据来自最近一次构建；切换到本视图时会自动重新构建以反映最新内容。</p>
     </div>
     <div class="pv-footer" id="pv-footer"></div>
   </div>
   <p class="hint" style="margin:10px auto;max-width:1080px">
-    提示：点选头图/背景图可替换；悬停导航项可增删改；拖动卡片排序（跨入置顶区即置顶）；
-    双击卡片编辑标题/预览/标签/高亮/全文；把图片拖到卡片右侧可设为该文章的预览图。
-    所有修改立即写入本地文件，可撤销/重做。右侧“变更记录”显示每次修改影响的文件。
+    点选头图/背景图可替换；悬停导航项可增删改；拖动卡片排序（跨入置顶区即置顶）；
+    双击卡片编辑；把图片拖到卡片右侧设为预览图；把 Markdown 或文件夹拖到卡片区/清单目录可导入。
+    Ctrl+S 保存当前编辑。所有修改写入本地文件，可撤销/重做。
   </p>
 </div>
 
-<!-- ============ images tab ============ -->
-<div class="layout" id="tab-images">
+<!-- ============ files tab ============ -->
+<div class="layout" id="tab-files">
   <div class="img-layout">
     <div class="panel">
       <h2>目录</h2>
       <div class="folders" id="folder-tree"></div>
     </div>
     <div class="panel">
-      <h2 id="current-dir">图片</h2>
+      <h2 id="current-dir">文件</h2>
       <div class="dropzone" id="dropzone">
-        <strong>把图片拖到这里</strong>，或点击选择文件<br>
-        <label class="hint" style="cursor:pointer"><input type="checkbox" id="replace-check"> 覆盖同名文件</label>
-        <input type="file" id="file-input" multiple accept="image/*">
+        <strong>把图片 / Markdown / 文件夹拖到这里</strong>（多选、多层目录均可）<br>
+        <span class="hint">Markdown 会保留目录结构导入；引用的图片资源会一并解析。</span>
+        <input type="file" id="file-input" multiple accept="image/*,.md,text/markdown">
       </div>
       <div class="grid" id="image-grid"></div>
+      <div class="docs" id="docs-list"></div>
     </div>
     <div class="panel">
-      <h2>编辑器</h2>
+      <h2>图片编辑器</h2>
       <div class="editor" id="editor" hidden>
         <div class="canvas-box" id="canvas-box">
           <canvas id="editor-canvas"></canvas>
           <div class="crop-rect" id="crop-rect"></div>
+        </div>
+        <div class="tools">
+          <button class="tool-btn is-active" data-tool="crop" type="button">裁剪</button>
+          <button class="tool-btn" data-tool="text" type="button">✎ 文字</button>
+          <button class="tool-btn" data-tool="brush" type="button">🖌 画笔</button>
+          <span class="swatches" id="swatches"></span>
+          <select id="anno-size" title="字号/画笔粗细">
+            <option value="8">8</option><option value="14" selected>14</option>
+            <option value="22">22</option><option value="32">32</option>
+          </select>
+          <select id="anno-font" title="字体">
+            <option>Consolas</option><option>SimHei</option><option>KaiTi</option>
+            <option>Microsoft YaHei</option><option>serif</option>
+          </select>
+          <button class="tool-btn" id="anno-clear" type="button">清除批注</button>
         </div>
         <div class="controls">
           <div class="row"><label>缩放</label><input type="range" id="zoom" min="20" max="400" value="100"><span id="zoom-label">100%</span></div>
@@ -248,7 +337,7 @@ a{color:var(--accent)}
           </div>
           <div class="snippet"><code id="snippet-wiki"></code><button class="btn small" data-copy="snippet-wiki">复制</button></div>
           <div class="snippet"><code id="snippet-md"></code><button class="btn small" data-copy="snippet-md">复制</button></div>
-          <p class="hint">拖动蓝色选框裁剪；保存后可在卡片预览图中使用。</p>
+          <p class="hint">裁剪拖拽选框；文字/画笔工具会叠加在导出结果上（注意：旋转会先合并批注）。</p>
         </div>
       </div>
       <div class="empty" id="editor-empty">← 选择一张图片开始编辑</div>
@@ -260,15 +349,17 @@ a{color:var(--accent)}
 <div class="layout" id="tab-config">
   <div class="cfg-grid" id="cfg-grid"></div>
   <div style="margin-top:16px"><button class="btn" id="cfg-save">保存配置</button>
-    <span class="hint"> 保存会写入 config.json，可撤销</span></div>
+    <span class="hint"> 保存会写入 config.json，可撤销（Ctrl+S）</span></div>
 </div>
 
 <input type="file" id="replace-input" accept="image/*" hidden>
 <div class="toast" id="toast"></div>
 
 <!-- change drawer -->
+<div class="drawer-mask" id="drawer-mask"></div>
 <div class="drawer" id="drawer">
-  <h2>变更记录 <span id="log-count" style="float:right">0</span></h2>
+  <h2>变更记录 <span id="log-count" style="float:right;margin-left:auto"></span>
+    <button class="drawer-close" id="drawer-close" type="button">×</button></h2>
   <div class="log" id="log-list"></div>
 </div>
 
@@ -295,7 +386,7 @@ a{color:var(--accent)}
         <div class="img-pick" id="m-img-pick"></div>
       </div>
       <div class="field">
-        <label>全文（Markdown，双击正文也可进入）</label>
+        <label>全文（Markdown）</label>
         <textarea id="m-source" rows="12" style="font-family:var(--mono);font-size:12px"></textarea>
       </div>
     </div>
@@ -306,11 +397,38 @@ a{color:var(--accent)}
   </div>
 </div>
 
+<!-- markdown import modal -->
+<div class="modal-mask" id="import-modal">
+  <div class="modal">
+    <h3 id="import-title">导入 Markdown</h3>
+    <div class="body" id="import-body"></div>
+    <div class="actions">
+      <button class="btn ghost" id="import-cancel">取消</button>
+      <button class="btn" id="import-confirm">确认导入</button>
+    </div>
+  </div>
+</div>
+
+<!-- text annotation modal -->
+<div class="modal-mask" id="text-modal">
+  <div class="modal" style="width:420px">
+    <h3>添加文字</h3>
+    <div class="body">
+      <div class="field"><label>文字内容</label><input type="text" id="t-text" placeholder="写点什么…"></div>
+    </div>
+    <div class="actions">
+      <button class="btn ghost" id="t-cancel">取消</button>
+      <button class="btn" id="t-ok">确定</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const $ = s => document.querySelector(s);
 let state = { config: {}, nav: [], posts: [], brand: {}, log: [] };
 let editingRel = null;
 let origSource = "";
+let pendingImport = null;   // {mds, images, resolve}
 
 function toast(msg, files) {
   const t = $("#toast");
@@ -321,7 +439,7 @@ function toast(msg, files) {
   t.innerHTML = msg + extra;
   t.classList.add("show");
   clearTimeout(t._timer);
-  t._timer = setTimeout(() => t.classList.remove("show"), 3200);
+  t._timer = setTimeout(() => t.classList.remove("show"), 3400);
 }
 
 async function api(url, opts) {
@@ -338,7 +456,7 @@ function esc(s) {
 function logChange(label, files) {
   if (files && files.length) {
     state.log.unshift({ t: new Date().toLocaleTimeString(), label, files });
-    state.log = state.log.slice(0, 60);
+    state.log = state.log.slice(0, 80);
     renderLog();
   }
 }
@@ -359,10 +477,7 @@ function renderLog() {
 /* ---------- refresh ---------- */
 async function refresh() {
   const [cfg, nav, posts, brand] = await Promise.all([
-    api("/api/config"),
-    api("/api/nav"),
-    api("/api/posts"),
-    api("/api/brand"),
+    api("/api/config"), api("/api/nav"), api("/api/posts"), api("/api/brand"),
   ]);
   state.config = cfg.config;
   state.nav = nav.items;
@@ -373,8 +488,8 @@ async function refresh() {
 }
 
 /* ---------- preview ---------- */
-const LOGO_URL = p => "/api/file?path=blogs/assets/logo.png&t=" + Date.now();
-const HEADER_URL = p => "/api/file?path=blogs/assets/header.png&t=" + Date.now();
+const LOGO_URL = () => "/api/file?path=assets/logo.png&t=" + Date.now();
+const HEADER_URL = () => "/api/file?path=assets/header.png&t=" + Date.now();
 
 function renderPreview() {
   const cfg = state.config.site || {};
@@ -385,16 +500,14 @@ function renderPreview() {
   banner.style.backgroundColor = state.brand.header ? "transparent" : "var(--panel)";
   $("#banner-del").style.display = state.brand.header ? "block" : "none";
   $("#pv-logo-img").src = state.brand.logo ? LOGO_URL() : "/img/dino-icon.png";
-
-  // socials
   const soc = state.config.socials || {};
   $("#pv-socials").innerHTML = Object.entries(soc)
     .filter(([k, v]) => v && k !== "rss")
-    .map(([k, v]) => '<span class="hint" style="border:1px solid var(--hairline);padding:2px 7px">' + esc(k) + "</span>")
+    .map(([k]) => '<span class="hint" style="border:1px solid var(--hairline);padding:2px 7px">' + esc(k) + "</span>")
     .join(" ");
-
   renderNav();
   renderCards();
+  renderTree();
   $("#pv-footer").textContent = cfg.footer_text || "© " + (cfg.author || "");
 }
 
@@ -404,47 +517,58 @@ function renderNav() {
   state.nav.forEach((item, i) => {
     const wrap = document.createElement("div");
     wrap.className = "pv-nav-item";
+    const childrenHtml = (item.children || []).map((c, ci) =>
+      '<div class="nav-child"><div class="nav-edit">' +
+      '<label>子项文字</label><input class="nav-label" value="' + esc(c.label) + '">' +
+      '<label>链接</label><input class="nav-href" value="' + esc(c.href) + '">' +
+      '<button class="btn small" data-act="child-save" data-ci="' + ci + '">保存子项</button>' +
+      '<button class="btn small" data-act="child-del" data-ci="' + ci + '">删除子项</button>' +
+      "</div></div>"
+    ).join("");
     wrap.innerHTML =
-      '<span>' + esc(item.label) + "</span>" +
+      "<span>" + esc(item.label) + "</span>" +
       '<span class="nav-ops">' +
-        '<span class="nav-edit"><input class="nav-label" value="' + esc(item.label) + '">' +
-        '<input class="nav-href" value="' + esc(item.href) + '">' +
-        '<button class="btn small" data-act="save">保存</button>' +
-        '<button class="btn small ghost" data-act="cancel">取消</button></span>' +
-        '<span style="display:flex;gap:4px;padding:2px 4px">' +
-        '<button class="btn small ghost" data-act="edit">编辑</button>' +
-        '<button class="btn small ghost" data-act="child">＋子项</button>' +
-        '<button class="btn small" data-act="del">删除</button></span>' +
-        (item.children && item.children.length
-          ? item.children.map(c =>
-              '<div class="nav-edit" style="display:flex">→ <input class="nav-label" value="' + esc(c.label) + '">' +
-              '<input class="nav-href" value="' + esc(c.href) + '"></div>'
-            ).join("")
-          : "") +
+      '<div class="nav-hint">以下保存/取消仅针对导航项「' + esc(item.label) + '」</div>' +
+      '<div class="nav-edit"><label>文字</label><input class="nav-label" value="' + esc(item.label) + '">' +
+      '<label>链接</label><input class="nav-href" value="' + esc(item.href) + '"></div>' +
+      '<div style="display:flex;gap:6px;padding:4px 0">' +
+      '<button class="btn small" data-act="save">保存此导航项</button>' +
+      '<button class="btn small ghost" data-act="cancel">取消</button>' +
+      '<button class="btn small ghost" data-act="child">＋添加子项</button>' +
+      '<button class="btn small" data-act="del">删除此项</button></div>' +
+      childrenHtml +
       "</span>";
     wrap.addEventListener("click", e => {
       const act = e.target.dataset.act;
       if (!act) return;
       e.stopPropagation();
-      if (act === "edit") {
-        const ops = wrap.querySelector(".nav-ops");
-        ops.querySelector('[data-act="edit"]').style.display = "none";
-        ops.querySelector('[data-act="save"]').style.display = "inline-block";
-        ops.querySelector('[data-act="cancel"]').style.display = "inline-block";
-        const edit = ops.querySelector(".nav-edit");
-        edit.style.display = "flex";
-      } else if (act === "save") {
-        item.label = wrap.querySelector(".nav-label").value.trim() || item.label;
-        item.href = wrap.querySelector(".nav-href").value.trim() || "/";
+      const ops = wrap.querySelector(".nav-ops");
+      if (act === "save") {
+        item.label = ops.querySelector(".nav-label").value.trim() || item.label;
+        item.href = ops.querySelector(".nav-href").value.trim() || "/";
         saveNav();
       } else if (act === "cancel") {
         renderNav();
       } else if (act === "del") {
+        if (!confirm("删除导航项「" + item.label + "」？")) return;
         state.nav.splice(i, 1);
         saveNav();
       } else if (act === "child") {
         item.children = item.children || [];
         item.children.push({ label: "子项", href: "/" });
+        saveNav();
+      } else if (act === "child-save") {
+        const ci = Number(e.target.dataset.ci);
+        const child = item.children[ci];
+        const row = e.target.closest(".nav-child");
+        child.label = row.querySelector(".nav-label").value.trim() || child.label;
+        child.href = row.querySelector(".nav-href").value.trim() || "/";
+        saveNav();
+      } else if (act === "child-del") {
+        const ci = Number(e.target.dataset.ci);
+        const child = item.children[ci];
+        if (!confirm("删除子项「" + child.label + "」？")) return;
+        item.children.splice(ci, 1);
         saveNav();
       }
     });
@@ -492,10 +616,9 @@ function cardHtml(p, pin) {
       '<p class="card-pre">' + esc(p.preview || "") + "</p>" +
       '<div class="card-tags">' + (p.tags || []).map(t => "#" + esc(t)).join(" ") + "</div>" +
     "</div>" +
-    '<div class="card-img">' +
-      (img ? '<img src="' + img + '" alt="">' : '<span class="noimg">无预览图</span>') +
-      '<span class="drop-hint">拖入图片设为预览图</span>' +
-    "</div>" +
+    (img
+      ? '<div class="card-img"><img src="' + img + '" alt=""><span class="drop-hint">拖入图片设为预览图</span></div>'
+      : "") +
     '<div class="card-hints"><span>拖拽排序 · 跨入置顶区即置顶</span><span>双击编辑</span></div>'
   );
 }
@@ -512,18 +635,74 @@ function renderGrid(box, posts, pin) {
   });
 }
 
-/* ---------- drag to reorder ---------- */
+/* ---------- preview tree ---------- */
+function renderTree() {
+  const root = { name: "root", path: "", children: [] };
+  const dirs = { "": root };
+  state.posts.forEach(p => {
+    const parts = p.rel.split("/");
+    let cur = root, acc = "";
+    parts.slice(0, -1).forEach(part => {
+      acc = acc ? acc + "/" + part : part;
+      if (!dirs[acc]) {
+        const d = { name: part, path: acc, children: [] };
+        dirs[acc] = d;
+        cur.children.push(d);
+      }
+      cur = dirs[acc];
+    });
+    cur.children.push({ name: p.title, rel: p.rel, post: p, isFile: true });
+  });
+  const box = $("#pv-tree");
+  box.innerHTML = "";
+  function renderNode(node) {
+    const li = document.createElement("li");
+    if (node.isFile) {
+      li.className = "file" + (node.post.highlight ? " is-hl" : "");
+      li.innerHTML = '<div class="tr"><span class="toggle"></span><span>▤</span>' +
+        '<span class="name">' + esc(node.name) + "</span>" +
+        '<span class="date">' + esc(node.post.date) + "</span></div>";
+      li.dataset.rel = node.rel;
+      li.addEventListener("dblclick", () => openEditor(node.rel));
+      li.addEventListener("dragover", e => e.preventDefault());
+      li.addEventListener("drop", e => {
+        e.preventDefault();
+        e.stopPropagation();
+        importDropped(e.dataTransfer, node.post.folder);
+      });
+      return li;
+    }
+    li.className = "folder open";
+    li.innerHTML = '<div class="tr"><span class="toggle">▼</span><span>▣</span>' +
+      '<span class="name">' + esc(node.name) + "</span></div>";
+    const ul = document.createElement("ul");
+    node.children.forEach(c => ul.appendChild(renderNode(c)));
+    li.appendChild(ul);
+    li.querySelector(".tr").addEventListener("click", () => li.classList.toggle("open"));
+    li.querySelector(".tr").addEventListener("dragover", e => {
+      e.preventDefault();
+      li.classList.add("tree-drop");
+    });
+    li.querySelector(".tr").addEventListener("dragleave", () => li.classList.remove("tree-drop"));
+    li.querySelector(".tr").addEventListener("drop", e => {
+      e.preventDefault();
+      e.stopPropagation();
+      li.classList.remove("tree-drop");
+      importDropped(e.dataTransfer, node.path);
+    });
+    return li;
+  }
+  root.children.forEach(c => box.appendChild(renderNode(c)));
+}
+
+/* ---------- drag to reorder (cards) ---------- */
 let dstate = null;
 
 function onCardPointerDown(e) {
   const card = e.target.closest(".pv-card");
   if (!card) return;
   if (e.target.closest("button, a, input")) return;
-  dstate = {
-    rel: card.dataset.rel,
-    startX: e.clientX, startY: e.clientY,
-    moved: false, ghost: null, card
-  };
+  dstate = { rel: card.dataset.rel, startX: e.clientX, startY: e.clientY, moved: false, ghost: null, card };
   e.preventDefault();
 }
 
@@ -603,11 +782,21 @@ async function onPointerUp(e) {
         const posts = await api("/api/posts");
         state.posts = posts.posts;
         renderCards();
+        renderTree();
       } catch (err) { toast(err.message); }
     }
   }
   dstate = null;
 }
+
+document.addEventListener("pointerdown", onCardPointerDown);
+document.addEventListener("pointermove", onPointerMove);
+document.addEventListener("pointerup", onPointerUp);
+
+document.addEventListener("dblclick", e => {
+  const card = e.target.closest(".pv-card");
+  if (card) openEditor(card.dataset.rel);
+});
 
 /* ---------- card editing / image drop ---------- */
 async function openEditor(rel) {
@@ -620,7 +809,6 @@ async function openEditor(rel) {
   $("#m-pin").checked = p.pin;
   $("#m-highlight").checked = p.highlight;
   $("#m-image").value = p.image || "";
-  $("#m-source").value = "";
   const src = await api("/api/post/source?rel=" + encodeURIComponent(rel));
   $("#m-source").value = src.source;
   origSource = src.source;
@@ -673,6 +861,7 @@ async function saveEditor() {
   const posts = await api("/api/posts");
   state.posts = posts.posts;
   renderCards();
+  renderTree();
 }
 
 async function uploadPostImage(file) {
@@ -690,15 +879,6 @@ async function uploadPostImage(file) {
   $("#m-image").value = up.path;
   toast("预览图已设置", d.files);
 }
-
-document.addEventListener("pointerdown", onCardPointerDown);
-document.addEventListener("pointermove", onPointerMove);
-document.addEventListener("pointerup", onPointerUp);
-
-document.addEventListener("dblclick", e => {
-  const card = e.target.closest(".pv-card");
-  if (card) openEditor(card.dataset.rel);
-});
 
 document.addEventListener("dragover", e => {
   const card = e.target.closest(".pv-card");
@@ -724,20 +904,249 @@ document.addEventListener("drop", async e => {
   }
   if (e.target.closest("#pv-logo") || e.target.closest("#pv-banner")) {
     const file = e.dataTransfer.files[0];
-    if (!file) return;
+    if (!file || !file.type.startsWith("image/")) return;
     const kind = e.target.closest("#pv-logo") ? "logo" : "header";
     try {
-      const d = await api("/api/brand", {
-        method: "POST",
-        headers: { "X-Kind": kind },
-        body: file,
-      });
+      const d = await api("/api/brand", { method: "POST", headers: { "X-Kind": kind }, body: file });
       logChange(kind === "logo" ? "更换头图" : "更换背景图", d.files);
       toast((kind === "logo" ? "头图" : "背景图") + "已替换", d.files);
       await refreshBrand();
     } catch (err) { toast(err.message); }
   }
 });
+
+/* ---------- markdown drop into cards with placeholder ---------- */
+let mdDrop = null;
+document.addEventListener("dragenter", e => {
+  if (e.dataTransfer && Array.from(e.dataTransfer.types || []).includes("Files")) {
+    if (e.target.closest("#main-grid") || e.target.closest("#pin-grid")) {
+      mdDrop = { x: e.clientX, y: e.clientY };
+      showImportPlaceholder(e.clientX, e.clientY);
+    }
+  }
+});
+document.addEventListener("dragover", e => {
+  if (mdDrop) {
+    mdDrop.x = e.clientX;
+    mdDrop.y = e.clientY;
+    showImportPlaceholder(e.clientX, e.clientY);
+  }
+});
+document.addEventListener("drop", async e => {
+  if (!mdDrop) return;
+  const grid = e.target.closest("#main-grid") || e.target.closest("#pin-grid");
+  if (grid) {
+    e.preventDefault();
+    e.stopPropagation();
+    const info = dropZoneInfo(mdDrop.x, mdDrop.y) || { pin: grid.id === "pin-grid", index: 999, box: grid };
+    removeImportPlaceholder();
+    await importDropped(e.dataTransfer, "", info);
+    mdDrop = null;
+  }
+});
+function showImportPlaceholder(x, y) {
+  removeImportPlaceholder();
+  const info = dropZoneInfo(x, y);
+  if (!info) return;
+  const ph = document.createElement("div");
+  ph.className = "import-ph";
+  ph.textContent = "松开导入 Markdown";
+  if (info.index >= info.cards.length) info.box.appendChild(ph);
+  else info.box.insertBefore(ph, info.cards[info.index]);
+}
+function removeImportPlaceholder() {
+  document.querySelectorAll(".import-ph").forEach(el => el.remove());
+  document.querySelectorAll(".drop-ind").forEach(el => el.remove());
+}
+
+/* ---------- markdown import (shared) ---------- */
+async function collectDropped(dt) {
+  const items = dt.items ? [...dt.items] : [];
+  const out = [];
+  async function walk(entry, prefix) {
+    if (entry.isFile) {
+      const file = await new Promise((res, rej) => entry.file(res, rej));
+      out.push({ rel: (prefix ? prefix + "/" : "") + file.name, file });
+    } else if (entry.isDirectory) {
+      const reader = entry.createReader();
+      let batch;
+      const all = [];
+      do {
+        batch = await new Promise((res, rej) => reader.readEntries(res, rej));
+        all.push(...batch);
+      } while (batch.length);
+      for (const e of all) await walk(e, prefix ? prefix + "/" + entry.name : entry.name);
+    }
+  }
+  for (const item of items) {
+    const entry = item.webkitGetAsEntry ? item.webkitGetAsEntry() : null;
+    if (entry) await walk(entry, "");
+    else if (item.kind === "file") {
+      const f = item.getAsFile();
+      if (f) out.push({ rel: f.name, file: f });
+    }
+  }
+  if (!out.length) {
+    [...dt.files || []].forEach(f => out.push({ rel: f.name, file: f }));
+  }
+  return out;
+}
+
+async function importDropped(dt, folderPrefix, insertInfo) {
+  try {
+    const dropped = await collectDropped(dt);
+    const rel = rel => (folderPrefix ? folderPrefix + "/" + rel : rel);
+    const mds = [];
+    const images = [];
+    for (const d of dropped) {
+      if (d.file.name.toLowerCase().endsWith(".md")) {
+        mds.push({ rel: rel(d.rel), text: await d.file.text() });
+      } else if (d.file.type.startsWith("image/")) {
+        if (d.file.size > 8 * 1024 * 1024) {
+          toast("图片过大（>8MB），跳过: " + d.file.name);
+          continue;
+        }
+        const dataUrl = await new Promise((res, rej) => {
+          const r = new FileReader();
+          r.onload = () => res(r.result);
+          r.onerror = rej;
+          r.readAsDataURL(d.file);
+        });
+        images.push({ rel: rel(d.rel), dataBase64: dataUrl });
+      }
+    }
+    if (!mds.length) {
+      toast("没有可导入的 Markdown 文件");
+      return;
+    }
+    const analysis = await api("/api/analyze-md", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ files: mds }),
+    });
+    pendingImport = { mds, images, insertInfo };
+    renderImportDialog(analysis.report, mds, images);
+  } catch (err) { toast(err.message); }
+}
+
+function renderImportDialog(report, mds, images) {
+  const body = $("#import-body");
+  body.innerHTML = "";
+  const summary = document.createElement("p");
+  summary.className = "hint";
+  summary.textContent = "将导入 " + mds.length + " 个 Markdown" +
+    (images.length ? "、" + images.length + " 张图片" : "") +
+    "（保留目录结构）。下面的分析来自这些文件内部的引用：";
+  body.appendChild(summary);
+  report.forEach(r => {
+    const item = document.createElement("div");
+    item.className = "import-item";
+    item.dataset.rel = r.rel;
+    let html = "<h4>" + esc(r.rel) + "</h4>";
+    const missingImgs = r.images.filter(i => i.status === "missing");
+    const missingLinks = r.links.filter(i => i.status === "missing");
+    if (!r.images.length && !r.links.length) {
+      html += '<div class="ref-row"><span class="st-found">✓ 无图片引用</span></div>';
+    }
+    r.images.forEach(img => {
+      html += '<div class="ref-row">' +
+        (img.status === "found"
+          ? '<span class="st-found">✓ 图片</span>'
+          : '<span class="st-missing">✗ 图片缺失</span>') +
+        "<code>" + esc(img.ref) + "</code>" +
+        (img.status === "missing" && missingImgs.length
+          ? '<label class="checks"><input type="checkbox" data-strip-img="' + img.i + '"> 移除该引用</label>'
+          : "") +
+        "</div>";
+    });
+    r.links.forEach(link => {
+      html += '<div class="ref-row">' +
+        (link.status === "found"
+          ? '<span class="st-found">✓ 引用文章</span>'
+          : '<span class="st-missing">✗ 引用的文章未找到</span>') +
+        "<code>" + esc(link.ref) + "</code>" +
+        (link.status === "missing"
+          ? '<label><input type="radio" name="link-' + esc(r.rel) + '-' + link.i + '" value="keep" checked> 保留链接</label>' +
+            '<label><input type="radio" name="link-' + esc(r.rel) + '-' + link.i + '" value="strip"> 转为纯文本</label>'
+          : "") +
+        "</div>";
+    });
+    item.innerHTML = html;
+    body.appendChild(item);
+  });
+  if (!report.some(r => r.images.some(i => i.status === "missing") || r.links.some(l => l.status === "missing"))) {
+    const note = document.createElement("p");
+    note.className = "hint";
+    note.textContent = "所有引用都能解析，直接确认导入即可。";
+    body.appendChild(note);
+  }
+  $("#import-modal").classList.add("open");
+}
+
+$("#import-cancel").addEventListener("click", () => {
+  $("#import-modal").classList.remove("open");
+  pendingImport = null;
+});
+$("#import-confirm").addEventListener("click", async () => {
+  if (!pendingImport) return;
+  const stripImageRefs = {};
+  const stripLinkRefs = {};
+  document.querySelectorAll("#import-body .import-item").forEach(item => {
+    const rel = item.dataset.rel;
+    item.querySelectorAll('[data-strip-img]:checked').forEach(cb => {
+      stripImageRefs[rel] = stripImageRefs[rel] || [];
+      stripImageRefs[rel].push(Number(cb.dataset.stripImg));
+    });
+    item.querySelectorAll('input[type=radio][value=strip]:checked').forEach(rb => {
+      const m = rb.name.match(/link-.*-(\d+)$/);
+      if (!m) return;
+      stripLinkRefs[rel] = stripLinkRefs[rel] || [];
+      stripLinkRefs[rel].push(Number(m[1]));
+    });
+  });
+  const { mds, images, insertInfo } = pendingImport;
+  try {
+    const d = await api("/api/import-md", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ files: mds, images, stripImageRefs, stripLinkRefs }),
+    });
+    logChange("导入 Markdown", d.files);
+    toast("导入完成", d.files);
+    $("#import-modal").classList.remove("open");
+    pendingImport = null;
+    await refreshPosts();
+    if (insertInfo) await insertImportedAt(insertInfo, mds.map(m => m.rel));
+    await refresh();
+    await loadImages();
+  } catch (err) { toast(err.message); }
+});
+
+async function refreshPosts() {
+  const posts = await api("/api/posts");
+  state.posts = posts.posts;
+  renderCards();
+  renderTree();
+}
+
+async function insertImportedAt(info, rels) {
+  if (!info || !rels.length) return;
+  let pinned = state.posts.filter(p => p.pin).map(p => p.rel);
+  let main = state.posts.filter(p => !p.pin).map(p => p.rel);
+  const target = info.pin ? pinned : main;
+  const at = Math.min(info.index || target.length, target.length);
+  rels.forEach(r => target.splice(at, 0, r));
+  const items = pinned.map(r => ({ rel: r, pin: true }))
+    .concat(main.map(r => ({ rel: r, pin: false })));
+  try {
+    const d = await api("/api/posts/order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ items }),
+    });
+    if (d.files.length) logChange("插入文章位置", d.files);
+  } catch (e) { /* order only */ }
+}
 
 /* ---------- logo / banner ---------- */
 async function refreshBrand() {
@@ -758,11 +1167,7 @@ function brandFileInput(kind) {
     const f = input.files[0];
     if (!f) return;
     try {
-      const d = await api("/api/brand", {
-        method: "POST",
-        headers: { "X-Kind": kind },
-        body: f,
-      });
+      const d = await api("/api/brand", { method: "POST", headers: { "X-Kind": kind }, body: f });
       logChange(kind === "logo" ? "更换头图" : "更换背景图", d.files);
       toast((kind === "logo" ? "头图" : "背景图") + "已替换", d.files);
       await refreshBrand();
@@ -771,22 +1176,73 @@ function brandFileInput(kind) {
   input.click();
 }
 
-$("#pv-logo").addEventListener("click", () => brandFileInput("logo"));
+$("#pv-logo").addEventListener("click", e => {
+  if (e.target.id === "logo-del") return;
+  brandFileInput("logo");
+});
+$("#logo-del").addEventListener("click", async e => {
+  e.stopPropagation();
+  if (!confirm("恢复默认小恐龙头图？（删除自定义头图）")) return;
+  const d = await api("/api/brand?kind=logo", { method: "DELETE" });
+  logChange("恢复默认头图", d.files);
+  toast("已恢复默认头图", d.files);
+  await refreshBrand();
+});
 $("#pv-banner").addEventListener("click", e => {
   if (e.target.id === "banner-del") return;
   brandFileInput("header");
 });
 $("#banner-del").addEventListener("click", async e => {
   e.stopPropagation();
+  if (!confirm("删除背景长图？")) return;
   const d = await api("/api/brand?kind=header", { method: "DELETE" });
   logChange("删除背景图", d.files);
   toast("背景图已删除", d.files);
   await refreshBrand();
 });
+$("#pin-clear").addEventListener("click", async () => {
+  if (!confirm("取消所有文章的置顶？")) return;
+  const items = state.posts.map(p => ({ rel: p.rel, pin: false }));
+  const d = await api("/api/posts/order", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ items }),
+  });
+  logChange("清空置顶", d.files);
+  toast("已清空置顶", d.files);
+  await refreshPosts();
+});
+
+/* ---------- preview view switching ---------- */
+document.querySelectorAll(".pv-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".pv-tab").forEach(t => t.classList.toggle("is-active", t === tab));
+    document.querySelectorAll(".pv-pane").forEach(p => p.classList.toggle("is-active", p.id === "pv-pane-" + tab.dataset.pvview));
+    if (tab.dataset.pvview === "graph") loadGraphPreview();
+  });
+});
+
+let graphLoaded = false;
+async function loadGraphPreview() {
+  if (graphLoaded) return;
+  $("#graph-loading").style.display = "flex";
+  try {
+    await api("/api/rebuild", { method: "POST" });
+    const script = document.createElement("script");
+    script.src = "/js/graph.js";
+    script.onload = () => {
+      if (window.pilogGraph) window.pilogGraph.start();
+      $("#graph-loading").style.display = "none";
+      graphLoaded = true;
+    };
+    document.head.appendChild(script);
+  } catch (e) {
+    $("#graph-loading").textContent = "图谱加载失败: " + e.message;
+  }
+}
 
 /* ---------- config tab ---------- */
 let cfgEls = {};
-
 function cfgField(section, key, label, opts = {}) {
   const row = document.createElement("div");
   row.className = "cfg-row";
@@ -799,7 +1255,6 @@ function cfgField(section, key, label, opts = {}) {
   }
   return row;
 }
-
 function renderConfig() {
   cfgEls = {};
   const grid = $("#cfg-grid");
@@ -839,12 +1294,11 @@ function renderConfig() {
     panel.appendChild(body);
     const path = document.createElement("div");
     path.className = "path";
-    path.textContent = "影响文件: config.json" + (section === "socials" ? "" : " (site." + section + ")");
+    path.textContent = "影响文件: config.json";
     panel.appendChild(path);
     grid.appendChild(panel);
   });
 }
-
 $("#cfg-save").addEventListener("click", async () => {
   const updates = { site: {}, socials: {}, giscus: {} };
   Object.entries(cfgEls).forEach(([key, el]) => {
@@ -892,27 +1346,38 @@ $("#btn-rebuild").addEventListener("click", async () => {
   } catch (e) { toast(e.message); }
   $("#btn-rebuild").disabled = false;
 });
+
+function openLog(open) {
+  $("#drawer").classList.toggle("open", open);
+  $("#drawer-mask").classList.toggle("open", open);
+  if (open) renderLog();
+}
 $("#btn-log").addEventListener("click", () => {
-  $("#drawer").classList.toggle("open");
-  renderLog();
+  openLog(!$("#drawer").classList.contains("open"));
 });
+$("#drawer-close").addEventListener("click", () => openLog(false));
+$("#drawer-mask").addEventListener("click", () => openLog(false));
 
 document.addEventListener("keydown", e => {
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
+  const mod = e.ctrlKey || e.metaKey;
+  if (mod && e.key.toLowerCase() === "z") { e.preventDefault(); $("#btn-undo").click(); }
+  if (mod && e.key.toLowerCase() === "y") { e.preventDefault(); $("#btn-redo").click(); }
+  if (mod && e.key.toLowerCase() === "s") {
     e.preventDefault();
-    $("#btn-undo").click();
-  }
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") {
-    e.preventDefault();
-    $("#btn-redo").click();
+    if ($("#modal").classList.contains("open")) saveEditor();
+    else if ($("#import-modal").classList.contains("open")) $("#import-confirm").click();
+    else if (document.querySelector("#tab-config").classList.contains("is-active")) $("#cfg-save").click();
+    else $("#btn-rebuild").click();
   }
   if (e.key === "Escape") {
     $("#modal").classList.remove("open");
-    $("#drawer").classList.remove("open");
+    $("#import-modal").classList.remove("open");
+    $("#text-modal").classList.remove("open");
+    openLog(false);
   }
 });
 
-/* ---------- tabs ---------- */
+/* ---------- top tabs ---------- */
 document.querySelectorAll(".tab").forEach(tab => {
   tab.addEventListener("click", () => {
     document.querySelectorAll(".tab").forEach(t => t.classList.toggle("is-active", t === tab));
@@ -931,16 +1396,23 @@ $("#m-img-file").addEventListener("change", async e => {
 });
 $("#m-img-clear").addEventListener("click", () => { $("#m-image").value = ""; });
 
-/* ---------- images workbench ---------- */
-let imgState = { folder: "", current: null, img: null, drawScale: 1, crop: null };
+/* ---------- files tab ---------- */
+let imgState = { folder: "", current: null, img: null, drawScale: 1, crop: null, tool: "crop", annos: [], annoColor: "#1a73e8", list: [] };
 const canvas = $("#editor-canvas");
 const ctx = canvas.getContext("2d");
 const box = $("#canvas-box");
+let pendingTextPoint = null;
 
 async function loadTree() {
   const data = await api("/api/tree");
   const tree = $("#folder-tree");
   tree.innerHTML = "";
+  const rootItem = document.createElement("div");
+  rootItem.className = "folder-item";
+  rootItem.dataset.path = "";
+  rootItem.textContent = "▣ 根目录";
+  rootItem.addEventListener("click", () => selectFolder(""));
+  tree.appendChild(rootItem);
   function add(items, depth) {
     items.forEach(d => {
       const div = document.createElement("div");
@@ -960,15 +1432,16 @@ async function loadTree() {
 async function selectFolder(path) {
   imgState.folder = path;
   document.querySelectorAll(".folder-item").forEach(el => el.classList.toggle("is-active", el.dataset.path === path));
-  $("#current-dir").textContent = "图片 — " + (path || "根目录");
+  $("#current-dir").textContent = "文件 — " + (path || "根目录");
   await loadImages();
 }
 
 async function loadImages() {
   const data = await api("/api/list?dir=" + encodeURIComponent(imgState.folder));
+  imgState.list = data.images;
   const grid = $("#image-grid");
   grid.innerHTML = "";
-  if (!data.images.length) { grid.innerHTML = '<div class="empty">这个目录还没有图片</div>'; return; }
+  if (!data.images.length) grid.innerHTML = '<div class="empty">这个目录还没有图片</div>';
   data.images.forEach(img => {
     const div = document.createElement("div");
     div.className = "thumb";
@@ -978,6 +1451,23 @@ async function loadImages() {
     div.addEventListener("click", () => selectImage(img));
     grid.appendChild(div);
   });
+  const docs = $("#docs-list");
+  docs.innerHTML = "";
+  if (data.docs && data.docs.length) {
+    docs.innerHTML = "<h4>Markdown 文件</h4>";
+    data.docs.forEach(doc => {
+      const row = document.createElement("div");
+      row.className = "doc-row";
+      row.innerHTML = '<span>▤</span><span class="dpath">' + esc(doc.path) + "</span>" +
+        '<span class="dopen">打开</span>';
+      row.addEventListener("click", () => {
+        const p = state.posts.find(p => p.file === doc.path);
+        if (p) openEditor(p.rel);
+        else window.open("/" + doc.path.replace(/\.md$/, ".html"), "_blank");
+      });
+      docs.appendChild(row);
+    });
+  }
 }
 
 async function uploadBlob(blob, name, replace) {
@@ -989,32 +1479,47 @@ async function uploadBlob(blob, name, replace) {
   logChange("导入图片", d.files);
   toast(replace ? "已替换 " + d.name : "已导入 " + d.name, d.files);
   await loadImages();
-  const found = imgState.list ? imgState.list.find(i => i.name === d.name) : null;
-  if (found) selectImage(found);
 }
 
 $("#dropzone").addEventListener("click", e => {
-  if (e.target.id !== "replace-check") $("#file-input").click();
+  if (e.target.tagName === "INPUT") return;
+  $("#file-input").click();
 });
 $("#dropzone").addEventListener("dragover", e => { e.preventDefault(); $("#dropzone").classList.add("dragover"); });
 $("#dropzone").addEventListener("dragleave", () => $("#dropzone").classList.remove("dragover"));
-$("#dropzone").addEventListener("drop", e => {
+$("#dropzone").addEventListener("drop", async e => {
   e.preventDefault();
   $("#dropzone").classList.remove("dragover");
-  handleFiles(e.dataTransfer.files);
+  const dt = e.dataTransfer;
+  const hasMd = Array.from(dt.files || []).some(f => f.name.toLowerCase().endsWith(".md"));
+  if (hasMd) {
+    await importDropped(dt, imgState.folder || "");
+  } else {
+    handleFiles(dt.files);
+  }
 });
-$("#file-input").addEventListener("change", e => handleFiles(e.target.files));
+$("#file-input").addEventListener("change", async e => {
+  const files = [...e.target.files];
+  if (files.some(f => f.name.toLowerCase().endsWith(".md"))) {
+    const dt = { files, items: [] };
+    await importDropped(dt, imgState.folder || "");
+  } else {
+    handleFiles(files);
+  }
+  e.target.value = "";
+});
 
 async function handleFiles(files) {
   for (const f of files) {
     if (!f.type.startsWith("image/")) continue;
     await uploadBlob(f, f.name, $("#replace-check").checked);
   }
-  $("#file-input").value = "";
 }
 
 async function selectImage(img) {
   imgState.current = img;
+  imgState.annos = [];
+  imgState.crop = null;
   $("#editor").hidden = false;
   $("#editor-empty").hidden = true;
   document.querySelectorAll(".thumb").forEach(el => el.classList.toggle("is-active", el.dataset.path === img.path));
@@ -1024,7 +1529,6 @@ async function selectImage(img) {
   const image = new Image();
   image.onload = () => {
     imgState.img = image;
-    imgState.crop = null;
     $("#zoom").value = 100;
     $("#zoom-label").textContent = "100%";
     updateSnippets();
@@ -1049,21 +1553,95 @@ function draw() {
   const ox = (canvas.width - w) / 2;
   const oy = (canvas.height - h) / 2;
   ctx.drawImage(img, ox, oy, w, h);
+  const s = imgState.drawScale;
+  ctx.font = "14px " + (imgState.annoFont || "Consolas");
+  imgState.annos.forEach(a => {
+    if (a.type === "text") {
+      ctx.font = a.size * s + "px " + (a.font || "Consolas");
+      ctx.fillStyle = a.color;
+      ctx.textBaseline = "top";
+      ctx.fillText(a.text, ox + a.x * s, oy + a.y * s);
+    } else if (a.type === "brush") {
+      ctx.strokeStyle = a.color;
+      ctx.lineWidth = Math.max(1, a.size * s);
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      a.pts.forEach((pt, i) => {
+        const px = ox + pt.x * s, py = oy + pt.y * s;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      });
+      ctx.stroke();
+    }
+  });
   const boxRect = $("#crop-rect");
   if (imgState.crop) {
     boxRect.style.display = "block";
-    boxRect.style.left = (ox + imgState.crop.x * imgState.drawScale) + "px";
-    boxRect.style.top = (oy + imgState.crop.y * imgState.drawScale) + "px";
-    boxRect.style.width = (imgState.crop.w * imgState.drawScale) + "px";
-    boxRect.style.height = (imgState.crop.h * imgState.drawScale) + "px";
+    boxRect.style.left = (ox + imgState.crop.x * s) + "px";
+    boxRect.style.top = (oy + imgState.crop.y * s) + "px";
+    boxRect.style.width = (imgState.crop.w * s) + "px";
+    boxRect.style.height = (imgState.crop.h * s) + "px";
   } else boxRect.style.display = "none";
   const outScale = Number($("#out-scale").value);
   $("#info-size").textContent = Math.round(img.naturalWidth * outScale) + "×" + Math.round(img.naturalHeight * outScale) + "px";
 }
 
+function drawAnnos(octx, sx, sy, sw, sh, outScale, dx, dy) {
+  const s = outScale;
+  imgState.annos.forEach(a => {
+    if (a.type === "text") {
+      octx.font = a.size * s + "px " + (a.font || "Consolas");
+      octx.fillStyle = a.color;
+      octx.textBaseline = "top";
+      octx.fillText(a.text, dx + (a.x - sx) * s, dy + (a.y - sy) * s);
+    } else if (a.type === "brush") {
+      octx.strokeStyle = a.color;
+      octx.lineWidth = Math.max(1, a.size * s);
+      octx.lineCap = "round";
+      octx.beginPath();
+      a.pts.forEach((pt, i) => {
+        const px = dx + (pt.x - sx) * s, py = dy + (pt.y - sy) * s;
+        if (i === 0) octx.moveTo(px, py);
+        else octx.lineTo(px, py);
+      });
+      octx.stroke();
+    }
+  });
+}
+
 $("#zoom").addEventListener("input", () => { $("#zoom-label").textContent = $("#zoom").value + "%"; draw(); });
 
+document.querySelectorAll(".tool-btn[data-tool]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tool-btn[data-tool]").forEach(b => b.classList.remove("is-active"));
+    btn.classList.add("is-active");
+    imgState.tool = btn.dataset.tool;
+    $("#crop-rect").style.display = "none";
+  });
+});
+
+const PALETTE = ["#1a73e8", "#3c4043", "#c5221f", "#188038", "#fbbc04", "#ffffff"];
+const swatches = $("#swatches");
+PALETTE.forEach(c => {
+  const s = document.createElement("span");
+  s.className = "swatch" + (c === imgState.annoColor ? " is-active" : "");
+  s.style.background = c;
+  s.addEventListener("click", () => {
+    imgState.annoColor = c;
+    document.querySelectorAll(".swatch").forEach(x => x.classList.toggle("is-active", x === s));
+  });
+  swatches.appendChild(s);
+});
+$("#anno-size").addEventListener("change", () => draw());
+$("#anno-font").addEventListener("change", () => draw());
+$("#anno-clear").addEventListener("click", () => {
+  if (imgState.annos.length && !confirm("清除该图片上的全部文字/画笔批注？")) return;
+  imgState.annos = [];
+  draw();
+});
+
 let drag = null;
+let brushPoints = null;
 canvas.addEventListener("pointerdown", e => {
   if (!imgState.img) return;
   const r = canvas.getBoundingClientRect();
@@ -1071,20 +1649,65 @@ canvas.addEventListener("pointerdown", e => {
   const oy = (canvas.height - imgState.img.naturalHeight * imgState.drawScale) / 2;
   const px = (e.clientX - r.left - ox) / imgState.drawScale;
   const py = (e.clientY - r.top - oy) / imgState.drawScale;
+  if (imgState.tool === "text") {
+    pendingTextPoint = { x: px, y: py };
+    $("#text-modal").classList.add("open");
+    $("#t-text").focus();
+    return;
+  }
+  if (imgState.tool === "brush") {
+    brushPoints = [{ x: px, y: py }];
+    canvas.setPointerCapture(e.pointerId);
+    return;
+  }
   if (px < 0 || py < 0 || px > imgState.img.naturalWidth || py > imgState.img.naturalHeight) return;
   drag = { x0: px, y0: py };
 });
 canvas.addEventListener("pointermove", e => {
-  if (!drag || !imgState.img) return;
+  if (!imgState.img) return;
   const r = canvas.getBoundingClientRect();
   const ox = (canvas.width - imgState.img.naturalWidth * imgState.drawScale) / 2;
   const oy = (canvas.height - imgState.img.naturalHeight * imgState.drawScale) / 2;
   const px = Math.max(0, Math.min(imgState.img.naturalWidth, (e.clientX - r.left - ox) / imgState.drawScale));
   const py = Math.max(0, Math.min(imgState.img.naturalHeight, (e.clientY - r.top - oy) / imgState.drawScale));
+  if (brushPoints) {
+    brushPoints.push({ x: px, y: py });
+    draw();
+    return;
+  }
+  if (!drag) return;
   imgState.crop = { x: Math.min(drag.x0, px), y: Math.min(drag.y0, py), w: Math.abs(px - drag.x0), h: Math.abs(py - drag.y0) };
   draw();
 });
-window.addEventListener("pointerup", () => { drag = null; });
+window.addEventListener("pointerup", () => {
+  if (brushPoints) {
+    if (brushPoints.length > 1) {
+      imgState.annos.push({ type: "brush", pts: brushPoints, color: imgState.annoColor, size: Number($("#anno-size").value) });
+    }
+    brushPoints = null;
+    draw();
+  }
+  drag = null;
+});
+
+$("#t-cancel").addEventListener("click", () => { $("#text-modal").classList.remove("open"); pendingTextPoint = null; });
+$("#t-ok").addEventListener("click", () => {
+  const text = $("#t-text").value.trim();
+  if (text && pendingTextPoint) {
+    imgState.annos.push({
+      type: "text",
+      x: pendingTextPoint.x, y: pendingTextPoint.y,
+      text,
+      size: Number($("#anno-size").value),
+      font: $("#anno-font").value,
+      color: imgState.annoColor,
+    });
+  }
+  $("#text-modal").classList.remove("open");
+  $("#t-text").value = "";
+  pendingTextPoint = null;
+  draw();
+});
 
 function exportBlob(kind) {
   return new Promise((resolve, reject) => {
@@ -1103,6 +1726,7 @@ function exportBlob(kind) {
     const octx = out.getContext("2d");
     octx.imageSmoothingEnabled = outScale < 1 ? false : !(sw <= 128 && sh <= 128);
     octx.drawImage(img, sx, sy, sw, sh, 0, 0, out.width, out.height);
+    drawAnnos(octx, sx, sy, sw, sh, outScale, 0, 0);
     const isJpg = /\.jpe?g$/i.test(imgState.current.name);
     out.toBlob(b => (b ? resolve(b) : reject(new Error("导出失败"))), isJpg ? "image/jpeg" : "image/png", 0.92);
   });
@@ -1125,6 +1749,8 @@ $("#btn-rotate").addEventListener("click", async () => {
   octx.translate(out.width, 0);
   octx.rotate(Math.PI / 2);
   octx.drawImage(img, 0, 0);
+  drawAnnos(octx, 0, 0, img.naturalWidth, img.naturalHeight, 1, 0, 0);
+  imgState.annos = [];
   const isJpg = /\.jpe?g$/i.test(imgState.current.name);
   out.toBlob(async b => { await uploadBlob(b, imgState.current.name, true); }, isJpg ? "image/jpeg" : "image/png", 0.92);
 });
@@ -1142,7 +1768,7 @@ $("#replace-input").addEventListener("change", async e => {
 });
 $("#btn-delete").addEventListener("click", async () => {
   if (!imgState.current) return;
-  if (!confirm("删除 " + imgState.current.name + " ？此操作可撤销。")) return;
+  if (!confirm("删除图片 " + imgState.current.name + " ？可撤销。")) return;
   const d = await api("/api/file?path=" + encodeURIComponent(imgState.current.path), { method: "DELETE" });
   logChange("删除图片", d.files);
   imgState.current = null;

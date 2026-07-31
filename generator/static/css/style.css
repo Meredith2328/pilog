@@ -415,9 +415,16 @@ a:hover {
 }
 
 .tag-chip {
+  appearance: none;
   display: inline-block;
   margin: 0 4px 4px 0;
-  cursor: default;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  border: 1px solid var(--hairline);
+  background: var(--paper);
+  color: var(--text);
+  padding: 2px 8px;
 }
 
 .tag-chip:hover {

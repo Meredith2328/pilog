@@ -13,6 +13,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import hashlib
 import json
 import mimetypes
@@ -237,7 +238,9 @@ def _serialize_nav(items: list, indent: int = 0) -> str:
     lines = []
     for it in items:
         lines.append(f"{pad}- [{it['label']}]({it['href']})")
-        lines.extend(_serialize_nav(it.get("children", []), indent + 1))
+        child = _serialize_nav(it.get("children", []), indent + 1).rstrip("\n")
+        if child:
+            lines.append(child)
     return "\n".join(lines) + ("\n" if lines else "")
 
 
@@ -433,6 +436,12 @@ class Handler(SimpleHTTPRequestHandler):
             return
         if path == "/api/posts/order":
             self._api_posts_order()
+            return
+        if path == "/api/analyze-md":
+            self._api_analyze_md()
+            return
+        if path == "/api/import-md":
+            self._api_import_md()
             return
         if path == "/api/brand":
             self._api_brand_upload()
@@ -678,7 +687,7 @@ class Handler(SimpleHTTPRequestHandler):
         if d is None or not d.is_dir():
             self._send_json({"ok": False, "error": "invalid dir"}, 400)
             return
-        images, dirs = [], []
+        images, docs, dirs = [], [], []
         for item in sorted(d.iterdir(), key=lambda p: p.name.lower()):
             if item.is_dir() and not item.name.startswith((".", "_")):
                 dirs.append(item.name)
@@ -692,15 +701,197 @@ class Handler(SimpleHTTPRequestHandler):
                         "mtime": int(item.stat().st_mtime),
                     }
                 )
+            elif item.is_file() and item.suffix.lower() == ".md":
+                rel = item.relative_to(self.blog_root).as_posix()
+                docs.append(
+                    {
+                        "name": item.name,
+                        "path": rel,
+                        "size": item.stat().st_size,
+                        "mtime": int(item.stat().st_mtime),
+                    }
+                )
         self._send_json(
             {
                 "ok": True,
                 "dir": dir_rel,
                 "dirs": dirs,
                 "images": images,
+                "docs": docs,
                 "root": str(self.blog_root),
             }
         )
+
+    # ---------- markdown import ----------
+
+    def _md_refs(self, text: str):
+        images = []
+        for m in re.finditer(r"!\[\[([^\]|]+?)(?:\|[^\]]*)?\]\]", text):
+            images.append({"ref": m.group(0), "target": m.group(1).strip()})
+        for m in re.finditer(r"!\[([^\]]*)\]\(([^)]+)\)", text):
+            if m.group(2).startswith(("http://", "https://", "data:")):
+                continue
+            images.append({"ref": m.group(0), "target": m.group(2).strip()})
+        links = []
+        for m in re.finditer(r"\[\[([^\]|]+?)(?:\|[^\]]*)?\]\]", text):
+            links.append({"ref": m.group(0), "target": m.group(1).strip()})
+        for m in re.finditer(r"\[([^\]]+)\]\(([^)]+\.md)(#[^)]*)?\)", text):
+            links.append({"ref": m.group(0), "target": m.group(2).strip()})
+        return images, links
+
+    def _img_exists(self, target: str, md_dir: str, imported_images: list) -> bool:
+        t = target.replace("\\", "/")
+        candidates = [
+            self.blog_root / md_dir / t,
+            self.blog_root / t,
+            self.blog_root / "assets" / t,
+        ]
+        if any(c.is_file() for c in candidates):
+            return True
+        base = t.split("/")[-1]
+        return any((ir or "").split("/")[-1] == base for ir in imported_images)
+
+    def _md_exists(self, target: str, md_dir: str, imported_mds: list) -> bool:
+        t = target.replace("\\", "/")
+        if t.endswith(".md"):
+            t = t[:-3]
+        t = t.split("#")[0]
+        if "/" in t:
+            if (self.blog_root / (t + ".md")).is_file():
+                return True
+        else:
+            # wiki style: same folder first, then any blog post with that stem
+            if (self.blog_root / md_dir / (t + ".md")).is_file():
+                return True
+            if list(self.blog_root.rglob(t + ".md")):
+                return True
+        return t in imported_mds
+
+    def _api_analyze_md(self):
+        body = self._read_json()
+        files = (body or {}).get("files") or []
+        if not isinstance(files, list):
+            self._send_json({"ok": False, "error": "bad payload"}, 400)
+            return
+        imported_mds = [f.get("rel", "")[:-3] for f in files]
+        imported_images = []
+        report = []
+        for f in files:
+            rel = str(f.get("rel", ""))
+            text = str(f.get("text", ""))
+            md_dir = rel.rsplit("/", 1)[0] if "/" in rel else ""
+            images, links = self._md_refs(text)
+            img_report = [
+                {
+                    "i": i,
+                    "ref": im["ref"],
+                    "target": im["target"],
+                    "status": (
+                        "found"
+                        if self._img_exists(im["target"], md_dir, imported_images)
+                        else "missing"
+                    ),
+                }
+                for i, im in enumerate(images)
+            ]
+            link_report = [
+                {
+                    "i": i,
+                    "ref": lk["ref"],
+                    "target": lk["target"],
+                    "status": (
+                        "found"
+                        if self._md_exists(lk["target"], md_dir, imported_mds)
+                        else "missing"
+                    ),
+                }
+                for i, lk in enumerate(links)
+            ]
+            report.append(
+                {
+                    "rel": rel,
+                    "images": img_report,
+                    "links": link_report,
+                }
+            )
+        self._send_json({"ok": True, "report": report})
+
+    def _api_import_md(self):
+        body = self._read_json()
+        if not isinstance(body, dict):
+            self._send_json({"ok": False, "error": "bad payload"}, 400)
+            return
+        files = body.get("files") or []
+        images = body.get("images") or []
+        strip_imgs = body.get("stripImageRefs") or {}
+        strip_links = body.get("stripLinkRefs") or {}
+        before = []
+        after = []
+        changed = []
+
+        for img in images:
+            rel = str(img.get("rel", ""))
+            data = str(img.get("dataBase64", ""))
+            p = self._safe_blog_path(rel)
+            if p is None or len(data) > 12_000_000:
+                continue
+            try:
+                raw = base64.b64decode(data.split(",", 1)[-1])
+            except Exception:
+                continue
+            before.append((p, _read_bytes(p)))
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_bytes(raw)
+            after.append((p, _read_bytes(p)))
+            changed.append({"path": "blogs/" + rel, "action": "imported"})
+
+        for f in files:
+            rel = str(f.get("rel", ""))
+            text = str(f.get("text", ""))
+            p = self._safe_blog_path(rel)
+            if p is None:
+                continue
+            images_refs, links_refs = self._md_refs(text)
+            # rebuild by positions so we can strip safely
+            positions_img = []
+            for m in re.finditer(r"!\[\[([^\]|]+?)(?:\|[^\]]*)?\]\]", text):
+                positions_img.append((m.start(), m.end(), ""))
+            for m in re.finditer(r"!\[([^\]]*)\]\(([^)]+)\)", text):
+                if m.group(2).startswith(("http://", "https://", "data:")):
+                    continue
+                positions_img.append((m.start(), m.end(), ""))
+            positions_link = []
+            for m in re.finditer(r"\[\[([^\]|]+?)(?:\|[^\]]*)?\]\]", text):
+                raw = m.group(1)
+                label = raw.split("|")[0].split("#")[0].split("/")[-1]
+                if "|" in raw:
+                    label = raw.split("|")[1]
+                positions_link.append((m.start(), m.end(), label))
+            for m in re.finditer(r"\[([^\]]+)\]\(([^)]+\.md)(#[^)]*)?\)", text):
+                positions_link.append((m.start(), m.end(), m.group(1)))
+
+            strips = []
+            for idx in strip_imgs.get(rel, []) or []:
+                if 0 <= idx < len(positions_img):
+                    strips.append(positions_img[idx])
+            for idx in strip_links.get(rel, []) or []:
+                if 0 <= idx < len(positions_link):
+                    strips.append(positions_link[idx])
+            if strips:
+                strips.sort(key=lambda s: s[0], reverse=True)
+                for start, end, repl in strips:
+                    text = text[:start] + repl + text[end:]
+
+            before.append((p, _read_bytes(p)))
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text(text, encoding="utf-8")
+            after.append((p, _read_bytes(p)))
+            changed.append({"path": "blogs/" + rel, "action": "imported"})
+
+        if before:
+            _record_change(before, after, "markdown import")
+            _dirty = True
+        self._send_json({"ok": True, "imported": changed, "files": changed})
 
     def _api_thumb(self, path_rel: str):
         p = self._safe_blog_path(path_rel)
