@@ -22,6 +22,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -43,6 +44,19 @@ def git(args: list, check: bool = True) -> subprocess.CompletedProcess:
         env=env,
         check=check,
     )
+
+
+def git_retry(args: list, attempts: int = 3, delay: float = 2.0) -> subprocess.CompletedProcess:
+    """Run a git network command with retries (the proxy/SSL can be flaky)."""
+    last = None
+    for i in range(attempts):
+        result = git(args, check=False)
+        if result.returncode == 0:
+            return result
+        last = result
+        if i < attempts - 1:
+            time.sleep(delay)
+    return last
 
 
 def run_publish(message: str | None = None, build: bool = True) -> dict:
@@ -84,7 +98,9 @@ def run_publish(message: str | None = None, build: bool = True) -> dict:
     status = git(["status", "--porcelain"]).stdout
     local_head = git(["rev-parse", "HEAD"]).stdout.strip()
     try:
-        remote_head = git(["ls-remote", push_url, f"refs/heads/{branch}"]).stdout.split("\t")[0].strip()
+        remote_head = git_retry(
+            ["ls-remote", push_url, f"refs/heads/{branch}"]
+        ).stdout.split("\t")[0].strip()
     except Exception:
         remote_head = ""
 
@@ -103,9 +119,8 @@ def run_publish(message: str | None = None, build: bool = True) -> dict:
     else:
         lines.append("[2/3] 工作区无变更，推送已有本地提交")
 
-    result = git(
+    result = git_retry(
         ["push", push_url, f"HEAD:{branch}"],
-        check=False,
     )
     if result.returncode != 0:
         return {
