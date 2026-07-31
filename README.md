@@ -2,6 +2,8 @@
 
 轻量、美观、面向 Obsidian 工作流的静态博客生成器。读取 `blogs/` 目录下的 Markdown，生成带**卡片 / 清单 / 图谱**三种视图的静态站点；主题复刻 Chrome 断网页小恐龙的像素美学（灰白底、锐利直角、无多余圆角）。
 
+> 想快速上手（或让 Agent 帮你操作）？先读 [GUIDE.md](GUIDE.md)——不需要看代码或配置文件。
+
 ![主题预览](docs/preview-cards.png)
 
 ## 特性
@@ -38,6 +40,7 @@ pilog/
 ├── config.json            # 站点配置
 ├── build.py               # 构建脚本
 ├── serve.py               # 本地开发服务器 + 图片工作台
+├── pilog.py               # 命令行入口（与工作台同一套代码）
 ├── publish.py             # 一键发布到 GitHub
 ├── requirements.txt       # Python 依赖
 ├── generator/             # 生成器源码（模板/样式/脚本）
@@ -55,10 +58,12 @@ pilog/
 ```bash
 python -m pip install -r requirements.txt   # 安装依赖
 
-python build.py                              # 构建静态站点
-python serve.py --watch                      # 本地预览 + 自动重建
+python pilog.py build                        # 构建静态站点
+python pilog.py serve --watch                # 本地预览 + 自动重建
 # 打开 http://127.0.0.1:8000/ ，工作台在 /manager
 ```
+
+常用命令行：`pilog.py list`（列出文章）、`pilog.py import 目录`（批量导入旧笔记）、`pilog.py delete <rel>`（删除文章）、`pilog.py publish -m "说明"`（构建并推送）。
 
 ## 写作工作流（Obsidian）
 

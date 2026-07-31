@@ -1087,7 +1087,10 @@ async function importDropped(dt, folderPrefix, insertInfo) {
     const analysis = await api("/api/analyze-md", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ files: mds }),
+      body: JSON.stringify({
+        files: mds,
+        images: images.map(i => ({ rel: i.rel })),
+      }),
     });
     pendingImport = { mds, images, insertInfo };
     renderImportDialog(analysis.report, mds, images);

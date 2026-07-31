@@ -13,7 +13,6 @@
 from __future__ import annotations
 
 import argparse
-import base64
 import hashlib
 import json
 import mimetypes
@@ -24,14 +23,22 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-import yaml
 from PIL import Image
 
 from build import build_site
 from generator.assets import AssetMap
 from generator.config import DEFAULTS, Config
 from generator.content import scan_posts, sorted_for_cards, split_front_matter
+from generator.editor import (
+    analyze_markdown,
+    import_markdown,
+    safe_path,
+    update_front_matter,
+    update_post_meta,
+    update_post_source,
+)
 from generator.markdownx import MarkdownContext, find_asset
+from generator.nav import parse_nav, serialize_nav
 
 
 ROOT = Path(__file__).resolve().parent
@@ -155,24 +162,6 @@ def _blog_ctx() -> MarkdownContext:
     )
 
 
-def _update_front_matter(path: Path, updates: dict) -> None:
-    text = path.read_text(encoding="utf-8")
-    fm, body = split_front_matter(text)
-    for key, value in updates.items():
-        if value is None:
-            fm.pop(key, None)
-        else:
-            fm[key] = value
-    head = (
-        "---\n"
-        + yaml.safe_dump(
-            fm, allow_unicode=True, sort_keys=False, default_flow_style=False
-        ).strip()
-        + "\n---\n"
-    )
-    path.write_text(head + body, encoding="utf-8")
-
-
 def _first_image(post) -> str | None:
     ctx = _blog_ctx()
     if post.preview_image:
@@ -212,36 +201,6 @@ def _post_payload(post) -> dict:
         "image": _first_image(post),
         "file": post.rel + ".md",
     }
-
-
-def _parse_nav(text: str) -> list:
-    items: list = []
-    stack: list = []
-    for line in text.splitlines():
-        m = re.match(r"^(\s*)- \[([^\]]+)\]\(([^)]+)\)\s*$", line)
-        if not m:
-            continue
-        indent = len(m.group(1))
-        item = {"label": m.group(2), "href": m.group(3), "children": []}
-        while stack and stack[-1][0] >= indent:
-            stack.pop()
-        if stack:
-            stack[-1][1]["children"].append(item)
-        else:
-            items.append(item)
-        stack.append((indent, item))
-    return items
-
-
-def _serialize_nav(items: list, indent: int = 0) -> str:
-    pad = "  " * indent
-    lines = []
-    for it in items:
-        lines.append(f"{pad}- [{it['label']}]({it['href']})")
-        child = _serialize_nav(it.get("children", []), indent + 1).rstrip("\n")
-        if child:
-            lines.append(child)
-    return "\n".join(lines) + ("\n" if lines else "")
 
 
 # ---------------------------------------------------------------------------
@@ -393,7 +352,7 @@ class Handler(SimpleHTTPRequestHandler):
         if path == "/api/nav":
             nav_file = self.blog_root / "nav.md"
             items = (
-                _parse_nav(nav_file.read_text(encoding="utf-8"))
+                parse_nav(nav_file.read_text(encoding="utf-8"))
                 if nav_file.exists()
                 else []
             )
@@ -610,7 +569,7 @@ class Handler(SimpleHTTPRequestHandler):
         target = self.blog_root / "nav.md"
         before = _snap(target)
         target.write_text(
-            "# 导航\n\n" + _serialize_nav(body["items"]), encoding="utf-8"
+            "# 导航\n\n" + serialize_nav(body["items"]), encoding="utf-8"
         )
         after = _snap(target)
         _record_change(before, after, "blogs/nav.md")
@@ -626,17 +585,17 @@ class Handler(SimpleHTTPRequestHandler):
         if not rel or not updates:
             self._send_json({"ok": False, "error": "bad payload"}, 400)
             return
-        p = self._safe_blog_path(rel + ".md")
+        p = safe_path(self.blog_root, rel + ".md")
         if p is None or not p.is_file():
             self._send_json({"ok": False, "error": "post not found"}, 404)
             return
         before = _snap(p)
-        _update_front_matter(p, updates)
+        changed = update_post_meta(self.blog_root, rel, updates)
         after = _snap(p)
         _record_change(before, after, "blogs/" + rel + ".md")
         _dirty = True
         self._send_json(
-            {"ok": True, "files": _files_list(after)}
+            {"ok": True, "files": _files_list(after), "changed": changed}
         )
 
     def _api_post_source(self):
@@ -646,16 +605,16 @@ class Handler(SimpleHTTPRequestHandler):
         if not rel or not isinstance(source, str):
             self._send_json({"ok": False, "error": "bad payload"}, 400)
             return
-        p = self._safe_blog_path(rel + ".md")
+        p = safe_path(self.blog_root, rel + ".md")
         if p is None or not p.is_file():
             self._send_json({"ok": False, "error": "post not found"}, 404)
             return
         before = _snap(p)
-        p.write_text(source, encoding="utf-8")
+        changed = update_post_source(self.blog_root, rel, source)
         after = _snap(p)
         _record_change(before, after, "blogs/" + rel + ".md")
         _dirty = True
-        self._send_json({"ok": True, "files": _files_list(after)})
+        self._send_json({"ok": True, "files": _files_list(after), "changed": changed})
 
     def _api_posts_order(self):
         """body: {"items": [{"rel": ..., "pin": bool}...]} — full desired order."""
@@ -670,14 +629,14 @@ class Handler(SimpleHTTPRequestHandler):
         for index, item in enumerate(items):
             rel = str(item.get("rel", ""))
             pin = bool(item.get("pin", False))
-            p = self._safe_blog_path(rel + ".md")
+            p = safe_path(self.blog_root, rel + ".md")
             if p is None or not p.is_file():
                 continue
             fm, _ = split_front_matter(p.read_text(encoding="utf-8"))
             if fm.get("pin", False) == pin and fm.get("order") == index:
                 continue
             before.append((p, _read_bytes(p)))
-            _update_front_matter(p, {"pin": pin, "order": index})
+            update_front_matter(p, {"pin": pin, "order": index})
             after.append((p, _read_bytes(p)))
             changed.append(
                 {"path": "blogs/" + rel + ".md", "action": "modified"}
@@ -832,96 +791,19 @@ class Handler(SimpleHTTPRequestHandler):
 
     # ---------- markdown import ----------
 
-    def _md_refs(self, text: str):
-        images = []
-        for m in re.finditer(r"!\[\[([^\]|]+?)(?:\|[^\]]*)?\]\]", text):
-            images.append({"ref": m.group(0), "target": m.group(1).strip()})
-        for m in re.finditer(r"!\[([^\]]*)\]\(([^)]+)\)", text):
-            if m.group(2).startswith(("http://", "https://", "data:")):
-                continue
-            images.append({"ref": m.group(0), "target": m.group(2).strip()})
-        links = []
-        for m in re.finditer(r"\[\[([^\]|]+?)(?:\|[^\]]*)?\]\]", text):
-            links.append({"ref": m.group(0), "target": m.group(1).strip()})
-        for m in re.finditer(r"\[([^\]]+)\]\(([^)]+\.md)(#[^)]*)?\)", text):
-            links.append({"ref": m.group(0), "target": m.group(2).strip()})
-        return images, links
-
-    def _img_exists(self, target: str, md_dir: str, imported_images: list) -> bool:
-        t = target.replace("\\", "/")
-        candidates = [
-            self.blog_root / md_dir / t,
-            self.blog_root / t,
-            self.blog_root / "assets" / t,
-        ]
-        if any(c.is_file() for c in candidates):
-            return True
-        base = t.split("/")[-1]
-        return any((ir or "").split("/")[-1] == base for ir in imported_images)
-
-    def _md_exists(self, target: str, md_dir: str, imported_mds: list) -> bool:
-        t = target.replace("\\", "/")
-        if t.endswith(".md"):
-            t = t[:-3]
-        t = t.split("#")[0]
-        if "/" in t:
-            if (self.blog_root / (t + ".md")).is_file():
-                return True
-        else:
-            # wiki style: same folder first, then any blog post with that stem
-            if (self.blog_root / md_dir / (t + ".md")).is_file():
-                return True
-            if list(self.blog_root.rglob(t + ".md")):
-                return True
-        return t in imported_mds
-
     def _api_analyze_md(self):
         body = self._read_json()
         files = (body or {}).get("files") or []
         if not isinstance(files, list):
             self._send_json({"ok": False, "error": "bad payload"}, 400)
             return
-        imported_mds = [f.get("rel", "")[:-3] for f in files]
-        imported_images = []
-        report = []
-        for f in files:
-            rel = str(f.get("rel", ""))
-            text = str(f.get("text", ""))
-            md_dir = rel.rsplit("/", 1)[0] if "/" in rel else ""
-            images, links = self._md_refs(text)
-            img_report = [
-                {
-                    "i": i,
-                    "ref": im["ref"],
-                    "target": im["target"],
-                    "status": (
-                        "found"
-                        if self._img_exists(im["target"], md_dir, imported_images)
-                        else "missing"
-                    ),
-                }
-                for i, im in enumerate(images)
-            ]
-            link_report = [
-                {
-                    "i": i,
-                    "ref": lk["ref"],
-                    "target": lk["target"],
-                    "status": (
-                        "found"
-                        if self._md_exists(lk["target"], md_dir, imported_mds)
-                        else "missing"
-                    ),
-                }
-                for i, lk in enumerate(links)
-            ]
-            report.append(
-                {
-                    "rel": rel,
-                    "images": img_report,
-                    "links": link_report,
-                }
-            )
+        report = analyze_markdown(
+            self.blog_root,
+            files,
+            imported_images=[
+                str(i.get("rel", "")) for i in ((body or {}).get("images") or [])
+            ],
+        )
         self._send_json({"ok": True, "report": report})
 
     def _api_import_md(self):
@@ -935,66 +817,23 @@ class Handler(SimpleHTTPRequestHandler):
         strip_links = body.get("stripLinkRefs") or {}
         before = []
         after = []
-        changed = []
-
         for img in images:
-            rel = str(img.get("rel", ""))
-            data = str(img.get("dataBase64", ""))
-            p = self._safe_blog_path(rel)
-            if p is None or len(data) > 12_000_000:
-                continue
-            try:
-                raw = base64.b64decode(data.split(",", 1)[-1])
-            except Exception:
-                continue
-            before.append((p, _read_bytes(p)))
-            p.parent.mkdir(parents=True, exist_ok=True)
-            p.write_bytes(raw)
-            after.append((p, _read_bytes(p)))
-            changed.append({"path": "blogs/" + rel, "action": "imported"})
-
+            p = safe_path(self.blog_root, str(img.get("rel", "")))
+            if p is not None:
+                before.append((p, _read_bytes(p)))
         for f in files:
-            rel = str(f.get("rel", ""))
-            text = str(f.get("text", ""))
-            p = self._safe_blog_path(rel)
-            if p is None:
-                continue
-            images_refs, links_refs = self._md_refs(text)
-            # rebuild by positions so we can strip safely
-            positions_img = []
-            for m in re.finditer(r"!\[\[([^\]|]+?)(?:\|[^\]]*)?\]\]", text):
-                positions_img.append((m.start(), m.end(), ""))
-            for m in re.finditer(r"!\[([^\]]*)\]\(([^)]+)\)", text):
-                if m.group(2).startswith(("http://", "https://", "data:")):
-                    continue
-                positions_img.append((m.start(), m.end(), ""))
-            positions_link = []
-            for m in re.finditer(r"\[\[([^\]|]+?)(?:\|[^\]]*)?\]\]", text):
-                raw = m.group(1)
-                label = raw.split("|")[0].split("#")[0].split("/")[-1]
-                if "|" in raw:
-                    label = raw.split("|")[1]
-                positions_link.append((m.start(), m.end(), label))
-            for m in re.finditer(r"\[([^\]]+)\]\(([^)]+\.md)(#[^)]*)?\)", text):
-                positions_link.append((m.start(), m.end(), m.group(1)))
-
-            strips = []
-            for idx in strip_imgs.get(rel, []) or []:
-                if 0 <= idx < len(positions_img):
-                    strips.append(positions_img[idx])
-            for idx in strip_links.get(rel, []) or []:
-                if 0 <= idx < len(positions_link):
-                    strips.append(positions_link[idx])
-            if strips:
-                strips.sort(key=lambda s: s[0], reverse=True)
-                for start, end, repl in strips:
-                    text = text[:start] + repl + text[end:]
-
-            before.append((p, _read_bytes(p)))
-            p.parent.mkdir(parents=True, exist_ok=True)
-            p.write_text(text, encoding="utf-8")
+            p = safe_path(self.blog_root, str(f.get("rel", "")))
+            if p is not None:
+                before.append((p, _read_bytes(p)))
+        changed = import_markdown(
+            self.blog_root,
+            files,
+            images,
+            strip_image_refs=strip_imgs,
+            strip_link_refs=strip_links,
+        )
+        for p, _ in before:
             after.append((p, _read_bytes(p)))
-            changed.append({"path": "blogs/" + rel, "action": "imported"})
 
         if before:
             _record_change(before, after, "markdown import")
@@ -1099,14 +938,8 @@ def io_bytes(img: Image.Image, fmt: str) -> bytes:
     return buf.getvalue()
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description="pilog dev server")
-    parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--port", type=int, default=8000)
-    parser.add_argument("--watch", action="store_true", help="auto rebuild on change")
-    args = parser.parse_args()
-
-    if args.host not in ("127.0.0.1", "::1", "localhost"):
+def start_server(host: str = "127.0.0.1", port: int = 8000, watch: bool = False) -> None:
+    if host not in ("127.0.0.1", "::1", "localhost"):
         log("WARNING: 非回环地址启动，/manager 与 /api 仍将拒绝非本机访问")
 
     cfg = Config.load(CONFIG_PATH)
@@ -1114,18 +947,27 @@ def main() -> None:
         log("first build…")
         rebuild()
 
-    if args.watch:
+    if watch:
         threading.Thread(target=watch_loop, daemon=True).start()
         log("watching for changes (Ctrl+C to stop)")
 
-    httpd = ThreadingHTTPServer((args.host, args.port), Handler)
-    url = f"http://{args.host}:{args.port}/"
+    httpd = ThreadingHTTPServer((host, port), Handler)
+    url = f"http://{host}:{port}/"
     log(f"serving {cfg.out_dir} at {url}")
     log(f"WYSIWYG manager (local only): {url}manager")
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
         log("bye")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="pilog dev server")
+    parser.add_argument("--host", default="127.0.0.1")
+    parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument("--watch", action="store_true", help="auto rebuild on change")
+    args = parser.parse_args()
+    start_server(args.host, args.port, args.watch)
 
 
 if __name__ == "__main__":
