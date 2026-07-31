@@ -6,6 +6,18 @@ BASE = "https://meredith2328.github.io/pilog"
 ok = True
 
 
+def goto_retry(pg, url, wait="networkidle", attempts=4, delay=4):
+    import time
+
+    for i in range(attempts):
+        try:
+            return pg.goto(url, wait_until=wait)
+        except Exception:
+            if i < attempts - 1:
+                time.sleep(delay)
+    return pg.goto(url, wait_until=wait)
+
+
 def check(name, cond, detail=""):
     global ok
     print(f"  [{'PASS' if cond else 'FAIL'}] {name}" + ("" if cond else f" — {detail}"))
@@ -19,7 +31,7 @@ with sync_playwright() as p:
     pg.on("pageerror", lambda e: errs.append(str(e)))
 
     # home
-    resp = pg.goto(BASE + "/", wait_until="networkidle")
+    resp = goto_retry(pg, BASE + "/")
     check("home 200", resp.status == 200)
     check("home title", "MEREDITH" in pg.title())
     check("cards render", pg.locator(".card").count() >= 5)
@@ -77,9 +89,19 @@ with sync_playwright() as p:
         check("giscus repo matches", giscus.get_attribute("data-repo") == "Meredith2328/pilog")
         check("giscus has ids", bool(giscus.get_attribute("data-repo-id"))
               and bool(giscus.get_attribute("data-category-id")))
+        pg.wait_for_timeout(6000)
+        giscus_frames = [f for f in pg.frames if "giscus.app" in f.url]
+        check("giscus widget mounts", len(giscus_frames) >= 1)
+        if giscus_frames:
+            try:
+                widget_text = giscus_frames[0].locator("body").inner_text(timeout=9000)
+                check("giscus shows comment UI",
+                      "评论" in widget_text or "登录" in widget_text, widget_text[:80])
+            except Exception:
+                check("giscus shows comment UI", False, "iframe unreadable")
 
     # 404 custom page
-    resp = pg.goto(BASE + "/definitely-missing.html", wait_until="domcontentloaded")
+    resp = goto_retry(pg, BASE + "/definitely-missing.html", wait="domcontentloaded")
     check("404 status", resp.status == 404)
     check("custom 404", pg.locator(".notfound-art").count() == 1)
     print("404 link href:", pg.locator("#notfound-link").get_attribute("href"))
