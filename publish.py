@@ -35,7 +35,6 @@ def load_config() -> dict:
 def git(args: list, check: bool = True) -> subprocess.CompletedProcess:
     env = dict(os.environ)
     env["GIT_TERMINAL_PROMPT"] = "0"
-    env["GIT_ASKPASS"] = "echo"
     return subprocess.run(
         ["git", "-c", "http.sslBackend=openssl", *args],
         capture_output=True,
