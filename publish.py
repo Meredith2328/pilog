@@ -46,7 +46,7 @@ def git(args: list, check: bool = True) -> subprocess.CompletedProcess:
     )
 
 
-def git_retry(args: list, attempts: int = 3, delay: float = 2.0) -> subprocess.CompletedProcess:
+def git_retry(args: list, attempts: int = 5, delay: float = 3.0) -> subprocess.CompletedProcess:
     """Run a git network command with retries (the proxy/SSL can be flaky)."""
     last = None
     for i in range(attempts):
