@@ -1,9 +1,0 @@
-query {
-  repository(owner: "Meredith2328", name: "pilog") {
-    id
-    hasDiscussionsEnabled
-    discussionCategories(first: 10) {
-      nodes { id name }
-    }
-  }
-}

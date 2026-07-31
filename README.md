@@ -178,6 +178,36 @@ python serve.py --watch
 4. 在仓库 Settings → Pages 中选择 **Deploy from a branch 之外的 Actions 方式**（仓库已自带 `.github/workflows/deploy.yml`，推送后自动部署）；
 5. 打开 `https://<用户名>.github.io/<仓库名>/` 验证。
 
+### 一键发布（框架内置）
+
+框架内置了发布功能：构建站点 → `git add/commit` → 推送指定仓库。
+
+```powershell
+python publish.py                 # 构建 + 提交 + 推送
+python publish.py -m "发布说明"    # 自定义提交信息
+```
+
+或在工作台的「配置 → 发布到 GitHub」面板填写仓库、分支与令牌后点「发布到 GitHub」。令牌只写入本地 gitignore 的 `.publish-token`（或环境变量 `PILOG_TOKEN`），不会进入仓库；发布流程只有 add/commit/push，不包含任何删除性操作。
+
+**Fine-grained PAT 的最小权限**（GitHub 只能在网页端创建，无法通过 API 生成）：
+
+1. GitHub → Settings → Developer settings → Fine-grained personal access tokens → Generate new token；
+2. Repository access 选 **Only select repositories** 并勾选你的博客仓库；
+3. Repository permissions 里只需开启：
+   - **Contents: Read and write**（推送代码与站点）；
+   - **Metadata: Read**（强制项，会自动带上）。
+
+不需要 Actions、Workflows、Administration、Pages 等权限——推送后仓库自带的 GitHub Actions 会用它自己的 `GITHUB_TOKEN` 完成 Pages 部署；fine-grained token 本身也无法删除仓库。
+
+### giscus 评论
+
+giscus 是**客户端**评论系统（GitHub Discussions 驱动），博客侧不需要任何令牌。需要两步仓库级设置：
+
+1. 仓库 Settings → 勾选 **Discussions**（已为 `Meredith2328/pilog` 开启）；
+2. 安装 **giscus GitHub App** 到该仓库：访问 https://giscus.app → 配置后点安装（或直接 https://github.com/apps/giscus/installations/new）。这一步必须在网页端由仓库所有者确认，无法用 API 代替。
+
+`config.json` 的 `giscus` 段已填入本仓库的 `repo_id` / `category_id`，安装应用后评论即可正常工作（可用 `python tools/test_live.py` 验证部件挂载）。
+
 ### 关于相对路径的坑（重要）
 
 如果你的博客部署在 `meredith2328.github.io/blogtest` 子目录，最常见的错误是「从子页面点回首页跳到了 `meredith2328.github.io` 根目录」。pilog 的解法：

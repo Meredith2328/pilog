@@ -69,6 +69,15 @@ with sync_playwright() as p:
     resp = pg.request.get(BASE + "/rss.xml")
     check("rss 200", resp.status == 200)
 
+    # giscus config present on post pages
+    pg.goto(BASE + "/posts/tech/pixel-blog.html", wait_until="domcontentloaded")
+    giscus = pg.locator('script[src*="giscus.app/client.js"]')
+    check("giscus script present", giscus.count() == 1)
+    if giscus.count():
+        check("giscus repo matches", giscus.get_attribute("data-repo") == "Meredith2328/pilog")
+        check("giscus has ids", bool(giscus.get_attribute("data-repo-id"))
+              and bool(giscus.get_attribute("data-category-id")))
+
     # 404 custom page
     resp = pg.goto(BASE + "/definitely-missing.html", wait_until="domcontentloaded")
     check("404 status", resp.status == 404)
