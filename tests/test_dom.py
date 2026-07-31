@@ -145,6 +145,17 @@ def main() -> None:
         ok &= check("filter hint in tree view", page.locator(".filter-hint.is-show").count() == 1)
         hint = page.locator(".filter-hint").first.inner_text()
         ok &= check("filter hint text", "卡片视图" in hint and "生效" in hint, hint)
+        # the selected-chip row shifts the tag row right; measure both after
+        # the click so the hint is compared to the tag's actual position
+        chip_box = page.locator(".filter-tags .tag-chip").first.bounding_box()
+        hint_box = page.locator(".filter-hint").first.bounding_box()
+        ok &= check(
+            "filter hint under the clicked tag",
+            bool(chip_box and hint_box and
+                 hint_box["y"] >= chip_box["y"] + chip_box["height"] - 2 and
+                 abs((hint_box["x"] + hint_box["width"] / 2) -
+                     (chip_box["x"] + chip_box["width"] / 2)) < 45),
+            str(hint_box))
         page.locator(".sel-chip .sel-x").first.click()
         page.wait_for_timeout(200)
 

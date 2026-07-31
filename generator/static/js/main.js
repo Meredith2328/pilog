@@ -325,7 +325,7 @@
     });
   }
 
-  function toggleTag(tag) {
+  function toggleTag(tag, anchor) {
     if (!tag) return;
     var adding = !filterState.tags[tag];
     if (adding) filterState.tags[tag] = true;
@@ -336,7 +336,7 @@
     if (adding) {
       var view = currentView();
       if (view === "tree" || view === "graph") {
-        showFilterHint("已选中筛选「#" + tag + "」，在卡片视图生效");
+        showFilterHint("已选中筛选「#" + tag + "」，在卡片视图生效", anchor || null);
       }
     }
   }
@@ -354,7 +354,7 @@
   var filterHintEl = null;
   var filterHintTimer = null;
 
-  function showFilterHint(text) {
+  function showFilterHint(text, anchor) {
     var bar = document.getElementById("filter-bar");
     if (!bar) return;
     if (!filterHintEl) {
@@ -364,6 +364,13 @@
       bar.appendChild(filterHintEl);
     }
     filterHintEl.textContent = text;
+    // park the hint right below the clicked tag (centered on it)
+    if (anchor && anchor.getBoundingClientRect) {
+      var barRect = bar.getBoundingClientRect();
+      var r = anchor.getBoundingClientRect();
+      filterHintEl.style.left = (r.left - barRect.left + r.width / 2) + "px";
+      filterHintEl.style.top = (r.bottom - barRect.top + 6) + "px";
+    }
     filterHintEl.classList.add("is-show");
     clearTimeout(filterHintTimer);
     filterHintTimer = setTimeout(function () {
@@ -424,7 +431,7 @@
       var tagChip = e.target.closest(".tag-chip[data-tag]");
       if (tagChip) {
         e.preventDefault();
-        toggleTag(tagChip.dataset.tag);
+        toggleTag(tagChip.dataset.tag, tagChip);
         return;
       }
       var folderPart = e.target.closest(".folder-part[data-folder]");

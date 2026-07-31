@@ -187,7 +187,7 @@
     e.stopPropagation();
     var tag = tagEl.getAttribute("data-tag");
     if (onHome && window.pilogFilters && window.pilogFilters.toggleTag) {
-      window.pilogFilters.toggleTag(tag);
+      window.pilogFilters.toggleTag(tag, tagEl);
       results.hidden = true;
       input.value = "";
       query = "";
