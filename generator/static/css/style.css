@@ -64,6 +64,15 @@ a:hover {
   background: var(--paper);
 }
 
+.header-banner {
+  height: 150px;
+  background-size: cover;
+  background-position: center top;
+  background-color: var(--panel);
+  border-bottom: var(--border);
+  image-rendering: auto;
+}
+
 .header-row {
   max-width: 1080px;
   margin: 0 auto;

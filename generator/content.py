@@ -25,6 +25,7 @@ class Post:
     draft: bool = False
     pin: bool = False
     highlight: bool = False
+    order: float | None = None
     folder: str = ""
     url: str = ""
     html: str = ""
@@ -154,6 +155,11 @@ def scan_posts(blog_root: Path, ctx: MarkdownContext) -> list[Post]:
             draft=bool(fm.get("draft", False)),
             pin=bool(fm.get("pin", False)),
             highlight=bool(fm.get("highlight", False)),
+            order=(
+                float(fm["order"])
+                if fm.get("order") is not None
+                else None
+            ),
             folder=folder,
             word_count=len(re.sub(r"\s+", "", body)),
         )
@@ -233,9 +239,13 @@ def build_tree(
 
 
 def sorted_for_cards(posts: list[Post]) -> list[Post]:
-    """Pinned posts first, then newest first (cards view only)."""
-    pinned = sorted((p for p in posts if p.pin), key=lambda p: p.date, reverse=True)
-    rest = sorted((p for p in posts if not p.pin), key=lambda p: p.date, reverse=True)
+    """Pinned first; within each group manual `order` wins, then newest first."""
+
+    def key(p: Post):
+        return (p.order if p.order is not None else float("inf"), -p.date.timestamp())
+
+    pinned = sorted((p for p in posts if p.pin), key=key)
+    rest = sorted((p for p in posts if not p.pin), key=key)
     return pinned + rest
 
 

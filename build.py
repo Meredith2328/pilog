@@ -161,6 +161,13 @@ def log(msg: str) -> None:
 def make_dino_icons(root: Path, out: Path) -> None:
     """Crop the official dino sprite for favicon / widget icons."""
     sprite = root / "dino" / "reference" / "sprite_2x.png"
+    custom_logo = root / "blogs" / "assets" / "logo.png"
+    if custom_logo.exists():
+        (out / "img").mkdir(parents=True, exist_ok=True)
+        shutil.copy2(custom_logo, out / "img" / "dino-icon.png")
+        shutil.copy2(custom_logo, out / "favicon.png")
+        log("custom logo applied")
+        return
     if not sprite.exists():
         return
     try:
@@ -312,6 +319,7 @@ def build_site(
         socials=socials,
         svg_icons={k: Markup(v) for k, v in SVG_ICONS.items()},
         giscus=cfg.giscus,
+        has_header_banner=(blog_root / "assets" / "header.png").exists(),
     )
 
     for page_num, page_posts in enumerate(pages, start=1):

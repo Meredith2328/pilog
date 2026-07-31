@@ -3,147 +3,325 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>pilog 图片工作台</title>
+<title>pilog 本地工作台</title>
 <style>
 :root {
   --paper:#f7f7f7; --panel:#f1f3f4; --hairline:#dadce0; --ink:#3c4043;
-  --text:#5f6368; --mute:#9aa0a6; --accent:#1a73e8; --shadow:#e8eaed;
+  --text:#5f6368; --mute:#9aa0a6; --accent:#1a73e8; --hl:#fbbc04; --shadow:#e8eaed;
   --mono:"JetBrains Mono","Cascadia Code",Consolas,monospace;
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--paper);color:var(--ink);font-family:"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;font-size:14px}
 a{color:var(--accent)}
-.topbar{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:2px solid var(--ink);flex-wrap:wrap}
-.topbar h1{font-family:var(--mono);font-size:15px;letter-spacing:.1em;margin:0;padding:4px 10px;background:var(--ink);color:var(--paper)}
-.topbar .path{font-family:var(--mono);font-size:12px;color:var(--mute)}
-.topbar .spacer{flex:1}
+.topbar{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:2px solid var(--ink);flex-wrap:wrap;position:sticky;top:0;background:var(--paper);z-index:50}
+.topbar h1{font-family:var(--mono);font-size:14px;letter-spacing:.08em;margin:0;padding:4px 10px;background:var(--ink);color:var(--paper)}
+.local-badge{font-family:var(--mono);font-size:11px;border:2px solid #188038;color:#188038;padding:2px 8px}
+.tabs{display:flex;margin-left:8px}
+.tab{appearance:none;font-family:var(--mono);font-size:12px;font-weight:700;background:var(--paper);color:var(--ink);border:2px solid var(--ink);border-right-width:1px;padding:5px 14px;cursor:pointer}
+.tab.is-active{background:var(--ink);color:var(--paper)}
+.spacer{flex:1}
 .btn{appearance:none;font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink);background:var(--paper);border:2px solid var(--ink);padding:5px 12px;cursor:pointer;box-shadow:3px 3px 0 var(--shadow)}
 .btn:hover{background:var(--ink);color:var(--paper)}
-.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow)}
-.btn.danger:hover{background:#c5221f;color:#fff}
-.layout{display:grid;grid-template-columns:210px 1fr 330px;gap:18px;padding:18px 20px;align-items:start}
-.panel{background:var(--paper);border:2px solid var(--ink);box-shadow:5px 5px 0 var(--shadow)}
-.panel h2{margin:0;font-family:var(--mono);font-size:12px;letter-spacing:.12em;background:var(--ink);color:var(--paper);padding:6px 10px}
-.folders{padding:8px;max-height:70vh;overflow:auto}
-.folder-item{padding:4px 8px;cursor:pointer;font-family:var(--mono);font-size:12.5px;border:1px solid transparent}
+.btn:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
+.btn:disabled:hover{background:var(--paper);color:var(--ink)}
+.btn.small{padding:2px 8px;font-size:11px;box-shadow:2px 2px 0 var(--shadow)}
+.btn.ghost{border-color:var(--hairline);box-shadow:none}
+.btn.ghost:hover{border-color:var(--ink)}
+.layout{display:none;padding:16px 18px}
+.layout.is-active{display:block}
+
+/* ---------- preview ---------- */
+.pv-stage{max-width:1080px;margin:0 auto;background:var(--paper);border:2px solid var(--ink);box-shadow:6px 6px 0 var(--shadow)}
+.pv-banner{height:130px;background-size:cover;background-position:center top;background-color:var(--panel);border-bottom:2px solid var(--ink);position:relative;cursor:pointer}
+.pv-banner .pv-hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;color:var(--paper);background:rgba(60,64,67,.55);opacity:0;transition:opacity .15s}
+.pv-banner:hover .pv-hint{opacity:1}
+.pv-banner .pv-del{position:absolute;top:6px;right:8px;background:var(--ink);color:var(--paper);border:none;font-family:var(--mono);cursor:pointer;padding:2px 8px;display:none}
+.pv-banner:hover .pv-del{display:block}
+.pv-header{padding:16px 22px 10px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;position:relative}
+.pv-logo{position:relative;cursor:pointer}
+.pv-logo img{width:34px;height:34px;image-rendering:pixelated;border:2px solid var(--ink);padding:2px;background:var(--paper)}
+.pv-logo .pv-hint{position:absolute;left:0;top:110%;font-family:var(--mono);font-size:10px;color:var(--accent);background:var(--paper);border:1px solid var(--hairline);padding:1px 5px;display:none;white-space:nowrap;z-index:5}
+.pv-logo:hover .pv-hint{display:block}
+.pv-title{font-family:var(--mono);font-weight:700;font-size:17px;letter-spacing:.08em}
+.pv-sub{font-family:var(--mono);font-size:10px;color:var(--mute);letter-spacing:.12em}
+.pv-nav{border-top:1px solid var(--hairline);border-bottom:1px solid var(--hairline);background:var(--panel);padding:4px 22px;display:flex;gap:2px;flex-wrap:wrap;align-items:center}
+.pv-nav-item{position:relative;font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--text);padding:6px 10px;border:1px dashed transparent}
+.pv-nav-item:hover{border-color:var(--accent);color:var(--ink);background:var(--paper)}
+.pv-nav-item .nav-ops{position:absolute;top:100%;left:0;display:none;background:var(--paper);border:2px solid var(--ink);box-shadow:3px 3px 0 var(--shadow);padding:4px;z-index:20;min-width:200px}
+.pv-nav-item:hover .nav-ops{display:block}
+.nav-edit{display:flex;gap:4px;flex-wrap:wrap;padding:4px;align-items:center;font-family:var(--mono);font-size:11px}
+.nav-edit input{font-family:var(--mono);font-size:11px;border:1px solid var(--hairline);padding:2px 5px;width:110px}
+.nav-edit input.nav-href{width:180px}
+.pv-nav-add{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent);background:none;border:1px dashed var(--accent);padding:4px 10px;cursor:pointer;margin-left:6px}
+.pv-tabs{display:flex;padding:12px 22px 0;gap:0}
+.pv-tab{font-family:var(--mono);font-size:12px;font-weight:700;border:2px solid var(--ink);border-right-width:1px;padding:5px 14px;color:var(--ink);background:var(--paper)}
+.pv-tab.off{color:var(--text);border-color:var(--hairline)}
+.pv-body{padding:18px 22px 30px}
+.zone-label{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--mute);border-bottom:1px solid var(--hairline);padding-bottom:4px;margin:18px 0 10px;display:flex;align-items:center;gap:8px}
+.zone-label .zone-del{font-size:10px;color:var(--mute);border:1px solid var(--hairline);padding:0 4px;cursor:pointer}
+.pv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:18px}
+.pv-card{display:flex;background:var(--paper);border:2px solid var(--ink);box-shadow:4px 4px 0 var(--shadow);cursor:grab;position:relative;transition:opacity .12s}
+.pv-card.is-highlight{border-color:var(--hl);outline:3px solid var(--hl);outline-offset:-3px}
+.pv-card.is-dragging{opacity:.35}
+.pv-card:hover{box-shadow:6px 6px 0 var(--shadow)}
+.pv-card .card-body{flex:1;padding:12px 14px;min-width:0}
+.pv-card .card-meta{display:flex;gap:6px;align-items:center;font-family:var(--mono);font-size:10.5px;color:var(--mute)}
+.pv-card .pin-badge{background:var(--ink);color:var(--paper);padding:0 5px}
+.pv-card h3{margin:6px 0 4px;font-size:16px}
+.pv-card .card-pre{font-size:12px;color:var(--text);margin:0 0 6px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.pv-card .card-tags{font-family:var(--mono);font-size:10px;color:var(--mute)}
+.pv-card .card-img{flex:0 0 120px;border-left:2px solid var(--ink);background:var(--panel);position:relative;min-height:150px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.pv-card .card-img img{width:100%;height:100%;object-fit:cover;display:block}
+.pv-card .card-img .noimg{font-family:var(--mono);font-size:10px;color:var(--mute)}
+.pv-card .card-img .drop-hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;color:var(--accent);background:rgba(247,247,247,.85);border:2px dashed var(--accent);opacity:0;pointer-events:none}
+.pv-card.dragover .drop-hint{opacity:1}
+.pv-card .card-hints{position:absolute;bottom:0;left:0;right:0;font-family:var(--mono);font-size:9.5px;color:var(--mute);background:rgba(247,247,247,.9);border-top:1px solid var(--hairline);padding:2px 8px;display:none;justify-content:space-between}
+.pv-card:hover .card-hints{display:flex}
+.drop-ind{height:4px;background:var(--accent);margin:2px 0;display:none}
+.pv-footer{border-top:2px solid var(--ink);padding:14px 22px;font-family:var(--mono);font-size:11px;color:var(--mute);display:flex;gap:10px;flex-wrap:wrap}
+.ghost-card{position:fixed;z-index:200;pointer-events:none;opacity:.85;transform:rotate(1deg)}
+
+/* ---------- change drawer ---------- */
+.drawer{position:fixed;right:0;top:0;bottom:0;width:360px;background:var(--paper);border-left:2px solid var(--ink);box-shadow:-5px 0 0 var(--shadow);z-index:100;transform:translateX(105%);transition:transform .18s}
+.drawer.open{transform:none}
+.drawer h2{margin:0;padding:12px 14px;background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:13px;letter-spacing:.1em}
+.drawer .log{padding:10px 12px;overflow-y:auto;max-height:calc(100vh - 60px)}
+.log-item{border:1px solid var(--hairline);padding:8px 10px;margin-bottom:8px;font-family:var(--mono);font-size:11px}
+.log-item b{display:block;margin-bottom:4px}
+.log-item .f{color:var(--text)}
+.log-item .act-mod{color:var(--accent)}
+.log-item .act-new{color:#188038}
+.log-item .act-del{color:#c5221f}
+
+/* ---------- modal ---------- */
+.modal-mask{position:fixed;inset:0;background:rgba(60,64,67,.45);z-index:120;display:none;align-items:flex-start;justify-content:center;padding:40px 16px}
+.modal-mask.open{display:flex}
+.modal{background:var(--paper);border:2px solid var(--ink);box-shadow:8px 8px 0 rgba(0,0,0,.2);width:640px;max-width:100%;max-height:88vh;overflow-y:auto}
+.modal h3{margin:0;padding:10px 14px;background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:13px}
+.modal .body{padding:14px;display:flex;flex-direction:column;gap:10px}
+.field{display:flex;flex-direction:column;gap:4px;font-family:var(--mono);font-size:11.5px;color:var(--text)}
+.field input,.field textarea,.field select{font-family:var(--mono);font-size:12.5px;border:2px solid var(--hairline);background:var(--paper);padding:5px 8px;color:var(--ink)}
+.field input:focus,.field textarea:focus{border-color:var(--ink)}
+.checks{display:flex;gap:16px;font-family:var(--mono);font-size:12px}
+.checks label{display:flex;gap:6px;align-items:center}
+.img-pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px;max-height:180px;overflow-y:auto}
+.img-pick img{width:100%;height:48px;object-fit:contain;border:2px solid var(--hairline);cursor:pointer;image-rendering:pixelated}
+.img-pick img:hover{border-color:var(--accent)}
+.modal .actions{display:flex;gap:8px;justify-content:flex-end;padding:0 14px 14px}
+
+/* ---------- config tab ---------- */
+.cfg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;max-width:1100px}
+.cfg-panel{background:var(--paper);border:2px solid var(--ink);box-shadow:4px 4px 0 var(--shadow)}
+.cfg-panel h3{margin:0;background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:12px;letter-spacing:.1em;padding:6px 12px}
+.cfg-panel .body{padding:12px;display:flex;flex-direction:column;gap:8px}
+.cfg-panel .path{font-family:var(--mono);font-size:10px;color:var(--mute);padding:6px 12px;border-top:1px solid var(--hairline)}
+.cfg-row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-family:var(--mono);font-size:11.5px}
+.cfg-row label{color:var(--text)}
+.cfg-row input[type=text]{flex:1;min-width:0;font-family:var(--mono);font-size:12px;border:1px solid var(--hairline);padding:3px 6px}
+.cfg-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
+
+/* ---------- images tab (workbench) ---------- */
+.img-layout{display:grid;grid-template-columns:200px 1fr 320px;gap:14px;align-items:start}
+.panel{background:var(--paper);border:2px solid var(--ink);box-shadow:4px 4px 0 var(--shadow)}
+.panel h2{margin:0;font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;background:var(--ink);color:var(--paper);padding:6px 10px}
+.folders{padding:8px;max-height:60vh;overflow:auto}
+.folder-item{padding:3px 8px;cursor:pointer;font-family:var(--mono);font-size:12px;border:1px solid transparent}
 .folder-item:hover{background:var(--panel)}
 .folder-item.is-active{background:var(--ink);color:var(--paper)}
-.folder-item .indent{opacity:.45}
-.dropzone{margin:12px;border:2px dashed var(--hairline);padding:22px;text-align:center;color:var(--mute);font-family:var(--mono);font-size:12.5px;cursor:pointer}
+.dropzone{margin:10px;border:2px dashed var(--hairline);padding:18px;text-align:center;color:var(--mute);font-family:var(--mono);font-size:12px;cursor:pointer}
 .dropzone.dragover{border-color:var(--accent);color:var(--accent);background:#e8f0fe}
 .dropzone input{display:none}
-.grid{margin:0 12px 12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;max-height:52vh;overflow:auto;padding-bottom:8px}
-.thumb{border:2px solid var(--hairline);cursor:pointer;background:var(--panel);padding:4px;text-align:center}
+.grid{margin:0 10px 10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;max-height:46vh;overflow:auto}
+.thumb{border:2px solid var(--hairline);cursor:pointer;background:var(--panel);padding:3px;text-align:center}
 .thumb:hover{border-color:var(--ink)}
-.thumb.is-active{border-color:var(--ink);background:var(--paper);box-shadow:3px 3px 0 var(--shadow)}
-.thumb img{width:100%;height:64px;object-fit:contain;image-rendering:pixelated}
-.thumb .tname{font-family:var(--mono);font-size:10px;color:var(--text);word-break:break-all;display:block;margin-top:4px}
-.thumb .tsize{font-family:var(--mono);font-size:9px;color:var(--mute)}
-.editor{padding:12px}
-.canvas-box{position:relative;height:250px;background:var(--panel);border:2px solid var(--hairline);overflow:hidden;margin-bottom:10px}
+.thumb.is-active{border-color:var(--ink);box-shadow:2px 2px 0 var(--shadow)}
+.thumb img{width:100%;height:56px;object-fit:contain;image-rendering:pixelated}
+.thumb .tname{font-family:var(--mono);font-size:9.5px;color:var(--text);word-break:break-all;display:block}
+.editor{padding:10px}
+.canvas-box{position:relative;height:220px;background:var(--panel);border:2px solid var(--hairline);overflow:hidden;margin-bottom:8px}
 #editor-canvas{display:block;width:100%;height:100%}
 .crop-rect{position:absolute;border:2px solid var(--accent);background:rgba(26,115,232,.12);pointer-events:none;display:none}
-.controls{display:flex;flex-direction:column;gap:10px}
-.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:var(--mono);font-size:11.5px;color:var(--text)}
-.row label{min-width:64px}
+.controls{display:flex;flex-direction:column;gap:8px}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:var(--mono);font-size:11px;color:var(--text)}
 .row input[type=range]{flex:1}
-.row select,.row input[type=text]{font-family:var(--mono);font-size:12px;border:2px solid var(--hairline);background:var(--paper);padding:3px 6px;color:var(--ink)}
 .actions{display:flex;gap:6px;flex-wrap:wrap}
-.snippet{font-family:var(--mono);font-size:11px;background:var(--panel);border:1px solid var(--hairline);padding:6px 8px;word-break:break-all;display:flex;align-items:center;gap:8px}
-.snippet code{flex:1;color:var(--ink)}
-.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:12px;padding:8px 16px;border:2px solid var(--ink);box-shadow:4px 4px 0 rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .15s}
+.snippet{font-family:var(--mono);font-size:10.5px;background:var(--panel);border:1px solid var(--hairline);padding:5px 8px;word-break:break-all;display:flex;gap:6px;align-items:center}
+.snippet code{flex:1}
+.hint{font-family:var(--mono);font-size:10px;color:var(--mute);line-height:1.6}
+.empty{color:var(--mute);font-family:var(--mono);font-size:12px;padding:16px;text-align:center}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:12px;padding:9px 16px;border:2px solid var(--ink);box-shadow:4px 4px 0 rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .15s;z-index:300;max-width:70vw}
 .toast.show{opacity:1}
-.empty{color:var(--mute);font-family:var(--mono);font-size:12px;padding:18px;text-align:center}
-.hint{font-family:var(--mono);font-size:10.5px;color:var(--mute);line-height:1.6}
-@media(max-width:980px){.layout{grid-template-columns:1fr}.folders{max-height:24vh}}
+.toast .tf{color:var(--hl)}
+@media(max-width:980px){.img-layout{grid-template-columns:1fr}.folders{max-height:24vh}.pv-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="topbar">
-  <h1>pilog · 图片工作台</h1>
-  <span class="path" id="blog-path"></span>
+  <h1>pilog · 本地工作台</h1>
+  <span class="local-badge">仅本机可见</span>
+  <div class="tabs">
+    <button class="tab is-active" data-tab="preview">预览编辑</button>
+    <button class="tab" data-tab="images">图片管理</button>
+    <button class="tab" data-tab="config">配置</button>
+  </div>
   <span class="spacer"></span>
-  <a class="btn" href="/">打开博客</a>
+  <button class="btn" id="btn-undo" title="撤销 (Ctrl+Z)">↩ 撤销</button>
+  <button class="btn" id="btn-redo" title="重做 (Ctrl+Y)">↪ 重做</button>
+  <button class="btn" id="btn-log" title="变更记录">变更记录</button>
+  <button class="btn" id="btn-rebuild">重新构建</button>
+  <a class="btn ghost" href="/" target="_blank">打开博客 ↗</a>
 </div>
 
-<div class="layout">
-  <div class="panel">
-    <h2>目录</h2>
-    <div class="folders" id="folder-tree"></div>
-  </div>
-
-  <div class="panel">
-    <h2 id="current-dir">图片</h2>
-    <div class="dropzone" id="dropzone">
-      <strong>把图片拖到这里</strong>，或点击选择文件<br>
-      <label class="hint" style="cursor:pointer">
-        <input type="checkbox" id="replace-check"> 覆盖同名文件
-      </label>
-      <input type="file" id="file-input" multiple accept="image/*">
+<!-- ============ preview tab ============ -->
+<div class="layout is-active" id="tab-preview">
+  <div class="pv-stage" id="pv-stage">
+    <div class="pv-banner" id="pv-banner" title="点击替换背景长图">
+      <span class="pv-hint">点击替换背景长图 · 拖入图片也可以</span>
+      <button class="pv-del" id="banner-del" type="button" title="删除背景图">× 删除</button>
     </div>
-    <div class="grid" id="image-grid"></div>
-  </div>
-
-  <div class="panel">
-    <h2>编辑器</h2>
-    <div class="editor" id="editor" hidden>
-      <div class="canvas-box" id="canvas-box">
-        <canvas id="editor-canvas"></canvas>
-        <div class="crop-rect" id="crop-rect"></div>
+    <div class="pv-header">
+      <div class="pv-logo" id="pv-logo" title="点击更换头图">
+        <img id="pv-logo-img" alt="logo">
+        <span class="pv-hint">点击更换头图（小恐龙）</span>
       </div>
-      <div class="controls">
-        <div class="row">
-          <label>缩放</label>
-          <input type="range" id="zoom" min="20" max="400" value="100">
-          <span id="zoom-label">100%</span>
-        </div>
-        <div class="row">
-          <label>输出倍率</label>
-          <select id="out-scale">
-            <option value="0.5">0.5×</option>
-            <option value="1" selected>1×</option>
-            <option value="2">2×</option>
-            <option value="3">3×</option>
-          </select>
-          <span id="info-size"></span>
-        </div>
-        <div class="actions">
-          <button class="btn" id="btn-crop">保存裁剪</button>
-          <button class="btn" id="btn-scale">缩放保存</button>
-          <button class="btn" id="btn-rotate">旋转90°</button>
-          <button class="btn" id="btn-saveas">另存为</button>
-          <button class="btn" id="btn-replace">替换图片</button>
-          <button class="btn danger" id="btn-delete">删除</button>
-        </div>
-        <div class="snippet"><code id="snippet-wiki"></code><button class="btn" data-copy="snippet-wiki">复制</button></div>
-        <div class="snippet"><code id="snippet-md"></code><button class="btn" data-copy="snippet-md">复制</button></div>
-        <p class="hint">拖动蓝色选框裁剪。默认保存到当前目录；另存为可自定义文件名。</p>
+      <div>
+        <div class="pv-title" id="pv-title"></div>
+        <div class="pv-sub" id="pv-sub"></div>
       </div>
+      <div style="margin-left:auto" class="pv-socials" id="pv-socials"></div>
     </div>
-    <div class="empty" id="editor-empty">← 选择一张图片开始编辑</div>
+    <div class="pv-nav" id="pv-nav"></div>
+    <div class="pv-tabs">
+      <span class="pv-tab">卡片</span><span class="pv-tab off">清单</span><span class="pv-tab off">图谱</span>
+    </div>
+    <div class="pv-body">
+      <div class="zone-label" id="pin-zone-label" style="display:none">▣ 置顶区（拖入即置顶）<span class="zone-del" id="pin-clear" title="取消全部置顶">清空</span></div>
+      <div class="pv-grid" id="pin-grid" style="margin-bottom:18px"></div>
+      <div class="zone-label">▤ 全部文章（拖拽排序 · 双击编辑）</div>
+      <div class="pv-grid" id="main-grid"></div>
+    </div>
+    <div class="pv-footer" id="pv-footer"></div>
   </div>
+  <p class="hint" style="margin:10px auto;max-width:1080px">
+    提示：点选头图/背景图可替换；悬停导航项可增删改；拖动卡片排序（跨入置顶区即置顶）；
+    双击卡片编辑标题/预览/标签/高亮/全文；把图片拖到卡片右侧可设为该文章的预览图。
+    所有修改立即写入本地文件，可撤销/重做。右侧“变更记录”显示每次修改影响的文件。
+  </p>
+</div>
+
+<!-- ============ images tab ============ -->
+<div class="layout" id="tab-images">
+  <div class="img-layout">
+    <div class="panel">
+      <h2>目录</h2>
+      <div class="folders" id="folder-tree"></div>
+    </div>
+    <div class="panel">
+      <h2 id="current-dir">图片</h2>
+      <div class="dropzone" id="dropzone">
+        <strong>把图片拖到这里</strong>，或点击选择文件<br>
+        <label class="hint" style="cursor:pointer"><input type="checkbox" id="replace-check"> 覆盖同名文件</label>
+        <input type="file" id="file-input" multiple accept="image/*">
+      </div>
+      <div class="grid" id="image-grid"></div>
+    </div>
+    <div class="panel">
+      <h2>编辑器</h2>
+      <div class="editor" id="editor" hidden>
+        <div class="canvas-box" id="canvas-box">
+          <canvas id="editor-canvas"></canvas>
+          <div class="crop-rect" id="crop-rect"></div>
+        </div>
+        <div class="controls">
+          <div class="row"><label>缩放</label><input type="range" id="zoom" min="20" max="400" value="100"><span id="zoom-label">100%</span></div>
+          <div class="row"><label>输出倍率</label>
+            <select id="out-scale"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="3">3×</option></select>
+            <span id="info-size"></span>
+          </div>
+          <div class="actions">
+            <button class="btn small" id="btn-crop">保存裁剪</button>
+            <button class="btn small" id="btn-scale">缩放保存</button>
+            <button class="btn small" id="btn-rotate">旋转90°</button>
+            <button class="btn small" id="btn-saveas">另存为</button>
+            <button class="btn small" id="btn-replace">替换图片</button>
+            <button class="btn small" id="btn-delete">删除</button>
+          </div>
+          <div class="snippet"><code id="snippet-wiki"></code><button class="btn small" data-copy="snippet-wiki">复制</button></div>
+          <div class="snippet"><code id="snippet-md"></code><button class="btn small" data-copy="snippet-md">复制</button></div>
+          <p class="hint">拖动蓝色选框裁剪；保存后可在卡片预览图中使用。</p>
+        </div>
+      </div>
+      <div class="empty" id="editor-empty">← 选择一张图片开始编辑</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ config tab ============ -->
+<div class="layout" id="tab-config">
+  <div class="cfg-grid" id="cfg-grid"></div>
+  <div style="margin-top:16px"><button class="btn" id="cfg-save">保存配置</button>
+    <span class="hint"> 保存会写入 config.json，可撤销</span></div>
 </div>
 
 <input type="file" id="replace-input" accept="image/*" hidden>
 <div class="toast" id="toast"></div>
 
+<!-- change drawer -->
+<div class="drawer" id="drawer">
+  <h2>变更记录 <span id="log-count" style="float:right">0</span></h2>
+  <div class="log" id="log-list"></div>
+</div>
+
+<!-- card editor modal -->
+<div class="modal-mask" id="modal">
+  <div class="modal">
+    <h3 id="modal-title">编辑文章</h3>
+    <div class="body">
+      <div class="field"><label>标题</label><input type="text" id="m-title"></div>
+      <div class="field"><label>预览（Markdown，留空则自动提取）</label><textarea id="m-preview" rows="3"></textarea></div>
+      <div class="field"><label>标签（逗号分隔）</label><input type="text" id="m-tags"></div>
+      <div class="checks">
+        <label><input type="checkbox" id="m-pin"> 置顶</label>
+        <label><input type="checkbox" id="m-highlight"> 高亮（黄色描边）</label>
+      </div>
+      <div class="field">
+        <label>预览图（拖入卡片右侧图片也可设置）</label>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="m-image" placeholder="assets/xxx.png">
+          <button class="btn small" id="m-img-upload">上传</button>
+          <button class="btn small ghost" id="m-img-clear">清除</button>
+        </div>
+        <input type="file" id="m-img-file" accept="image/*" hidden>
+        <div class="img-pick" id="m-img-pick"></div>
+      </div>
+      <div class="field">
+        <label>全文（Markdown，双击正文也可进入）</label>
+        <textarea id="m-source" rows="12" style="font-family:var(--mono);font-size:12px"></textarea>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn ghost" id="m-cancel">取消</button>
+      <button class="btn" id="m-save">保存</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const $ = s => document.querySelector(s);
-let state = {
-  folder: "",
-  images: [],
-  current: null,
-  img: null,
-  drawScale: 1,
-  crop: null
-};
+let state = { config: {}, nav: [], posts: [], brand: {}, log: [] };
+let editingRel = null;
+let origSource = "";
 
-function toast(msg) {
+function toast(msg, files) {
   const t = $("#toast");
-  t.textContent = msg;
+  let extra = "";
+  if (files && files.length) {
+    extra = "<br><span class='tf'>影响文件:</span> " + files.map(f => f.path + " (" + f.action + ")").join("，");
+  }
+  t.innerHTML = msg + extra;
   t.classList.add("show");
   clearTimeout(t._timer);
-  t._timer = setTimeout(() => t.classList.remove("show"), 2200);
+  t._timer = setTimeout(() => t.classList.remove("show"), 3200);
 }
 
 async function api(url, opts) {
@@ -153,99 +331,672 @@ async function api(url, opts) {
   return data;
 }
 
-/* ---------- folder tree ---------- */
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function logChange(label, files) {
+  if (files && files.length) {
+    state.log.unshift({ t: new Date().toLocaleTimeString(), label, files });
+    state.log = state.log.slice(0, 60);
+    renderLog();
+  }
+}
+
+function renderLog() {
+  $("#log-count").textContent = state.log.length;
+  const box = $("#log-list");
+  box.innerHTML = "";
+  state.log.forEach(entry => {
+    const div = document.createElement("div");
+    div.className = "log-item";
+    div.innerHTML = "<b>" + esc(entry.t) + " · " + esc(entry.label) + "</b>" +
+      entry.files.map(f => '<span class="f act-' + f.action + '">' + esc(f.path) + " · " + f.action + "</span>").join("<br>");
+    box.appendChild(div);
+  });
+}
+
+/* ---------- refresh ---------- */
+async function refresh() {
+  const [cfg, nav, posts, brand] = await Promise.all([
+    api("/api/config"),
+    api("/api/nav"),
+    api("/api/posts"),
+    api("/api/brand"),
+  ]);
+  state.config = cfg.config;
+  state.nav = nav.items;
+  state.posts = posts.posts;
+  state.brand = brand;
+  renderPreview();
+  renderConfig();
+}
+
+/* ---------- preview ---------- */
+const LOGO_URL = p => "/api/file?path=blogs/assets/logo.png&t=" + Date.now();
+const HEADER_URL = p => "/api/file?path=blogs/assets/header.png&t=" + Date.now();
+
+function renderPreview() {
+  const cfg = state.config.site || {};
+  $("#pv-title").textContent = cfg.title || "";
+  $("#pv-sub").textContent = cfg.subtitle || "";
+  const banner = $("#pv-banner");
+  banner.style.backgroundImage = state.brand.header ? "url('" + HEADER_URL() + "')" : "";
+  banner.style.backgroundColor = state.brand.header ? "transparent" : "var(--panel)";
+  $("#banner-del").style.display = state.brand.header ? "block" : "none";
+  $("#pv-logo-img").src = state.brand.logo ? LOGO_URL() : "/img/dino-icon.png";
+
+  // socials
+  const soc = state.config.socials || {};
+  $("#pv-socials").innerHTML = Object.entries(soc)
+    .filter(([k, v]) => v && k !== "rss")
+    .map(([k, v]) => '<span class="hint" style="border:1px solid var(--hairline);padding:2px 7px">' + esc(k) + "</span>")
+    .join(" ");
+
+  renderNav();
+  renderCards();
+  $("#pv-footer").textContent = cfg.footer_text || "© " + (cfg.author || "");
+}
+
+function renderNav() {
+  const box = $("#pv-nav");
+  box.innerHTML = "";
+  state.nav.forEach((item, i) => {
+    const wrap = document.createElement("div");
+    wrap.className = "pv-nav-item";
+    wrap.innerHTML =
+      '<span>' + esc(item.label) + "</span>" +
+      '<span class="nav-ops">' +
+        '<span class="nav-edit"><input class="nav-label" value="' + esc(item.label) + '">' +
+        '<input class="nav-href" value="' + esc(item.href) + '">' +
+        '<button class="btn small" data-act="save">保存</button>' +
+        '<button class="btn small ghost" data-act="cancel">取消</button></span>' +
+        '<span style="display:flex;gap:4px;padding:2px 4px">' +
+        '<button class="btn small ghost" data-act="edit">编辑</button>' +
+        '<button class="btn small ghost" data-act="child">＋子项</button>' +
+        '<button class="btn small" data-act="del">删除</button></span>' +
+        (item.children && item.children.length
+          ? item.children.map(c =>
+              '<div class="nav-edit" style="display:flex">→ <input class="nav-label" value="' + esc(c.label) + '">' +
+              '<input class="nav-href" value="' + esc(c.href) + '"></div>'
+            ).join("")
+          : "") +
+      "</span>";
+    wrap.addEventListener("click", e => {
+      const act = e.target.dataset.act;
+      if (!act) return;
+      e.stopPropagation();
+      if (act === "edit") {
+        const ops = wrap.querySelector(".nav-ops");
+        ops.querySelector('[data-act="edit"]').style.display = "none";
+        ops.querySelector('[data-act="save"]').style.display = "inline-block";
+        ops.querySelector('[data-act="cancel"]').style.display = "inline-block";
+        const edit = ops.querySelector(".nav-edit");
+        edit.style.display = "flex";
+      } else if (act === "save") {
+        item.label = wrap.querySelector(".nav-label").value.trim() || item.label;
+        item.href = wrap.querySelector(".nav-href").value.trim() || "/";
+        saveNav();
+      } else if (act === "cancel") {
+        renderNav();
+      } else if (act === "del") {
+        state.nav.splice(i, 1);
+        saveNav();
+      } else if (act === "child") {
+        item.children = item.children || [];
+        item.children.push({ label: "子项", href: "/" });
+        saveNav();
+      }
+    });
+    box.appendChild(wrap);
+  });
+  const add = document.createElement("button");
+  add.className = "pv-nav-add";
+  add.textContent = "＋ 添加导航项";
+  add.addEventListener("click", () => {
+    state.nav.push({ label: "新页面", href: "/", children: [] });
+    saveNav();
+  });
+  box.appendChild(add);
+}
+
+async function saveNav() {
+  try {
+    const data = await api("/api/nav", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ items: state.nav }),
+    });
+    logChange("导航栏", data.files);
+    toast("导航栏已保存", data.files);
+    renderNav();
+  } catch (e) { toast(e.message); }
+}
+
+function renderCards() {
+  const pinned = state.posts.filter(p => p.pin);
+  const main = state.posts.filter(p => !p.pin);
+  $("#pin-zone-label").style.display = pinned.length ? "flex" : "none";
+  renderGrid($("#pin-grid"), pinned, true);
+  renderGrid($("#main-grid"), main, false);
+}
+
+function cardHtml(p, pin) {
+  const img = p.image ? '/api/file?path=' + encodeURIComponent(p.image) + '&t=' + Date.now() : "";
+  return (
+    '<div class="card-body">' +
+      '<div class="card-meta"><time>' + esc(p.date) + "</time>" +
+      (pin ? '<span class="pin-badge">置顶</span>' : "") +
+      '<span style="margin-left:auto">' + esc(p.folder) + "</span></div>" +
+      "<h3>" + esc(p.title) + "</h3>" +
+      '<p class="card-pre">' + esc(p.preview || "") + "</p>" +
+      '<div class="card-tags">' + (p.tags || []).map(t => "#" + esc(t)).join(" ") + "</div>" +
+    "</div>" +
+    '<div class="card-img">' +
+      (img ? '<img src="' + img + '" alt="">' : '<span class="noimg">无预览图</span>') +
+      '<span class="drop-hint">拖入图片设为预览图</span>' +
+    "</div>" +
+    '<div class="card-hints"><span>拖拽排序 · 跨入置顶区即置顶</span><span>双击编辑</span></div>'
+  );
+}
+
+function renderGrid(box, posts, pin) {
+  box.innerHTML = "";
+  posts.forEach(p => {
+    const el = document.createElement("article");
+    el.className = "pv-card" + (p.highlight ? " is-highlight" : "");
+    el.dataset.rel = p.rel;
+    el.dataset.pin = pin ? "1" : "0";
+    el.innerHTML = cardHtml(p, pin);
+    box.appendChild(el);
+  });
+}
+
+/* ---------- drag to reorder ---------- */
+let dstate = null;
+
+function onCardPointerDown(e) {
+  const card = e.target.closest(".pv-card");
+  if (!card) return;
+  if (e.target.closest("button, a, input")) return;
+  dstate = {
+    rel: card.dataset.rel,
+    startX: e.clientX, startY: e.clientY,
+    moved: false, ghost: null, card
+  };
+  e.preventDefault();
+}
+
+function onPointerMove(e) {
+  if (!dstate) return;
+  if (!dstate.moved && Math.hypot(e.clientX - dstate.startX, e.clientY - dstate.startY) > 6) {
+    dstate.moved = true;
+    dstate.card.classList.add("is-dragging");
+    const ghost = dstate.card.cloneNode(true);
+    ghost.classList.add("ghost-card");
+    ghost.style.width = dstate.card.offsetWidth + "px";
+    document.body.appendChild(ghost);
+    dstate.ghost = ghost;
+  }
+  if (dstate.moved) {
+    dstate.ghost.style.left = (e.clientX + 12) + "px";
+    dstate.ghost.style.top = (e.clientY + 12) + "px";
+    showDropInd(e.clientX, e.clientY);
+  }
+}
+
+function dropZoneInfo(x, y) {
+  for (const zone of [{ box: $("#pin-grid"), pin: true }, { box: $("#main-grid"), pin: false }]) {
+    const cards = [...zone.box.querySelectorAll(".pv-card")];
+    let index = cards.length;
+    for (let i = 0; i < cards.length; i++) {
+      const r = cards[i].getBoundingClientRect();
+      if (r.left <= x && x <= r.right && r.top <= y && y <= r.bottom) {
+        index = (y < r.top + r.height / 2) ? i : i + 1;
+        break;
+      }
+    }
+    const zr = zone.box.getBoundingClientRect();
+    if (zr.width === 0 && zr.height === 0) continue;
+    if (x >= zr.left - 20 && x <= zr.right + 20 && y >= zr.top - 30 && y <= zr.bottom + 20) {
+      return { pin: zone.pin, index, box: zone.box, cards };
+    }
+  }
+  return null;
+}
+
+function showDropInd(x, y) {
+  document.querySelectorAll(".drop-ind").forEach(el => el.remove());
+  const info = dropZoneInfo(x, y);
+  if (!info) return;
+  const ind = document.createElement("div");
+  ind.className = "drop-ind";
+  if (info.index >= info.cards.length) info.box.appendChild(ind);
+  else info.box.insertBefore(ind, info.cards[info.index]);
+}
+
+async function onPointerUp(e) {
+  if (!dstate) return;
+  if (dstate.ghost) dstate.ghost.remove();
+  dstate.card.classList.remove("is-dragging");
+  if (dstate.moved) {
+    const info = dropZoneInfo(e.clientX, e.clientY);
+    if (info) {
+      const srcPin = dstate.card.dataset.pin === "1";
+      let pinned = state.posts.filter(p => p.pin).map(p => p.rel);
+      let main = state.posts.filter(p => !p.pin).map(p => p.rel);
+      const from = srcPin ? pinned : main;
+      const idx = from.indexOf(dstate.rel);
+      if (idx >= 0) from.splice(idx, 1);
+      const target = info.pin ? pinned : main;
+      target.splice(Math.min(info.index, target.length), 0, dstate.rel);
+      const items = pinned.map(r => ({ rel: r, pin: true }))
+        .concat(main.map(r => ({ rel: r, pin: false })));
+      try {
+        const data = await api("/api/posts/order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ items }),
+        });
+        logChange("文章排版", data.files);
+        toast("排版已保存", data.files);
+        const posts = await api("/api/posts");
+        state.posts = posts.posts;
+        renderCards();
+      } catch (err) { toast(err.message); }
+    }
+  }
+  dstate = null;
+}
+
+/* ---------- card editing / image drop ---------- */
+async function openEditor(rel) {
+  editingRel = rel;
+  const p = state.posts.find(x => x.rel === rel);
+  if (!p) return;
+  $("#m-title").value = p.title;
+  $("#m-preview").value = "";
+  $("#m-tags").value = (p.tags || []).join(", ");
+  $("#m-pin").checked = p.pin;
+  $("#m-highlight").checked = p.highlight;
+  $("#m-image").value = p.image || "";
+  $("#m-source").value = "";
+  const src = await api("/api/post/source?rel=" + encodeURIComponent(rel));
+  $("#m-source").value = src.source;
+  origSource = src.source;
+  $("#modal-title").textContent = "编辑文章 · " + p.title;
+  $("#modal").classList.add("open");
+  await loadImagePicker();
+}
+
+async function loadImagePicker() {
+  const data = await api("/api/list?dir=assets");
+  const box = $("#m-img-pick");
+  box.innerHTML = "";
+  data.images.forEach(img => {
+    const el = document.createElement("img");
+    el.src = "/api/thumb?path=" + encodeURIComponent(img.path);
+    el.title = img.path;
+    el.addEventListener("click", () => { $("#m-image").value = img.path; });
+    box.appendChild(el);
+  });
+}
+
+async function saveEditor() {
+  const updates = {
+    title: $("#m-title").value.trim(),
+    preview: $("#m-preview").value.trim() || null,
+    tags: $("#m-tags").value.split(",").map(s => s.trim()).filter(Boolean),
+    pin: $("#m-pin").checked,
+    highlight: $("#m-highlight").checked,
+    preview_image: $("#m-image").value.trim() || null,
+  };
+  const files = [];
+  const d1 = await api("/api/post/meta", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ rel: editingRel, updates }),
+  });
+  files.push(...d1.files);
+  const src = $("#m-source").value;
+  if (src && src !== origSource) {
+    const d2 = await api("/api/post/source", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ rel: editingRel, source: src }),
+    });
+    files.push(...d2.files);
+  }
+  logChange("编辑文章 " + editingRel, files);
+  toast("文章已保存", files);
+  $("#modal").classList.remove("open");
+  const posts = await api("/api/posts");
+  state.posts = posts.posts;
+  renderCards();
+}
+
+async function uploadPostImage(file) {
+  const up = await api("/api/upload", {
+    method: "POST",
+    headers: { "X-Folder": "assets", "X-Filename": file.name, "X-Replace": "0" },
+    body: file,
+  });
+  const d = await api("/api/post/meta", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ rel: editingRel, updates: { preview_image: up.path } }),
+  });
+  logChange("设置预览图", d.files);
+  $("#m-image").value = up.path;
+  toast("预览图已设置", d.files);
+}
+
+document.addEventListener("pointerdown", onCardPointerDown);
+document.addEventListener("pointermove", onPointerMove);
+document.addEventListener("pointerup", onPointerUp);
+
+document.addEventListener("dblclick", e => {
+  const card = e.target.closest(".pv-card");
+  if (card) openEditor(card.dataset.rel);
+});
+
+document.addEventListener("dragover", e => {
+  const card = e.target.closest(".pv-card");
+  if (card || e.target.closest("#pv-logo") || e.target.closest("#pv-banner")) {
+    e.preventDefault();
+    if (card) card.classList.add("dragover");
+  }
+});
+document.addEventListener("dragleave", e => {
+  const card = e.target.closest(".pv-card");
+  if (card) card.classList.remove("dragover");
+});
+document.addEventListener("drop", async e => {
+  e.preventDefault();
+  const card = e.target.closest(".pv-card");
+  if (card) {
+    card.classList.remove("dragover");
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+    editingRel = card.dataset.rel;
+    try { await uploadPostImage(file); } catch (err) { toast(err.message); }
+    return;
+  }
+  if (e.target.closest("#pv-logo") || e.target.closest("#pv-banner")) {
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+    const kind = e.target.closest("#pv-logo") ? "logo" : "header";
+    try {
+      const d = await api("/api/brand", {
+        method: "POST",
+        headers: { "X-Kind": kind },
+        body: file,
+      });
+      logChange(kind === "logo" ? "更换头图" : "更换背景图", d.files);
+      toast((kind === "logo" ? "头图" : "背景图") + "已替换", d.files);
+      await refreshBrand();
+    } catch (err) { toast(err.message); }
+  }
+});
+
+/* ---------- logo / banner ---------- */
+async function refreshBrand() {
+  const brand = await api("/api/brand");
+  state.brand = brand;
+  $("#pv-logo-img").src = state.brand.logo ? LOGO_URL() : "/img/dino-icon.png";
+  const banner = $("#pv-banner");
+  banner.style.backgroundImage = state.brand.header ? "url('" + HEADER_URL() + "')" : "";
+  banner.style.backgroundColor = state.brand.header ? "transparent" : "var(--panel)";
+  $("#banner-del").style.display = state.brand.header ? "block" : "none";
+}
+
+function brandFileInput(kind) {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/*";
+  input.addEventListener("change", async () => {
+    const f = input.files[0];
+    if (!f) return;
+    try {
+      const d = await api("/api/brand", {
+        method: "POST",
+        headers: { "X-Kind": kind },
+        body: f,
+      });
+      logChange(kind === "logo" ? "更换头图" : "更换背景图", d.files);
+      toast((kind === "logo" ? "头图" : "背景图") + "已替换", d.files);
+      await refreshBrand();
+    } catch (err) { toast(err.message); }
+  });
+  input.click();
+}
+
+$("#pv-logo").addEventListener("click", () => brandFileInput("logo"));
+$("#pv-banner").addEventListener("click", e => {
+  if (e.target.id === "banner-del") return;
+  brandFileInput("header");
+});
+$("#banner-del").addEventListener("click", async e => {
+  e.stopPropagation();
+  const d = await api("/api/brand?kind=header", { method: "DELETE" });
+  logChange("删除背景图", d.files);
+  toast("背景图已删除", d.files);
+  await refreshBrand();
+});
+
+/* ---------- config tab ---------- */
+let cfgEls = {};
+
+function cfgField(section, key, label, opts = {}) {
+  const row = document.createElement("div");
+  row.className = "cfg-row";
+  if (opts.checkbox) {
+    row.innerHTML = "<label>" + esc(label) + "</label><input type='checkbox'>";
+    cfgEls[section + "." + key] = row.querySelector("input");
+  } else {
+    row.innerHTML = "<label>" + esc(label) + "</label><input type='text'>";
+    cfgEls[section + "." + key] = row.querySelector("input");
+  }
+  return row;
+}
+
+function renderConfig() {
+  cfgEls = {};
+  const grid = $("#cfg-grid");
+  grid.innerHTML = "";
+  const panels = [
+    ["site", "站点", [
+      ["title", "标题"], ["subtitle", "副标题"], ["author", "作者"],
+      ["base_path", "部署路径 base_path"], ["site_url", "站点绝对地址 site_url"],
+      ["footer_text", "页脚文字"], ["cards_per_page", "每页卡片数"],
+      ["collapse_threshold", "折叠阈值"], ["use_google_fonts", "Google 字体", { checkbox: true }],
+      ["show_dino", "右下角小恐龙", { checkbox: true }],
+    ]],
+    ["socials", "社交账号", [
+      ["github", "GitHub"], ["x", "X / Twitter"], ["bilibili", "Bilibili"],
+      ["weibo", "微博"], ["email", "邮箱"],
+    ]],
+    ["giscus", "评论 (giscus)", [
+      ["enabled", "启用评论", { checkbox: true }], ["repo", "repo"],
+      ["repo_id", "repo_id"], ["category", "category"], ["category_id", "category_id"],
+      ["mapping", "mapping"], ["lang", "lang"],
+    ]],
+  ];
+  panels.forEach(([section, title, fields]) => {
+    const panel = document.createElement("div");
+    panel.className = "cfg-panel";
+    const body = document.createElement("div");
+    body.className = "body";
+    fields.forEach(([key, label, opts]) => {
+      const row = cfgField(section, key, label, opts || {});
+      const el = cfgEls[section + "." + key];
+      const val = (state.config[section] || {})[key];
+      if (opts && opts.checkbox) el.checked = !!val;
+      else el.value = val === undefined || val === null ? "" : String(val);
+      body.appendChild(row);
+    });
+    panel.innerHTML = "<h3>" + esc(title) + "</h3>";
+    panel.appendChild(body);
+    const path = document.createElement("div");
+    path.className = "path";
+    path.textContent = "影响文件: config.json" + (section === "socials" ? "" : " (site." + section + ")");
+    panel.appendChild(path);
+    grid.appendChild(panel);
+  });
+}
+
+$("#cfg-save").addEventListener("click", async () => {
+  const updates = { site: {}, socials: {}, giscus: {} };
+  Object.entries(cfgEls).forEach(([key, el]) => {
+    const [section, field] = key.split(".");
+    if (!(section in updates)) return;
+    updates[section][field] = el.type === "checkbox" ? el.checked : el.value;
+  });
+  try {
+    const d = await api("/api/config", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ updates }),
+    });
+    logChange("配置 config.json", d.files);
+    toast("配置已保存", d.files);
+    state.config = d.config;
+    renderPreview();
+  } catch (e) { toast(e.message); }
+});
+
+/* ---------- undo / redo / rebuild / log ---------- */
+$("#btn-undo").addEventListener("click", async () => {
+  const d = await api("/api/undo", { method: "POST" });
+  if (d.files.length) {
+    state.log.shift();
+    toast("已撤销", d.files);
+    logChange("撤销", d.files);
+    renderLog();
+    await refresh();
+  } else toast("没有可撤销的操作");
+});
+$("#btn-redo").addEventListener("click", async () => {
+  const d = await api("/api/redo", { method: "POST" });
+  if (d.files.length) {
+    toast("已重做", d.files);
+    logChange("重做", d.files);
+    await refresh();
+  } else toast("没有可重做的操作");
+});
+$("#btn-rebuild").addEventListener("click", async () => {
+  $("#btn-rebuild").disabled = true;
+  try {
+    const d = await api("/api/rebuild", { method: "POST" });
+    toast("构建完成 " + d.duration + "s，打开博客查看效果");
+  } catch (e) { toast(e.message); }
+  $("#btn-rebuild").disabled = false;
+});
+$("#btn-log").addEventListener("click", () => {
+  $("#drawer").classList.toggle("open");
+  renderLog();
+});
+
+document.addEventListener("keydown", e => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
+    e.preventDefault();
+    $("#btn-undo").click();
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") {
+    e.preventDefault();
+    $("#btn-redo").click();
+  }
+  if (e.key === "Escape") {
+    $("#modal").classList.remove("open");
+    $("#drawer").classList.remove("open");
+  }
+});
+
+/* ---------- tabs ---------- */
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(t => t.classList.toggle("is-active", t === tab));
+    document.querySelectorAll(".layout").forEach(l => l.classList.toggle("is-active", l.id === "tab-" + tab.dataset.tab));
+  });
+});
+
+/* ---------- modal buttons ---------- */
+$("#m-cancel").addEventListener("click", () => $("#modal").classList.remove("open"));
+$("#m-save").addEventListener("click", saveEditor);
+$("#m-img-upload").addEventListener("click", () => $("#m-img-file").click());
+$("#m-img-file").addEventListener("change", async e => {
+  const f = e.target.files[0];
+  if (f) await uploadPostImage(f);
+  e.target.value = "";
+});
+$("#m-img-clear").addEventListener("click", () => { $("#m-image").value = ""; });
+
+/* ---------- images workbench ---------- */
+let imgState = { folder: "", current: null, img: null, drawScale: 1, crop: null };
+const canvas = $("#editor-canvas");
+const ctx = canvas.getContext("2d");
+const box = $("#canvas-box");
+
 async function loadTree() {
   const data = await api("/api/tree");
-  $("#blog-path").textContent = data.root;
-  const box = $("#folder-tree");
-  box.innerHTML = "";
-  function addItems(items, depth) {
+  const tree = $("#folder-tree");
+  tree.innerHTML = "";
+  function add(items, depth) {
     items.forEach(d => {
       const div = document.createElement("div");
       div.className = "folder-item";
       div.dataset.path = d.path;
-      div.innerHTML = '<span class="indent">' + "└ ".repeat(depth) + "</span>▣ " + escapeHtml(d.name);
+      div.innerHTML = '<span style="opacity:.45">' + "└ ".repeat(depth) + "</span>▣ " + esc(d.name);
       div.addEventListener("click", () => selectFolder(d.path));
-      box.appendChild(div);
-      if (d.children.length) addItems(d.children, depth + 1);
+      tree.appendChild(div);
+      if (d.children.length) add(d.children, depth + 1);
     });
   }
-  addItems(data.dirs, 0);
-  if (!state.folder && data.dirs.length) selectFolder(data.dirs[0].path);
-  else if (!state.folder) selectFolder("");
+  add(data.dirs, 0);
+  if (!imgState.folder && data.dirs.length) selectFolder(data.dirs[0].path);
+  else if (!imgState.folder) selectFolder("");
 }
 
 async function selectFolder(path) {
-  state.folder = path;
-  document.querySelectorAll(".folder-item").forEach(el => {
-    el.classList.toggle("is-active", el.dataset.path === path);
-  });
+  imgState.folder = path;
+  document.querySelectorAll(".folder-item").forEach(el => el.classList.toggle("is-active", el.dataset.path === path));
   $("#current-dir").textContent = "图片 — " + (path || "根目录");
   await loadImages();
 }
 
-/* ---------- image list ---------- */
 async function loadImages() {
-  const data = await api("/api/list?dir=" + encodeURIComponent(state.folder));
-  state.images = data.images;
+  const data = await api("/api/list?dir=" + encodeURIComponent(imgState.folder));
   const grid = $("#image-grid");
   grid.innerHTML = "";
-  if (!data.images.length) {
-    grid.innerHTML = '<div class="empty">这个目录还没有图片</div>';
-    return;
-  }
+  if (!data.images.length) { grid.innerHTML = '<div class="empty">这个目录还没有图片</div>'; return; }
   data.images.forEach(img => {
     const div = document.createElement("div");
     div.className = "thumb";
     div.dataset.path = img.path;
-    div.innerHTML =
-      '<img loading="lazy" src="/api/thumb?path=' + encodeURIComponent(img.path) +
-      "&t=" + img.mtime + '" alt="">' +
-      '<span class="tname">' + escapeHtml(img.name) + "</span>" +
-      '<span class="tsize">' + fmtSize(img.size) + "</span>";
+    div.innerHTML = '<img loading="lazy" src="/api/thumb?path=' + encodeURIComponent(img.path) + "&t=" + img.mtime + '" alt="">' +
+      '<span class="tname">' + esc(img.name) + "</span>";
     div.addEventListener("click", () => selectImage(img));
     grid.appendChild(div);
   });
-  if (state.current) {
-    const el = grid.querySelector('[data-path="' + CSS.escape(state.current.path) + '"]');
-    if (el) el.classList.add("is-active");
-  }
 }
 
-function fmtSize(n) {
-  if (n < 1024) return n + " B";
-  if (n < 1048576) return (n / 1024).toFixed(1) + " KB";
-  return (n / 1048576).toFixed(1) + " MB";
-}
-
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-}
-
-/* ---------- upload ---------- */
 async function uploadBlob(blob, name, replace) {
-  const data = await api("/api/upload", {
+  const d = await api("/api/upload", {
     method: "POST",
-    headers: {
-      "X-Folder": state.folder,
-      "X-Filename": name,
-      "X-Replace": replace ? "1" : "0"
-    },
-    body: blob
+    headers: { "X-Folder": imgState.folder, "X-Filename": name, "X-Replace": replace ? "1" : "0" },
+    body: blob,
   });
-  toast(replace ? "已替换 " + data.name : "已导入 " + data.name);
+  logChange("导入图片", d.files);
+  toast(replace ? "已替换 " + d.name : "已导入 " + d.name, d.files);
   await loadImages();
-  const found = state.images.find(i => i.name === data.name);
+  const found = imgState.list ? imgState.list.find(i => i.name === d.name) : null;
   if (found) selectImage(found);
 }
 
 $("#dropzone").addEventListener("click", e => {
   if (e.target.id !== "replace-check") $("#file-input").click();
 });
-$("#dropzone").addEventListener("dragover", e => {
-  e.preventDefault();
-  $("#dropzone").classList.add("dragover");
-});
+$("#dropzone").addEventListener("dragover", e => { e.preventDefault(); $("#dropzone").classList.add("dragover"); });
 $("#dropzone").addEventListener("dragleave", () => $("#dropzone").classList.remove("dragover"));
 $("#dropzone").addEventListener("drop", e => {
   e.preventDefault();
@@ -262,24 +1013,18 @@ async function handleFiles(files) {
   $("#file-input").value = "";
 }
 
-/* ---------- editor ---------- */
-const canvas = $("#editor-canvas");
-const ctx = canvas.getContext("2d");
-const box = $("#canvas-box");
-
 async function selectImage(img) {
-  state.current = img;
+  imgState.current = img;
   $("#editor").hidden = false;
   $("#editor-empty").hidden = true;
-  document.querySelectorAll(".thumb").forEach(el =>
-    el.classList.toggle("is-active", el.dataset.path === img.path));
+  document.querySelectorAll(".thumb").forEach(el => el.classList.toggle("is-active", el.dataset.path === img.path));
   const res = await fetch("/api/file?path=" + encodeURIComponent(img.path) + "&t=" + img.mtime);
   const blob = await res.blob();
   const url = URL.createObjectURL(blob);
   const image = new Image();
   image.onload = () => {
-    state.img = image;
-    state.crop = null;
+    imgState.img = image;
+    imgState.crop = null;
     $("#zoom").value = 100;
     $("#zoom-label").textContent = "100%";
     updateSnippets();
@@ -289,178 +1034,141 @@ async function selectImage(img) {
 }
 
 function draw() {
-  const img = state.img;
+  const img = imgState.img;
   if (!img) return;
   const zoom = Number($("#zoom").value) / 100;
   const fit = Math.min(box.clientWidth / img.naturalWidth, box.clientHeight / img.naturalHeight);
-  state.drawScale = fit * zoom;
+  imgState.drawScale = fit * zoom;
   canvas.width = box.clientWidth;
   canvas.height = box.clientHeight;
   ctx.imageSmoothingEnabled = !(img.naturalWidth <= 128 && img.naturalHeight <= 128);
   ctx.fillStyle = "#f1f3f4";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  const w = img.naturalWidth * state.drawScale;
-  const h = img.naturalHeight * state.drawScale;
+  const w = img.naturalWidth * imgState.drawScale;
+  const h = img.naturalHeight * imgState.drawScale;
   const ox = (canvas.width - w) / 2;
   const oy = (canvas.height - h) / 2;
   ctx.drawImage(img, ox, oy, w, h);
   const boxRect = $("#crop-rect");
-  if (state.crop) {
-    const sx = ox + state.crop.x * state.drawScale;
-    const sy = oy + state.crop.y * state.drawScale;
-    const sw = state.crop.w * state.drawScale;
-    const sh = state.crop.h * state.drawScale;
+  if (imgState.crop) {
     boxRect.style.display = "block";
-    boxRect.style.left = sx + "px";
-    boxRect.style.top = sy + "px";
-    boxRect.style.width = sw + "px";
-    boxRect.style.height = sh + "px";
-  } else {
-    boxRect.style.display = "none";
-  }
+    boxRect.style.left = (ox + imgState.crop.x * imgState.drawScale) + "px";
+    boxRect.style.top = (oy + imgState.crop.y * imgState.drawScale) + "px";
+    boxRect.style.width = (imgState.crop.w * imgState.drawScale) + "px";
+    boxRect.style.height = (imgState.crop.h * imgState.drawScale) + "px";
+  } else boxRect.style.display = "none";
   const outScale = Number($("#out-scale").value);
-  $("#info-size").textContent =
-    Math.round(img.naturalWidth * outScale) + "×" + Math.round(img.naturalHeight * outScale) + "px";
+  $("#info-size").textContent = Math.round(img.naturalWidth * outScale) + "×" + Math.round(img.naturalHeight * outScale) + "px";
 }
 
-$("#zoom").addEventListener("input", () => {
-  $("#zoom-label").textContent = $("#zoom").value + "%";
-  draw();
-});
+$("#zoom").addEventListener("input", () => { $("#zoom-label").textContent = $("#zoom").value + "%"; draw(); });
 
-/* crop drag */
 let drag = null;
 canvas.addEventListener("pointerdown", e => {
-  if (!state.img) return;
+  if (!imgState.img) return;
   const r = canvas.getBoundingClientRect();
-  const ox = (canvas.width - state.img.naturalWidth * state.drawScale) / 2;
-  const oy = (canvas.height - state.img.naturalHeight * state.drawScale) / 2;
-  const px = (e.clientX - r.left - ox) / state.drawScale;
-  const py = (e.clientY - r.top - oy) / state.drawScale;
-  if (px < 0 || py < 0 || px > state.img.naturalWidth || py > state.img.naturalHeight) return;
+  const ox = (canvas.width - imgState.img.naturalWidth * imgState.drawScale) / 2;
+  const oy = (canvas.height - imgState.img.naturalHeight * imgState.drawScale) / 2;
+  const px = (e.clientX - r.left - ox) / imgState.drawScale;
+  const py = (e.clientY - r.top - oy) / imgState.drawScale;
+  if (px < 0 || py < 0 || px > imgState.img.naturalWidth || py > imgState.img.naturalHeight) return;
   drag = { x0: px, y0: py };
 });
 canvas.addEventListener("pointermove", e => {
-  if (!drag || !state.img) return;
+  if (!drag || !imgState.img) return;
   const r = canvas.getBoundingClientRect();
-  const ox = (canvas.width - state.img.naturalWidth * state.drawScale) / 2;
-  const oy = (canvas.height - state.img.naturalHeight * state.drawScale) / 2;
-  const px = Math.max(0, Math.min(state.img.naturalWidth, (e.clientX - r.left - ox) / state.drawScale));
-  const py = Math.max(0, Math.min(state.img.naturalHeight, (e.clientY - r.top - oy) / state.drawScale));
-  state.crop = {
-    x: Math.min(drag.x0, px),
-    y: Math.min(drag.y0, py),
-    w: Math.abs(px - drag.x0),
-    h: Math.abs(py - drag.y0)
-  };
+  const ox = (canvas.width - imgState.img.naturalWidth * imgState.drawScale) / 2;
+  const oy = (canvas.height - imgState.img.naturalHeight * imgState.drawScale) / 2;
+  const px = Math.max(0, Math.min(imgState.img.naturalWidth, (e.clientX - r.left - ox) / imgState.drawScale));
+  const py = Math.max(0, Math.min(imgState.img.naturalHeight, (e.clientY - r.top - oy) / imgState.drawScale));
+  imgState.crop = { x: Math.min(drag.x0, px), y: Math.min(drag.y0, py), w: Math.abs(px - drag.x0), h: Math.abs(py - drag.y0) };
   draw();
 });
 window.addEventListener("pointerup", () => { drag = null; });
 
 function exportBlob(kind) {
   return new Promise((resolve, reject) => {
-    const img = state.img;
+    const img = imgState.img;
     if (!img) return reject(new Error("no image"));
     const outScale = Number($("#out-scale").value);
     let sw, sh, sx, sy;
-    if (kind === "crop" && state.crop && state.crop.w > 4 && state.crop.h > 4) {
-      sx = Math.round(state.crop.x); sy = Math.round(state.crop.y);
-      sw = Math.round(state.crop.w); sh = Math.round(state.crop.h);
-    } else if (kind === "crop") {
-      return reject(new Error("请先拖拽选区"));
-    } else {
-      sx = 0; sy = 0; sw = img.naturalWidth; sh = img.naturalHeight;
-    }
+    if (kind === "crop" && imgState.crop && imgState.crop.w > 4 && imgState.crop.h > 4) {
+      sx = Math.round(imgState.crop.x); sy = Math.round(imgState.crop.y);
+      sw = Math.round(imgState.crop.w); sh = Math.round(imgState.crop.h);
+    } else if (kind === "crop") return reject(new Error("请先拖拽选区"));
+    else { sx = 0; sy = 0; sw = img.naturalWidth; sh = img.naturalHeight; }
     const out = document.createElement("canvas");
     out.width = Math.max(1, Math.round(sw * outScale));
     out.height = Math.max(1, Math.round(sh * outScale));
     const octx = out.getContext("2d");
     octx.imageSmoothingEnabled = outScale < 1 ? false : !(sw <= 128 && sh <= 128);
     octx.drawImage(img, sx, sy, sw, sh, 0, 0, out.width, out.height);
-    const isJpg = /\.jpe?g$/i.test(state.current.name);
-    out.toBlob(b => (b ? resolve(b) : reject(new Error("导出失败"))),
-      isJpg ? "image/jpeg" : "image/png", 0.92);
+    const isJpg = /\.jpe?g$/i.test(imgState.current.name);
+    out.toBlob(b => (b ? resolve(b) : reject(new Error("导出失败"))), isJpg ? "image/jpeg" : "image/png", 0.92);
   });
 }
 
 $("#btn-crop").addEventListener("click", async () => {
-  try {
-    const blob = await exportBlob("crop");
-    await uploadBlob(blob, state.current.name, true);
-  } catch (e) { toast(e.message); }
+  try { const blob = await exportBlob("crop"); await uploadBlob(blob, imgState.current.name, true); }
+  catch (e) { toast(e.message); }
 });
-
 $("#btn-scale").addEventListener("click", async () => {
-  try {
-    const blob = await exportBlob("full");
-    await uploadBlob(blob, state.current.name, true);
-  } catch (e) { toast(e.message); }
+  try { const blob = await exportBlob("full"); await uploadBlob(blob, imgState.current.name, true); }
+  catch (e) { toast(e.message); }
 });
-
 $("#btn-rotate").addEventListener("click", async () => {
-  const img = state.img;
+  const img = imgState.img;
   if (!img) return;
   const out = document.createElement("canvas");
-  out.width = img.naturalHeight;
-  out.height = img.naturalWidth;
+  out.width = img.naturalHeight; out.height = img.naturalWidth;
   const octx = out.getContext("2d");
   octx.translate(out.width, 0);
   octx.rotate(Math.PI / 2);
   octx.drawImage(img, 0, 0);
-  const isJpg = /\.jpe?g$/i.test(state.current.name);
-  out.toBlob(async b => {
-    await uploadBlob(b, state.current.name, true);
-  }, isJpg ? "image/jpeg" : "image/png", 0.92);
+  const isJpg = /\.jpe?g$/i.test(imgState.current.name);
+  out.toBlob(async b => { await uploadBlob(b, imgState.current.name, true); }, isJpg ? "image/jpeg" : "image/png", 0.92);
 });
-
 $("#btn-saveas").addEventListener("click", async () => {
-  const name = prompt("另存为文件名（含扩展名）:", state.current.name.replace(/(\.[^.]+)$/, "-new$1"));
+  const name = prompt("另存为文件名（含扩展名）:", imgState.current.name.replace(/(\.[^.]+)$/, "-new$1"));
   if (!name) return;
-  try {
-    const blob = await exportBlob("full");
-    await uploadBlob(blob, name, false);
-  } catch (e) { toast(e.message); }
+  try { const blob = await exportBlob("full"); await uploadBlob(blob, name, false); }
+  catch (e) { toast(e.message); }
 });
-
 $("#btn-replace").addEventListener("click", () => $("#replace-input").click());
 $("#replace-input").addEventListener("change", async e => {
   const f = e.target.files[0];
-  if (f) await uploadBlob(f, state.current.name, true);
+  if (f) await uploadBlob(f, imgState.current.name, true);
   e.target.value = "";
 });
-
 $("#btn-delete").addEventListener("click", async () => {
-  if (!state.current) return;
-  if (!confirm("删除 " + state.current.name + " ？此操作不可恢复。")) return;
-  await api("/api/file?path=" + encodeURIComponent(state.current.path), { method: "DELETE" });
-  state.current = null;
-  state.img = null;
+  if (!imgState.current) return;
+  if (!confirm("删除 " + imgState.current.name + " ？此操作可撤销。")) return;
+  const d = await api("/api/file?path=" + encodeURIComponent(imgState.current.path), { method: "DELETE" });
+  logChange("删除图片", d.files);
+  imgState.current = null;
+  imgState.img = null;
   $("#editor").hidden = true;
   $("#editor-empty").hidden = false;
-  toast("已删除");
+  toast("已删除", d.files);
   await loadImages();
 });
 
 function updateSnippets() {
-  const c = state.current;
+  const c = imgState.current;
   if (!c) return;
   $("#snippet-wiki").textContent = "![[" + c.name + "]]";
   $("#snippet-md").textContent = "![" + c.name.replace(/\.[^.]+$/, "") + "](" + c.path + ")";
 }
-
 document.querySelectorAll("[data-copy]").forEach(btn => {
   btn.addEventListener("click", async () => {
     const text = $("#" + btn.dataset.copy).textContent;
-    try {
-      await navigator.clipboard.writeText(text);
-      toast("已复制");
-    } catch (e) {
-      toast("复制失败，请手动选择");
-    }
+    try { await navigator.clipboard.writeText(text); toast("已复制"); }
+    catch (e) { toast("复制失败，请手动选择"); }
   });
 });
-
 window.addEventListener("resize", () => draw());
+
+refresh().catch(e => toast(e.message));
 loadTree().catch(e => toast(e.message));
 </script>
 </body>
