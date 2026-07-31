@@ -6,8 +6,8 @@
     "language": "zh-CN",
     "blog_dir": "blogs",
     "out_dir": "site",
-    "base_path": "/blogtest",
-    "site_url": "https://meredith2328.github.io/blogtest",
+    "base_path": "/pilog",
+    "site_url": "https://meredith2328.github.io/pilog",
     "use_google_fonts": true,
     "footer_text": "© 2026 Meredith — built with pilog",
     "show_dino": true
