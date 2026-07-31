@@ -273,6 +273,17 @@ a:hover {
   color: var(--mute);
 }
 
+.search-tag {
+  cursor: pointer;
+  color: var(--accent);
+  border-bottom: 1px dashed var(--accent);
+}
+
+.search-tag:hover {
+  background: var(--accent);
+  color: var(--paper);
+}
+
 .search-item mark {
   background: var(--highlight);
   color: var(--ink);
@@ -428,6 +439,153 @@ a:hover {
   background: var(--ink);
   color: var(--paper);
   display: inline-block;
+}
+
+/* ---------- filter bar ---------- */
+
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 0 0 18px;
+  position: relative;
+}
+
+.filter-selected {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filter-tags {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.filter-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--mute);
+}
+
+.filter-more {
+  appearance: none;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  background: none;
+  border: 1px dashed var(--accent);
+  padding: 2px 8px;
+  cursor: pointer;
+}
+
+.filter-more-panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 340px;
+  max-width: 100%;
+  background: var(--paper);
+  border: var(--border);
+  box-shadow: var(--shadow-px);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 60;
+}
+
+.filter-more-panel[hidden] {
+  display: none;
+}
+
+.filter-more-panel input {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  border: 2px solid var(--hairline);
+  padding: 5px 8px;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.filter-more-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.sel-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--ink);
+  color: var(--paper);
+  border: 2px solid var(--ink);
+  padding: 2px 4px 2px 8px;
+}
+
+.sel-chip.sel-folder {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.sel-chip .sel-x {
+  appearance: none;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  padding: 0 2px;
+}
+
+.sel-chip .sel-x:hover {
+  color: var(--paper);
+  opacity: 0.7;
+}
+
+.tag-chip.is-selected {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+.folder-part {
+  appearance: none;
+  background: none;
+  border: 1px solid var(--hairline);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--mute);
+  padding: 0 4px;
+  cursor: pointer;
+}
+
+.folder-part:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.folder-part.is-selected {
+  background: var(--accent);
+  color: var(--paper);
+  border-color: var(--accent);
+}
+
+.folder-sep {
+  color: var(--hairline);
 }
 
 /* ---------- tag filter ---------- */
@@ -641,6 +799,10 @@ a:hover {
   font-family: var(--font-mono);
 }
 
+.pager[hidden] {
+  display: none;
+}
+
 .pager-info {
   font-size: 12px;
   color: var(--mute);
@@ -758,6 +920,24 @@ a:hover {
   outline: 3px solid var(--highlight);
   outline-offset: -3px;
   background: #fffbe8;
+}
+
+.tree-row.tree-flash {
+  animation: tree-flash 1.6s ease;
+}
+
+@keyframes tree-flash {
+  0%,
+  100% {
+    background: transparent;
+    transform: scale(1);
+  }
+  25%,
+  70% {
+    background: #e8f0fe;
+    transform: scale(1.05);
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.28);
+  }
 }
 
 .tree-folder > .tree-row {
@@ -954,6 +1134,31 @@ a:hover {
 
 .graph-snake rect {
   shape-rendering: crispEdges;
+}
+
+.graph-flash {
+  fill: rgba(26, 115, 232, 0.12);
+  stroke: rgba(26, 115, 232, 0.5);
+  stroke-width: 2;
+  stroke-dasharray: 6 4;
+  shape-rendering: crispEdges;
+  pointer-events: none;
+  animation: graph-flash 1.8s ease-out forwards, dash-march 1.1s linear infinite;
+}
+
+@keyframes graph-flash {
+  0% {
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 @keyframes dash-march {

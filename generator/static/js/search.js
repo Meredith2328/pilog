@@ -44,15 +44,25 @@
   }
 
   function score(entry, q) {
+    // "#xxx" searches tags only (exact beats prefix); plain "xxx" never
+    // matches tags, so tag results do not flood normal searches
+    if (q.charAt(0) === "#") {
+      var tq = q.slice(1);
+      var tags = entry.tags || [];
+      var hit = tags.filter(function (t) {
+        return t.toLowerCase().indexOf(tq) === 0;
+      });
+      if (!hit.length) return 0;
+      return hit.some(function (t) {
+        return t.toLowerCase() === tq;
+      }) ? 200 : 100;
+    }
     var t = entry.title.toLowerCase();
     var f = (entry.folder || "").toLowerCase();
-    var tags = (entry.tags || []).join(" ").toLowerCase();
     var text = (entry.text || "").toLowerCase();
     if (t === q) return 300;
     if (t.indexOf(q) === 0) return 200;
     if (t.indexOf(q) >= 0) return 120;
-    if (tags.split(" ").indexOf(q) >= 0) return 100;
-    if (tags.indexOf(q) >= 0) return 70;
     if (f.indexOf(q) >= 0) return 40;
     if (text.indexOf(q) >= 0) return 20;
     return 0;
@@ -102,11 +112,22 @@
       var a = document.createElement("a");
       a.className = "search-item";
       a.href = root + x.e.url;
+      var tagBtns = (x.e.tags || [])
+        .map(function (t) {
+          return (
+            '<span class="search-tag" role="button" tabindex="0" data-tag="' +
+            esc(t) +
+            '">#' +
+            esc(t) +
+            "</span>"
+          );
+        })
+        .join(" ");
       a.innerHTML =
         '<span class="search-title">' + mark(x.e.title, q) + "</span>" +
         '<span class="search-snip">' + snippet(x.e, q) + "</span>" +
         '<span class="search-meta">' +
-        (x.e.tags || []).map(function (t) { return "#" + esc(t); }).join(" ") +
+        tagBtns +
         ' · <span class="search-folder">' + esc(x.e.folder || "root") + "</span></span>";
       results.appendChild(a);
       items.push(a);
@@ -155,6 +176,23 @@
     items.forEach(function (el, i) {
       el.classList.toggle("is-active", i === current);
     });
+  });
+
+  // clicking a tag shown in a search result selects it as a card filter
+  results.addEventListener("click", function (e) {
+    var tagEl = e.target.closest(".search-tag");
+    if (!tagEl) return;
+    e.preventDefault();
+    e.stopPropagation();
+    var tag = tagEl.getAttribute("data-tag");
+    if (window.pilogFilters && window.pilogFilters.toggleTag) {
+      window.pilogFilters.toggleTag(tag);
+      results.hidden = true;
+      input.value = "";
+      query = "";
+    } else {
+      window.location.href = root + "index.html#tag=" + encodeURIComponent(tag);
+    }
   });
 
   document.addEventListener("click", function (e) {

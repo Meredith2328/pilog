@@ -196,8 +196,13 @@ def _rewrite_href(href: str, src_file: Path, page_url: str,
                 if post:
                     refs.append(post.rel)
                     return rel_output(page_url, post.url) + anchor
-        # folder without its own page -> jump to the tree view
-        return rel_output(page_url, "index.html") + "#view-tree"
+        # folder without its own page -> folder-aware target (each view
+        # interprets it: cards filter / tree locate / graph subtree highlight)
+        for cand in candidates:
+            if cand.is_dir():
+                folder_rel = cand.resolve().relative_to(root).as_posix()
+                return rel_output(page_url, "index.html") + "#folder=" + folder_rel
+        return rel_output(page_url, "index.html") + "#folder=" + path_part.rstrip("/")
 
     for cand in candidates:
         if cand.is_file() and not cand.is_dir():

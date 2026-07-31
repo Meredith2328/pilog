@@ -76,50 +76,72 @@
 <ul>
 <li><a href="index.html">首页</a></li>
 <li><a href="about.html">关于</a></li>
-<li><a href="index.html#view-tree">技术</a></li>
-<li><a href="index.html#view-tree">随笔</a></li>
+<li><a data-kind="folder" href="index.html#folder=posts/tech">技术</a></li>
+<li><a data-kind="folder" href="index.html#folder=posts/notes">随笔</a></li>
 <li><a href="dino/index.html">恐龙游戏</a></li>
 </ul></nav>
     
   </header>
 
   <main class="site-main">
+<div class="filter-bar" id="filter-bar">
+  <div class="filter-selected" id="filter-selected"></div>
+  <div class="filter-tags">
+    <span class="filter-label">筛选</span>
+    
+    <button class="tag-chip" type="button" data-tag="pilog">#pilog</button>
+    
+    <button class="tag-chip" type="button" data-tag="about">#about</button>
+    
+    <button class="tag-chip" type="button" data-tag="demo">#demo</button>
+    
+    <button class="filter-more" id="filter-more" type="button">更多标签 ▾</button>
+  </div>
+  <div class="filter-more-panel" id="filter-more-panel" hidden>
+    <input id="filter-more-search" type="search" placeholder="搜索标签…">
+    <div class="filter-more-list" id="filter-more-list">
+      
+      <button class="tag-chip" type="button" data-tag="about">#about</button>
+      
+      <button class="tag-chip" type="button" data-tag="demo">#demo</button>
+      
+      <button class="tag-chip" type="button" data-tag="dino">#dino</button>
+      
+      <button class="tag-chip" type="button" data-tag="fun">#fun</button>
+      
+      <button class="tag-chip" type="button" data-tag="markdown">#markdown</button>
+      
+      <button class="tag-chip" type="button" data-tag="meta">#meta</button>
+      
+      <button class="tag-chip" type="button" data-tag="obsidian">#obsidian</button>
+      
+      <button class="tag-chip" type="button" data-tag="pilog">#pilog</button>
+      
+      <button class="tag-chip" type="button" data-tag="workflow">#workflow</button>
+      
+    </div>
+  </div>
+</div>
+
 <section class="view-pane is-active" id="view-cards" data-pane="cards">
   <div class="pane-head">
     <h2 class="pane-title">卡片视图</h2>
-    <div class="tag-filter" id="tag-filter">
-      <button class="filter-chip is-active" data-tag="*">全部</button>
-      
-      <button class="filter-chip" data-tag="about">#about</button>
-      
-      <button class="filter-chip" data-tag="demo">#demo</button>
-      
-      <button class="filter-chip" data-tag="dino">#dino</button>
-      
-      <button class="filter-chip" data-tag="fun">#fun</button>
-      
-      <button class="filter-chip" data-tag="markdown">#markdown</button>
-      
-      <button class="filter-chip" data-tag="meta">#meta</button>
-      
-      <button class="filter-chip" data-tag="obsidian">#obsidian</button>
-      
-      <button class="filter-chip" data-tag="pilog">#pilog</button>
-      
-      <button class="filter-chip" data-tag="workflow">#workflow</button>
-      
-    </div>
   </div>
 
   <div class="card-grid" id="card-grid">
     
-    <article class="card" data-tags="posts/tech pilog meta " data-date="2026-07-30">
+    <article class="card" data-tags="pilog meta " data-folder="posts/tech" data-date="2026-07-30">
       <a class="card-link" href="posts/tech/pixel-blog.html">
         <div class="card-body">
           <div class="card-meta">
             <time datetime="2026-07-30">2026-07-30</time>
             <span class="pin-badge">置顶</span>
-            <span class="card-folder" title="所属目录">posts/tech</span>
+            
+            
+            <span class="card-folder" title="点击目录片段筛选">
+              <button class="folder-part" type="button" data-folder="posts">posts</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/tech">tech</button>
+            </span>
+            
           </div>
           <h3 class="card-title">用 pilog 搭建像素风博客</h3>
           
@@ -141,13 +163,18 @@
       </a>
     </article>
     
-    <article class="card is-highlight" data-tags="posts/tech pilog markdown " data-date="2026-07-28">
+    <article class="card is-highlight" data-tags="pilog markdown " data-folder="posts/tech" data-date="2026-07-28">
       <a class="card-link" href="posts/tech/markdown-cheatsheet.html">
         <div class="card-body">
           <div class="card-meta">
             <time datetime="2026-07-28">2026-07-28</time>
             
-            <span class="card-folder" title="所属目录">posts/tech</span>
+            
+            
+            <span class="card-folder" title="点击目录片段筛选">
+              <button class="folder-part" type="button" data-folder="posts">posts</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/tech">tech</button>
+            </span>
+            
           </div>
           <h3 class="card-title">Markdown 速查表</h3>
           
@@ -165,13 +192,18 @@
       </a>
     </article>
     
-    <article class="card" data-tags="posts/notes obsidian workflow " data-date="2026-07-20">
+    <article class="card" data-tags="obsidian workflow " data-folder="posts/notes" data-date="2026-07-20">
       <a class="card-link" href="posts/notes/obsidian-tips.html">
         <div class="card-body">
           <div class="card-meta">
             <time datetime="2026-07-20">2026-07-20</time>
             
-            <span class="card-folder" title="所属目录">posts/notes</span>
+            
+            
+            <span class="card-folder" title="点击目录片段筛选">
+              <button class="folder-part" type="button" data-folder="posts">posts</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/notes">notes</button>
+            </span>
+            
           </div>
           <h3 class="card-title">在 Obsidian 中高效写作</h3>
           
@@ -189,13 +221,18 @@
       </a>
     </article>
     
-    <article class="card" data-tags="posts/notes dino fun " data-date="2026-07-15">
+    <article class="card" data-tags="dino fun " data-folder="posts/notes" data-date="2026-07-15">
       <a class="card-link" href="posts/notes/dino-game.html">
         <div class="card-body">
           <div class="card-meta">
             <time datetime="2026-07-15">2026-07-15</time>
             
-            <span class="card-folder" title="所属目录">posts/notes</span>
+            
+            
+            <span class="card-folder" title="点击目录片段筛选">
+              <button class="folder-part" type="button" data-folder="posts">posts</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/notes">notes</button>
+            </span>
+            
           </div>
           <h3 class="card-title">断网小恐龙，入住博客角落</h3>
           
@@ -213,13 +250,18 @@
       </a>
     </article>
     
-    <article class="card" data-tags="posts/notes pilog demo " data-date="2026-07-10">
+    <article class="card" data-tags="pilog demo " data-folder="posts/notes" data-date="2026-07-10">
       <a class="card-link" href="posts/notes/long-title-demo.html">
         <div class="card-body">
           <div class="card-meta">
             <time datetime="2026-07-10">2026-07-10</time>
             
-            <span class="card-folder" title="所属目录">posts/notes</span>
+            
+            
+            <span class="card-folder" title="点击目录片段筛选">
+              <button class="folder-part" type="button" data-folder="posts">posts</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/notes">notes</button>
+            </span>
+            
           </div>
           <h3 class="card-title">一篇用来演示超长标题在卡片与图谱节点中如何显示与自动截断的示例文章</h3>
           
@@ -237,13 +279,14 @@
       </a>
     </article>
     
-    <article class="card" data-tags="root about " data-date="2026-01-01">
+    <article class="card" data-tags="about " data-folder="root" data-date="2026-01-01">
       <a class="card-link" href="about.html">
         <div class="card-body">
           <div class="card-meta">
             <time datetime="2026-01-01">2026-01-01</time>
             
-            <span class="card-folder" title="所属目录">root</span>
+            
+            
           </div>
           <h3 class="card-title">关于</h3>
           

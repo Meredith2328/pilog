@@ -1,8 +1,10 @@
-/* pilog — view switching, file tree, tag filter, dino widget */
+/* pilog — view switching, file tree, multi-condition filters, nav dispatch,
+   dino widget */
 (function () {
   "use strict";
 
   var VIEWS = ["cards", "tree", "graph"];
+  var home = !!document.getElementById("card-grid");
 
   function activateView(name, updateHash) {
     if (VIEWS.indexOf(name) < 0) return;
@@ -29,21 +31,385 @@
     });
   });
 
-  // deep links like #view-tree are honored explicitly; any other arrival
-  // at the homepage defaults to the cards view
-  var initial = null;
-  if (location.hash.indexOf("#view-") === 0) {
-    initial = location.hash.slice(6);
+  function currentView() {
+    var pane = document.querySelector(".view-pane.is-active");
+    return pane && pane.dataset.pane ? pane.dataset.pane : "cards";
   }
-  activateView(initial || "cards", false);
 
-  // deep links reached via same-page hash changes (e.g. clicking a nav
-  // folder link while already on the homepage)
-  window.addEventListener("hashchange", function () {
-    if (location.hash.indexOf("#view-") === 0) {
-      activateView(location.hash.slice(6), false);
+  /* ---------- filters (cards view, multi-condition) ---------- */
+
+  var filterState = { tags: {}, folders: {} };
+  var cardsIndex = null;
+  var filterSeq = 0;
+
+  function normFolder(f) {
+    return String(f || "").replace(/^\/+|\/+$/g, "");
+  }
+
+  function folderMatch(cardFolder, sel) {
+    cardFolder = normFolder(cardFolder);
+    sel = normFolder(sel);
+    if (!sel) return true;
+    return cardFolder === sel || cardFolder.indexOf(sel + "/") === 0;
+  }
+
+  function hasActiveFilters() {
+    return (
+      Object.keys(filterState.tags).length > 0 ||
+      Object.keys(filterState.folders).length > 0
+    );
+  }
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      }[c];
+    });
+  }
+
+  function loadCardsIndex() {
+    if (cardsIndex !== null) return Promise.resolve(cardsIndex);
+    return fetch((window.PILOG_ROOT || "") + "data/cards.json")
+      .then(function (r) {
+        return r.json();
+      })
+      .then(function (data) {
+        cardsIndex = data;
+        return data;
+      })
+      .catch(function () {
+        cardsIndex = [];
+        return cardsIndex;
+      });
+  }
+
+  function cardHTML(p) {
+    var root = window.PILOG_ROOT || "";
+    var segs = (p.folder || "").split("/").filter(Boolean);
+    var folderHtml = "";
+    if (segs.length) {
+      var acc = [];
+      folderHtml = '<span class="card-folder" title="点击目录片段筛选">';
+      segs.forEach(function (seg, i) {
+        acc.push(seg);
+        if (i) folderHtml += '<span class="folder-sep">/</span>';
+        folderHtml +=
+          '<button class="folder-part" type="button" data-folder="' +
+          esc(acc.join("/")) +
+          '">' +
+          esc(seg) +
+          "</button>";
+      });
+      folderHtml += "</span>";
     }
-  });
+    var tagsHtml = (p.tags || [])
+      .map(function (t) {
+        return (
+          '<button class="tag-chip" type="button" data-tag="' +
+          esc(t) +
+          '">#' +
+          esc(t) +
+          "</button>"
+        );
+      })
+      .join("");
+    var previewHtml = p.preview_html
+      ? '<div class="card-preview">' + p.preview_html + "</div>"
+      : '<p class="card-preview">' + esc(p.preview_plain || "") + "</p>";
+    var thumbHtml = p.thumb_url
+      ? '<div class="card-thumb"><img src="' +
+        esc(root + p.thumb_url) +
+        '" alt="" loading="lazy"></div>'
+      : "";
+    return (
+      '<article class="card' +
+      (p.highlight ? " is-highlight" : "") +
+      ' is-client" data-tags="' +
+      esc((p.tags || []).join(" ")) +
+      '" data-folder="' +
+      esc(p.folder || "") +
+      '" data-date="' +
+      esc(p.date_str || "") +
+      '"><a class="card-link" href="' +
+      esc(root + p.url) +
+      '"><div class="card-body"><div class="card-meta"><time datetime="' +
+      esc(p.date_str || "") +
+      '">' +
+      esc(p.date_str || "") +
+      "</time>" +
+      (p.pin ? '<span class="pin-badge">置顶</span>' : "") +
+      folderHtml +
+      '</div><h3 class="card-title">' +
+      esc(p.title) +
+      "</h3>" +
+      previewHtml +
+      '<div class="card-tags">' +
+      tagsHtml +
+      "</div></div>" +
+      thumbHtml +
+      "</a></article>"
+    );
+  }
+
+  function clearClientCards(grid) {
+    grid
+      .querySelectorAll(".card.is-client")
+      .forEach(function (c) {
+        c.remove();
+      });
+  }
+
+  function renderFiltered(grid) {
+    var seq = ++filterSeq;
+    var matches = (cardsIndex || []).filter(function (p) {
+      var ok = true;
+      Object.keys(filterState.tags).forEach(function (t) {
+        if ((p.tags || []).indexOf(t) < 0) ok = false;
+      });
+      Object.keys(filterState.folders).forEach(function (f) {
+        if (!folderMatch(p.folder, f)) ok = false;
+      });
+      return ok;
+    });
+    if (seq !== filterSeq) return;
+    clearClientCards(grid);
+    matches.forEach(function (p) {
+      var wrap = document.createElement("div");
+      wrap.innerHTML = cardHTML(p).trim();
+      grid.appendChild(wrap.firstChild);
+    });
+    if (!matches.length) {
+      var div = document.createElement("div");
+      div.className = "empty-cards";
+      div.textContent = "没有符合条件的文章，换个标签或目录试试";
+      grid.appendChild(div);
+    }
+  }
+
+  function applyFilters() {
+    if (!home) return;
+    var grid = document.getElementById("card-grid");
+    if (!grid) return;
+    var pager = document.querySelector(".pager");
+    var empty = grid.querySelector(".empty-cards");
+    if (empty) empty.remove();
+    if (!hasActiveFilters()) {
+      filterSeq++;
+      clearClientCards(grid);
+      grid.querySelectorAll(".card").forEach(function (c) {
+        c.hidden = false;
+      });
+      if (pager) pager.hidden = false;
+      return;
+    }
+    if (pager) pager.hidden = true;
+    grid.querySelectorAll(".card").forEach(function (c) {
+      c.hidden = true;
+    });
+    if (cardsIndex !== null) {
+      renderFiltered(grid);
+    } else {
+      loadCardsIndex().then(function () {
+        renderFiltered(grid);
+      });
+    }
+  }
+
+  function selChip(label, key, isFolder) {
+    var chip = document.createElement("span");
+    chip.className = "sel-chip" + (isFolder ? " sel-folder" : "");
+    var name = document.createElement("span");
+    name.textContent = label;
+    var x = document.createElement("button");
+    x.type = "button";
+    x.className = "sel-x";
+    x.setAttribute(
+      "aria-label",
+      "取消" + (isFolder ? "目录" : "标签") + "筛选 " + label
+    );
+    x.textContent = "×";
+    chip.appendChild(name);
+    chip.appendChild(x);
+    chip.addEventListener("click", function () {
+      if (isFolder) toggleFolder(key);
+      else toggleTag(key);
+    });
+    return chip;
+  }
+
+  function renderSelected() {
+    var box = document.getElementById("filter-selected");
+    if (!box) return;
+    box.innerHTML = "";
+    Object.keys(filterState.tags)
+      .sort()
+      .forEach(function (tag) {
+        box.appendChild(selChip("#" + tag, tag, false));
+      });
+    Object.keys(filterState.folders)
+      .sort()
+      .forEach(function (folder) {
+        box.appendChild(selChip(folder, folder, true));
+      });
+  }
+
+  function syncChips() {
+    document.querySelectorAll(".tag-chip[data-tag]").forEach(function (el) {
+      el.classList.toggle("is-selected", !!filterState.tags[el.dataset.tag]);
+    });
+    document.querySelectorAll(".folder-part[data-folder]").forEach(function (el) {
+      el.classList.toggle(
+        "is-selected",
+        !!filterState.folders[el.dataset.folder]
+      );
+    });
+  }
+
+  function toggleTag(tag) {
+    if (!tag) return;
+    if (filterState.tags[tag]) delete filterState.tags[tag];
+    else filterState.tags[tag] = true;
+    syncChips();
+    renderSelected();
+    applyFilters();
+  }
+
+  function toggleFolder(folder) {
+    folder = normFolder(folder);
+    if (!folder) return;
+    if (filterState.folders[folder]) delete filterState.folders[folder];
+    else filterState.folders[folder] = true;
+    syncChips();
+    renderSelected();
+    applyFilters();
+  }
+
+  window.pilogFilters = { toggleTag: toggleTag, toggleFolder: toggleFolder };
+
+  /* ---------- filter bar wiring (homepage only) ---------- */
+
+  if (home) {
+    var moreBtn = document.getElementById("filter-more");
+    var morePanel = document.getElementById("filter-more-panel");
+    var moreSearch = document.getElementById("filter-more-search");
+    var moreList = document.getElementById("filter-more-list");
+
+    function closeMore() {
+      if (morePanel) morePanel.hidden = true;
+      if (moreBtn) moreBtn.textContent = "更多标签 ▾";
+    }
+
+    if (moreBtn && morePanel) {
+      moreBtn.addEventListener("click", function () {
+        morePanel.hidden = !morePanel.hidden;
+        moreBtn.textContent = morePanel.hidden ? "更多标签 ▾" : "收起标签 ▴";
+        if (moreSearch) moreSearch.value = "";
+        if (moreList) {
+          moreList
+            .querySelectorAll(".tag-chip")
+            .forEach(function (el) {
+              el.hidden = false;
+            });
+        }
+      });
+    }
+    if (moreSearch && moreList) {
+      moreSearch.addEventListener("input", function () {
+        var q = moreSearch.value.trim().toLowerCase();
+        moreList.querySelectorAll(".tag-chip").forEach(function (el) {
+          el.hidden = !!q && el.dataset.tag.toLowerCase().indexOf(q) < 0;
+        });
+      });
+    }
+    document.addEventListener("click", function (e) {
+      if (
+        morePanel &&
+        !morePanel.hidden &&
+        !e.target.closest("#filter-more") &&
+        !e.target.closest("#filter-more-panel")
+      ) {
+        closeMore();
+      }
+    });
+
+    // tag chips and folder parts anywhere toggle their filter (cards too)
+    document.addEventListener("click", function (e) {
+      var tagChip = e.target.closest(".tag-chip[data-tag]");
+      if (tagChip) {
+        e.preventDefault();
+        toggleTag(tagChip.dataset.tag);
+        return;
+      }
+      var folderPart = e.target.closest(".folder-part[data-folder]");
+      if (folderPart) {
+        e.preventDefault();
+        toggleFolder(folderPart.dataset.folder);
+      }
+    });
+  }
+
+  /* ---------- hash routing ---------- */
+
+  function parseHash() {
+    var h = location.hash || "";
+    if (h.indexOf("#view-") === 0) {
+      activateView(h.slice(6), false);
+      return;
+    }
+    if (h.indexOf("#folder=") === 0) {
+      activateView("cards", false);
+      toggleFolder(decodeURIComponent(h.slice(8)));
+      return;
+    }
+    if (h.indexOf("#tag=") === 0) {
+      activateView("cards", false);
+      toggleTag(decodeURIComponent(h.slice(5)));
+      return;
+    }
+    // plain homepage arrival: default cards view with a clean filter slate
+    if (hasActiveFilters()) {
+      filterState.tags = {};
+      filterState.folders = {};
+      syncChips();
+      renderSelected();
+      applyFilters();
+    }
+    activateView("cards", false);
+  }
+
+  parseHash();
+  window.addEventListener("hashchange", parseHash);
+
+  /* ---------- nav dispatch ---------- */
+
+  document
+    .querySelectorAll(".site-nav a[data-kind='folder']")
+    .forEach(function (a) {
+      a.addEventListener("click", function (e) {
+        var href = a.getAttribute("href") || "";
+        var at = href.indexOf("#folder=");
+        if (at < 0) return;
+        var folder = decodeURIComponent(
+          href.slice(at + 8).split("#")[0]
+        );
+        if (!folder) return;
+        if (!home) return; // on post pages let the real navigation happen
+        e.preventDefault();
+        var view = currentView();
+        if (view === "tree") {
+          locateInTree(folder);
+        } else if (view === "graph") {
+          if (window.pilogGraph) window.pilogGraph.highlightFolder(folder);
+        } else {
+          toggleFolder(folder);
+        }
+      });
+    });
 
   /* ---------- file tree ---------- */
   var treeRoot = document.getElementById("tree-root");
@@ -72,47 +438,30 @@
     if (collapseBtn) collapseBtn.addEventListener("click", function () { setAll(false); });
   }
 
-  /* ---------- tag filter ---------- */
-  var filterBar = document.getElementById("tag-filter");
-  var cardGrid = document.getElementById("card-grid");
-  if (filterBar && cardGrid) {
-    var cards = Array.prototype.slice.call(cardGrid.querySelectorAll(".card"));
-
-    function applyFilter(tag) {
-      filterBar.querySelectorAll(".filter-chip").forEach(function (c) {
-        c.classList.toggle("is-active", c.dataset.tag === tag);
-      });
-      var empty = cardGrid.querySelector(".empty-cards");
-      if (empty) empty.remove();
-      var shown = 0;
-      cards.forEach(function (card) {
-        var tags = (card.dataset.tags || "").split(/\s+/).filter(Boolean);
-        var match = tag === "*" || tags.indexOf(tag) >= 0;
-        card.hidden = !match;
-        if (match) shown++;
-      });
-      if (!shown) {
-        var div = document.createElement("div");
-        div.className = "empty-cards";
-        div.textContent = "没有匹配「" + tag + "」的文章";
-        cardGrid.appendChild(div);
+  function locateInTree(folder) {
+    if (!treeRoot) return;
+    var li = treeRoot.querySelector(
+      "li[data-path=" + JSON.stringify(folder) + "]"
+    );
+    if (!li) return;
+    var p = li.parentElement;
+    while (p && p !== treeRoot) {
+      if (p.classList && p.classList.contains("tree-folder")) {
+        p.classList.add("is-open");
       }
+      p = p.parentElement;
     }
-
-    filterBar.addEventListener("click", function (e) {
-      var chip = e.target.closest(".filter-chip");
-      if (!chip) return;
-      applyFilter(chip.dataset.tag);
-    });
-
-    // clicking a tag shown on a card filters by that tag instead of navigating
-    cardGrid.addEventListener("click", function (e) {
-      var chip = e.target.closest(".tag-chip");
-      if (!chip) return;
-      e.preventDefault();
-      e.stopPropagation();
-      applyFilter(chip.dataset.tag);
-    });
+    li.classList.add("is-open");
+    var row = li.querySelector(".tree-row");
+    if (row) {
+      row.scrollIntoView({ behavior: "smooth", block: "center" });
+      row.classList.remove("tree-flash");
+      void row.offsetWidth;
+      row.classList.add("tree-flash");
+      setTimeout(function () {
+        row.classList.remove("tree-flash");
+      }, 1700);
+    }
   }
 
   /* ---------- dino widget ---------- */
@@ -127,13 +476,18 @@
       var show = force === undefined ? panel.hidden : !!force;
       panel.hidden = !show;
       toggle.classList.toggle("is-open", show);
-      toggle.setAttribute("aria-label", show ? "关闭小恐龙游戏" : "打开小恐龙游戏");
+      toggle.setAttribute(
+        "aria-label",
+        show ? "关闭小恐龙游戏" : "打开小恐龙游戏"
+      );
       if (show && frame && frame.dataset.src) {
         frame.src = frame.dataset.src;
       }
     }
 
-    toggle.addEventListener("click", function () { open(); });
+    toggle.addEventListener("click", function () {
+      open();
+    });
     if (close) close.addEventListener("click", function () { open(false); });
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape") open(false);

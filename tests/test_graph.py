@@ -145,19 +145,38 @@ def main() -> None:
 
         # 8. single-click a dir node toggles its subtree
         total_before = page.locator(".graph-node").count()
-        center = page.evaluate("""
+        page.evaluate("""
             () => {
               const g = document.querySelector('.graph-node[data-id="posts"]');
               const r = g.querySelector(':scope > rect').getBoundingClientRect();
-              return {x: r.x + r.width / 2, y: r.y + r.height / 2};
+              const x = r.x + r.width / 2, y = r.y + r.height / 2;
+              g.dispatchEvent(new PointerEvent('pointerdown', {
+                clientX: x, clientY: y, bubbles: true, pointerId: 7
+              }));
+              g.dispatchEvent(new PointerEvent('pointerup', {
+                clientX: x, clientY: y, bubbles: true, pointerId: 7
+              }));
             }
         """)
-        page.mouse.click(center["x"], center["y"])
         page.wait_for_timeout(400)
         after_collapse = page.locator(".graph-node").count()
         ok &= check("dir single-click collapses", after_collapse < total_before,
                     f"{total_before} -> {after_collapse}")
-        page.mouse.click(center["x"], center["y"])
+        # the collapsed dir is no longer rendered; clicking the root node
+        # toggles everything back open
+        page.evaluate("""
+            () => {
+              const g = document.querySelector('.graph-node[data-id=""]');
+              const r = g.querySelector(':scope > rect').getBoundingClientRect();
+              const x = r.x + r.width / 2, y = r.y + r.height / 2;
+              g.dispatchEvent(new PointerEvent('pointerdown', {
+                clientX: x, clientY: y, bubbles: true, pointerId: 8
+              }));
+              g.dispatchEvent(new PointerEvent('pointerup', {
+                clientX: x, clientY: y, bubbles: true, pointerId: 8
+              }));
+            }
+        """)
         page.wait_for_timeout(400)
         ok &= check("dir single-click expands",
                     page.locator(".graph-node").count() == total_before)
@@ -186,6 +205,15 @@ def main() -> None:
         ok &= check("snake survives node drop-in", h3 is not None and page_errors_after == len(failures), f"head={h3}")
         gap2 = nearest_gap()
         ok &= check("snake escaped dragged node", gap2 is not None and gap2 >= 8, f"gap={gap2}px")
+
+        # 10. nav folder link highlights the folder subtree (flash box)
+        page.locator(".site-nav a[data-kind='folder']", has_text="随笔").click()
+        page.wait_for_timeout(400)
+        flash = page.locator(".graph-flash").count()
+        ok &= check("nav folder graph flash", flash >= 1, str(flash))
+        page.wait_for_timeout(2200)
+        flash2 = page.locator(".graph-flash").count()
+        ok &= check("graph flash fades away", flash2 == 0, str(flash2))
 
         browser.close()
     srv.shutdown()

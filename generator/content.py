@@ -249,6 +249,17 @@ def sorted_for_cards(posts: list[Post]) -> list[Post]:
     return pinned + rest
 
 
+def folder_segments(folder: str) -> list:
+    """Split 'posts/tech' into clickable [{name, path}] segments."""
+    if not folder or folder == "root":
+        return []
+    parts = folder.split("/")
+    return [
+        {"name": part, "path": "/".join(parts[: i + 1])}
+        for i, part in enumerate(parts)
+    ]
+
+
 def sort_tree(nodes: list) -> list:
     for n in nodes:
         if n.get("is_dir"):

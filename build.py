@@ -31,6 +31,7 @@ from generator.config import Config
 from generator.content import (
     auto_preview,
     build_tree,
+    folder_segments,
     scan_posts,
     sorted_for_cards,
     sort_tree,
@@ -188,7 +189,12 @@ def render_nav(page_url: str, ctx: MarkdownContext) -> str:
     if not nav_file.exists():
         return ""
     text = nav_file.read_text(encoding="utf-8", errors="replace")
-    return render_markdown(text, nav_file, page_url, ctx).html
+    html = render_markdown(text, nav_file, page_url, ctx).html
+    soup = BeautifulSoup(html, "html.parser")
+    for a in soup.find_all("a", href=True):
+        if "#folder=" in a["href"]:
+            a["data-kind"] = "folder"
+    return str(soup)
 
 
 def build_site(
@@ -304,12 +310,44 @@ def build_site(
     all_tags = sorted(
         {t for post in posts for t in post.tags}, key=str.lower
     )
+    tag_counts: dict[str, int] = {}
+    for post in posts:
+        for t in post.tags:
+            tag_counts[t] = tag_counts.get(t, 0) + 1
+    top_tags = [
+        t
+        for t, _ in sorted(
+            tag_counts.items(), key=lambda kv: (-kv[1], kv[0].lower())
+        )[:3]
+    ]
     ordered = sorted_for_cards(posts)
     per_page = max(1, int(cfg.site.get("cards_per_page", 12)))
     pages = [
         ordered[i : i + per_page]
         for i in range(0, max(len(ordered), 1), per_page)
     ]
+
+    # full card data for client-side cross-page filtering (kept in sync with
+    # the server-rendered card template in index.html)
+    card_entries = []
+    for post in ordered:
+        card_entries.append(
+            {
+                "url": post.url,
+                "title": post.title,
+                "date_str": post.date_str,
+                "tags": post.tags,
+                "folder": post.folder,
+                "pin": post.pin,
+                "highlight": post.highlight,
+                "preview_html": post.preview_html,
+                "preview_plain": post.preview_plain,
+                "thumb_url": post.thumb_url or "",
+            }
+        )
+    (out_root / "data" / "cards.json").write_text(
+        json.dumps(card_entries, ensure_ascii=False), encoding="utf-8"
+    )
 
     def page_path(n: int) -> str:
         return "index.html" if n == 1 else f"page/{n}.html"
@@ -366,6 +404,8 @@ def build_site(
             "pager": pager,
             "tree": tree,
             "all_tags": all_tags,
+            "top_tags": top_tags,
+            "folder_segments": folder_segments,
             "collapse_threshold": collapse_threshold,
         }
         dst = out_root / current_url

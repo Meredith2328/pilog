@@ -527,6 +527,7 @@
 
   svg.addEventListener("pointerdown", function (e) {
     if (e.target === svg || e.target === linksG || e.target === envLayer) {
+      cancelFlashAnim();
       e.preventDefault();
       panning = true;
       moved = false;
@@ -549,6 +550,7 @@
   });
 
   svg.addEventListener("wheel", function (e) {
+    cancelFlashAnim();
     e.preventDefault();
     var rect = svg.getBoundingClientRect();
     var mx = e.clientX - rect.left, my = e.clientY - rect.top;
@@ -614,6 +616,106 @@
     return String(s).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
     });
+  }
+
+  /* ---------- folder highlight (nav integration) ---------- */
+
+  var flashAnim = null; // active temporary zoom animation
+  var pendingHighlight = null;
+
+  function cancelFlashAnim() {
+    if (flashAnim) {
+      if (flashAnim.raf) cancelAnimationFrame(flashAnim.raf);
+      if (flashAnim.timer) clearTimeout(flashAnim.timer);
+      flashAnim = null;
+    }
+  }
+
+  function animateTransform(from, to, dur, done) {
+    cancelFlashAnim();
+    var t0 = null;
+    function ease(t) {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+    function frame(ts) {
+      if (t0 === null) t0 = ts;
+      var k = Math.min(1, (ts - t0) / dur);
+      var e = ease(k);
+      zoom = from[0] + (to[0] - from[0]) * e;
+      ox = from[1] + (to[1] - from[1]) * e;
+      oy = from[2] + (to[2] - from[2]) * e;
+      applyTransform();
+      if (k < 1) {
+        flashAnim.raf = requestAnimationFrame(frame);
+      } else {
+        flashAnim = null;
+        if (done) done();
+      }
+    }
+    flashAnim = { raf: requestAnimationFrame(frame), timer: null };
+  }
+
+  function highlightFolder(folder) {
+    if (!data) {
+      pendingHighlight = folder;
+      return;
+    }
+    pendingHighlight = null;
+    var parts = String(folder).split("/").filter(Boolean);
+    var acc = "";
+    var changed = false;
+    parts.forEach(function (part) {
+      acc = acc ? acc + "/" + part : part;
+      if (collapsed[acc]) {
+        expandDir(acc);
+        changed = true;
+      }
+    });
+    if (changed) {
+      render();
+      updateStats();
+      snakeDirty = true;
+    }
+
+    // bounding box of the folder's whole subtree (dirs + posts)
+    var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    var found = false;
+    Object.keys(nodes).forEach(function (id) {
+      if (hidden[id]) return;
+      if (id !== folder && id.indexOf(folder + "/") !== 0) return;
+      var n = nodes[id];
+      found = true;
+      minX = Math.min(minX, n.x - n.w / 2);
+      minY = Math.min(minY, n.y - n.h / 2);
+      maxX = Math.max(maxX, n.x + n.w / 2);
+      maxY = Math.max(maxY, n.y + n.h / 2);
+    });
+    if (!found) return;
+
+    var pad = 34;
+    var flash = document.createElementNS(NS, "rect");
+    flash.setAttribute("class", "graph-flash");
+    flash.setAttribute("x", minX - pad);
+    flash.setAttribute("y", minY - pad);
+    flash.setAttribute("width", maxX - minX + pad * 2);
+    flash.setAttribute("height", maxY - minY + pad * 2);
+    envLayer.appendChild(flash);
+    flash.addEventListener("animationend", function () {
+      flash.remove();
+    });
+
+    // gentle temporary zoom toward the subtree, then ease back
+    var rect = svg.getBoundingClientRect();
+    var cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+    var z0 = zoom, ox0 = ox, oy0 = oy;
+    var targetZoom = Math.min(1.18, Math.max(z0, 1.1));
+    var tx = rect.width / 2 - cx * targetZoom;
+    var ty = rect.height / 2 - cy * targetZoom;
+    var timer = setTimeout(function () {
+      animateTransform([targetZoom, tx, ty], [z0, ox0, oy0], 420);
+    }, 900);
+    if (flashAnim) flashAnim.timer = timer;
+    animateTransform([z0, ox0, oy0], [targetZoom, tx, ty], 320);
   }
 
   /* ============================================================
@@ -954,10 +1056,18 @@
         .then(function (d) {
           data = d;
           run();
+          if (pendingHighlight) {
+            var f = pendingHighlight;
+            pendingHighlight = null;
+            highlightFolder(f);
+          }
         })
         .catch(function () {
           this.started = false;
         });
+    },
+    highlightFolder: function (folder) {
+      highlightFolder(folder);
     }
   };
 

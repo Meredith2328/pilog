@@ -136,6 +136,21 @@ def main() -> None:
               f"-> {first_card != second_first}")
         page.goto(base + "/", wait_until="load")
 
+        # cross-page filtering: a folder filter pulls in posts from every page
+        page.evaluate("window.pilogFilters.toggleFolder('posts/topic01')")
+        page.wait_for_timeout(700)
+        filtered = page.locator(".card.is-client").count()
+        pager_hidden = (
+            page.locator(".pager").is_hidden()
+            if page.locator(".pager").count()
+            else True
+        )
+        print(f"folder filter: {filtered} cards from all pages, pager hidden: {pager_hidden}")
+        assert filtered == 10, f"expected 10 cards in topic01, got {filtered}"
+        assert pager_hidden, "pager should hide while filtering"
+        page.evaluate("window.pilogFilters.toggleFolder('posts/topic01')")
+        page.wait_for_timeout(300)
+
         page.click('[data-view="tree"]')
         files = page.locator(".tree-file").count()
         collapsed_dirs = page.locator(".tree-folder:not(.is-open)").count()

@@ -69,6 +69,48 @@ def main() -> None:
         ok &= check("manual preview shown", "轻量的静态博客框架" in pre, pre[:40])
         ok &= check("tag chips on cards", page.locator(".card .tag-chip").count() >= 4)
 
+        # filter bar: top 3 tags + expandable "more tags" panel
+        ok &= check("top tags = 3", page.locator(".filter-tags .tag-chip").count() == 3)
+        page.click("#filter-more")
+        ok &= check("more tag panel", page.locator("#filter-more-panel .tag-chip").count() >= 5)
+        page.click("#filter-more")
+
+        # clicking a tag selects a removable filter chip below the search bar
+        tag_name = page.locator(".filter-tags .tag-chip").first.get_attribute("data-tag")
+        page.locator(".filter-tags .tag-chip").first.click()
+        page.wait_for_timeout(400)  # allow the client-side cards.json fetch
+        ok &= check("selected chip shown", page.locator(".sel-chip").count() == 1)
+        ok &= check("selected chip label", "#" + tag_name in page.locator(".sel-chip").first.inner_text())
+        filtered = page.locator(".card:visible").count()
+        ok &= check("tag filter narrows cards", 0 < filtered < page.locator(".card").count(), str(filtered))
+        page.locator(".sel-chip .sel-x").first.click()
+        ok &= check("chip x clears filter", page.locator(".sel-chip").count() == 0)
+
+        # clicking a folder segment on a card selects a folder filter
+        page.locator(".folder-part[data-folder='posts/tech']").first.click()
+        ok &= check("folder chip appears", page.locator(".sel-chip.sel-folder").count() == 1)
+        vis = page.locator(".card:visible").count()
+        ok &= check("folder filter narrows cards", vis == 2, str(vis))
+        page.locator(".sel-chip .sel-x").first.click()
+
+        # multi-condition: tag + folder with no overlap -> empty state
+        page.locator(".folder-part[data-folder='posts/tech']").first.click()
+        page.click("#filter-more")
+        page.fill("#filter-more-search", "obsidian")
+        page.locator("#filter-more-list .tag-chip[data-tag='obsidian']").click()
+        ok &= check("empty cards state", page.locator(".empty-cards").count() == 1)
+        page.locator(".sel-chip .sel-x").first.click()
+        page.locator(".sel-chip .sel-x").first.click()
+        ok &= check("empty state cleared", page.locator(".empty-cards").count() == 0)
+        page.click("#filter-more")  # close the more-tags panel before moving on
+
+        # nav folder link in cards view selects the folder filter
+        page.locator(".site-nav a[data-kind='folder']", has_text="技术").click()
+        ok &= check("nav folder selects filter", page.locator(".sel-chip.sel-folder").count() == 1)
+        vis = page.locator(".card:visible").count()
+        ok &= check("nav folder shows only its posts", vis == 2, str(vis))
+        page.locator(".sel-chip .sel-x").first.click()
+
         # tree view
         page.click('[data-view="tree"]')
         ok &= check("tree files >= 5", page.locator(".tree-file").count() >= 5)
@@ -78,6 +120,9 @@ def main() -> None:
         page.click("#tree-collapse")
         ok &= check("tree collapse hides children", page.locator(".tree-folder").first.evaluate(
             "el => !el.classList.contains('is-open')"))
+        page.locator(".site-nav a[data-kind='folder']", has_text="技术").click()
+        ok &= check("tree nav stays in tree", page.locator("#view-tree").evaluate("el => !el.hidden"))
+        ok &= check("tree nav flashes folder", page.locator(".tree-row.tree-flash").count() >= 1)
 
         # graph view
         page.click('[data-view="graph"]')
@@ -105,6 +150,19 @@ def main() -> None:
         page.fill("#search-input", "速查")
         page.wait_for_timeout(700)
         ok &= check("search finds results", page.locator(".search-item").count() >= 1)
+        # #tag searches tags only; plain words never match tags
+        page.fill("#search-input", "#workflow")
+        page.wait_for_timeout(700)
+        ok &= check("#tag search finds tag", page.locator(".search-item").count() >= 1)
+        page.fill("#search-input", "workflow")
+        page.wait_for_timeout(700)
+        ok &= check("plain word ignores tags", page.locator(".search-item").count() == 0)
+        page.fill("#search-input", "#workflow")
+        page.wait_for_timeout(700)
+        page.locator(".search-tag[data-tag='workflow']").first.click()
+        page.wait_for_timeout(300)
+        ok &= check("search tag click selects filter", page.locator(".sel-chip").count() == 1)
+        page.locator(".sel-chip .sel-x").first.click()
         page.fill("#search-input", "")
 
         # post page
@@ -148,6 +206,15 @@ def main() -> None:
         page.goto(base + "/index.html#view-graph", wait_until="networkidle")
         page.wait_for_timeout(1800)
         ok &= check("deep link #view-graph works", page.locator("#view-graph").evaluate("el => !el.hidden"))
+        page.goto(base + "/index.html#folder=posts/tech", wait_until="networkidle")
+        ok &= check("deep link #folder selects folder", page.locator(".sel-chip.sel-folder").count() == 1)
+        # same-document hash changes accumulate (multi-condition); a real visit
+        # from a post page reloads with a clean slate
+        page.goto(base + "/posts/notes/obsidian-tips.html", wait_until="networkidle")
+        page.goto(base + "/index.html#tag=obsidian", wait_until="networkidle")
+        ok &= check("deep link #tag selects tag", page.locator(".sel-chip").count() == 1)
+        vis = page.locator(".card:visible").count()
+        ok &= check("deep link #tag filters cards", vis >= 1, str(vis))
 
         # stale localStorage must not override the default
         page.evaluate("localStorage.setItem('pilog.view', 'graph')")
