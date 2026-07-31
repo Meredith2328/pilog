@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="pilog">
+  <title>从SGD到AdamW，优化器怎么发展过来的？ · MEREDITH&#39;S LOG</title>
+  <meta name="description" content="Adam = Momentum + RMSProp 本文可以省流成以下几句话： SGD往梯度下降的方向更新权重。 SGD+Momentum把梯度累积起来、得到了方向，一直同向就更新快一点，变向就慢一点。 AdaGrad把梯度的平方累积起来，让出现得频繁却梯度值很小的步长更大。 RMSProp给AdaGrad加了一个衰减">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="MEREDITH&#39;S LOG">
+  <meta property="og:title" content="从SGD到AdamW，优化器怎么发展过来的？">
+  <meta property="og:description" content="Adam = Momentum + RMSProp 本文可以省流成以下几句话： SGD往梯度下降的方向更新权重。 SGD+Momentum把梯度累积起来、得到了方向，一直同向就更新快一点，变向就慢一点。 AdaGrad把梯度的平方累积起来，让出现得频繁却梯度值很小的步长更大。 RMSProp给AdaGrad加了一个衰减">
+  <link rel="canonical" href="https://meredith2328.github.io/posts/migrated/optimizer.html">
+  
+  <meta property="og:image" content="https://meredith2328.github.io/assets/.thumbs/55ae0c01ded5.jpg">
+  <meta property="article:published_time" content="2026-03-11T00:00:00">
+
+  <link rel="icon" href="../../favicon.png">
+  <link rel="apple-touch-icon" href="../../favicon.png">
+  <link rel="alternate" type="application/rss+xml" title="MEREDITH&#39;S LOG · RSS" href="../../rss.xml">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="../../css/style.css">
+  
+</head>
+<body>
+  <div class="deco deco-left" aria-hidden="true"></div>
+  <div class="deco deco-right" aria-hidden="true"></div>
+  <header class="site-header">
+    <div class="header-banner is-default"
+         style="background-image:url('../../img/banner-default.svg')"></div>
+    <div class="header-row">
+      <a class="brand" href="../../index.html">
+        <img class="brand-icon" src="../../img/dino-icon.png" alt="dino" width="28" height="30">
+        <span class="brand-name">MEREDITH&#39;S LOG</span>
+        <span class="brand-sub">pixel · minimal · notes</span>
+      </a>
+
+      <div class="view-switch" role="tablist" aria-label="视图切换">
+        <button class="view-tab is-active" role="tab" data-view="cards" aria-selected="true">卡片视图</button>
+        <button class="view-tab" role="tab" data-view="tree" aria-selected="false">清单视图</button>
+        <button class="view-tab" role="tab" data-view="graph" aria-selected="false">图谱视图</button>
+      </div>
+
+      <div class="search-wrap" id="search-wrap">
+        <input id="search-input" type="search" placeholder="搜索 标题 / 全文 / 标签…"
+               autocomplete="off" aria-label="搜索">
+        <div class="search-results" id="search-results" hidden></div>
+      </div>
+
+      <div class="socials">
+        
+          
+            <a class="social-icon" href="https://github.com/meredith2328" title="github" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></a>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        
+          <a class="social-icon" href="../../rss.xml" title="RSS"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg></a>
+        
+      </div>
+    </div>
+    
+    <nav class="site-nav" aria-label="站点导航"><h1 id="_1">导航</h1>
+<ul>
+<li><a href="../../index.html">首页</a></li>
+<li><a href="../../about.html">关于</a></li>
+<li><a data-kind="folder" href="../../index.html#folder=posts/tech">技术</a></li>
+<li><a data-kind="folder" href="../../index.html#folder=posts/notes">随笔</a></li>
+<li><a href="../../dino/index.html">恐龙游戏</a></li>
+</ul></nav>
+    
+  </header>
+
+  <main class="site-main">
+<article class="post">
+  <header class="post-header">
+    <a class="back-link" href="../../index.html">← 返回首页</a>
+    <h1 class="post-title">从SGD到AdamW，优化器怎么发展过来的？</h1>
+    <div class="post-meta">
+      <time datetime="2026-03-11T00:00:00">2026-03-11</time>
+      
+      <a class="tag-chip" href="../../index.html#tag=CS%E7%9B%B8%E5%85%B3">#CS相关</a>
+      
+      <span class="post-folder">▣ posts/migrated</span>
+    </div>
+  </header>
+
+  <div class="post-body markdown-body">
+    <p>Adam = Momentum + RMSProp</p>
+<!-- more -->
+<blockquote>
+<p>本部分是自己对AdamW优化器的初步学习和理解，代码均为DeepSeek v3.2生成，相比于PyTorch的工程完整实现做了简化，注重核心内容。
+有一点自己不满意的是，觉得对AdaGrad的笔记写得不好。在有更进一步的了解时希望把这一部分修改一下。
+edit time: 2026-03-11 21:34:12</p>
+</blockquote>
+<p>本文可以省流成以下几句话：
+SGD往梯度下降的方向更新权重。
+SGD+Momentum把梯度累积起来、得到了方向，一直同向就更新快一点，变向就慢一点。
+AdaGrad把梯度的平方累积起来，让出现得频繁却梯度值很小的步长更大。
+RMSProp给AdaGrad加了一个衰减系数，不看整个历史、只看近期历史，防止学习率消失。
+Adam = Momentum + RMSProp。
+AdamW解决了在使用Adam时应该怎么做权重衰减。</p>
+<table>
+<thead>
+<tr>
+<th>算法</th>
+<th>动量</th>
+<th>自适应LR</th>
+<th>权重衰减</th>
+<th>关键创新</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SGD</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>基础</td>
+</tr>
+<tr>
+<td>SGD+Momentum</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>加速收敛</td>
+</tr>
+<tr>
+<td>AdaGrad</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>自适应学习率</td>
+</tr>
+<tr>
+<td>RMSProp</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>指数移动平均</td>
+</tr>
+<tr>
+<td>Adam</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>Momentum + RMSProp</td>
+</tr>
+<tr>
+<td>AdamW</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅（解耦）</td>
+<td>正确权重衰减</td>
+</tr>
+<tr>
+<td>### SGD</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>$$ \theta_{t+1} = \theta_t - \eta \cdot g_t $$</p>
+<p>是理论上最基础的梯度下降，沿着梯度的反方向更新参数。</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">SGD</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.01</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lr</span> <span class="o">=</span> <span class="n">lr</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">grads</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">param</span><span class="p">,</span> <span class="n">grad</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">grads</span><span class="p">):</span>
+            <span class="n">param</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lr</span> <span class="o">*</span> <span class="n">grad</span>  <span class="c1"># 最简单的梯度下降</span>
+</code></pre></div>
+<h3 id="sgd-with-momentum">SGD with Momentum</h3>
+<p>$$ v_t = \gamma v_{t-1} + \eta g_t $$
+$$ \theta_{t+1} = \theta_t - v_t $$</p>
+<p>动量梯度下降，引入“速度”的概念，用于<strong>累积历史梯度方向</strong>（称为一阶方法）。
+现在参数的更新值不再是步长乘负梯度，而是速度。速度累积了历史的梯度变化量。
+“<strong>如果梯度方向持续相同就加速，梯度方向反转就减速</strong>”，
+很像一个小球滚下来的过程。
+<img alt="" src="post-images/20260311195340.png"/>
+（图片来自 <a href="https://speech.ee.ntu.edu.tw/~tlkagk/courses/ML_2017/Lecture/DNN%20tip.pdf">李宏毅机器学习 Part IV: Tips for Training DNN</a> ）</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">SGDMomentum</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">momentum</span><span class="o">=</span><span class="mf">0.9</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lr</span> <span class="o">=</span> <span class="n">lr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">momentum</span> <span class="o">=</span> <span class="n">momentum</span> <span class="c1"># 动量系数 γ</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># 速度</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">grads</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">grad</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">grads</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">v</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">v</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="c1"># 更新速度（动量）</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">v</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">momentum</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">v</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">lr</span> <span class="o">*</span> <span class="n">grad</span>
+            <span class="c1"># 更新参数</span>
+            <span class="n">param</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">v</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+</code></pre></div>
+<h3 id="adagrad">AdaGrad</h3>
+<p>$$ G_t = G_{t-1} + g_t^2 $$
+$$ \theta_{t+1} = \theta_t - \frac{\eta}{\sqrt{G_t + \epsilon}} \cdot g_t $$</p>
+<p>自适应学习率，关注历史<strong>梯度大小</strong>。
+它考虑到不同特征出现的频率不同，高频特征可能过度训练、低频特征可能欠拟合。所以根据特征出现的频率，自适应调整学习率，让低频特征学习率更高。
+“<strong>梯度出现频繁的，学习率更高</strong>”。
+那么为什么使用平方呢？因为我们需要用到梯度的绝对数值，但直接累积会出现方向的抵消。</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">AdaGrad</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lr</span> <span class="o">=</span> <span class="n">lr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eps</span> <span class="o">=</span> <span class="n">eps</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># 梯度平方累积</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">grads</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">grad</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">grads</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="c1"># 累积梯度平方</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">grad</span> <span class="o">**</span> <span class="mi">2</span>
+            <span class="c1"># 自适应学习率更新</span>
+            <span class="n">param</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lr</span> <span class="o">*</span> <span class="n">grad</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">**</span> <span class="mf">0.5</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">eps</span><span class="p">)</span>
+</code></pre></div>
+<p>注意，这里步长考虑的是<strong>梯度出现频繁</strong>。
+对于出现频繁，比如下述例子考虑某一步的情况，此时0.01的梯度已经出现过100次、而1.0的梯度出现过1次。下述计算发现前者此时的有效学习率大于后者（1.0 &gt; 0.1）。</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># 场景1：梯度数值小但出现频繁</span>
+<span class="n">grads_frequent_small</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.01</span><span class="p">]</span> <span class="o">*</span> <span class="mi">100</span>  <span class="c1"># 100次，每次都0.01</span>
+<span class="n">cache_frequent</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">g</span><span class="o">**</span><span class="mi">2</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">grads_frequent_small</span><span class="p">])</span>  <span class="c1"># = 100 * 0.0001 = 0.01</span>
+<span class="n">delta_frequent</span> <span class="o">=</span> <span class="mf">0.1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">cache_frequent</span><span class="p">)</span>  <span class="c1"># 0.1 / 0.1 = 1.0</span>
+
+<span class="c1"># 场景2：梯度数值大但出现稀疏</span>
+<span class="n">grads_sparse_big</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">1</span>  <span class="c1"># 只出现1次，但数值1.0</span>
+<span class="n">cache_sparse</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">g</span><span class="o">**</span><span class="mi">2</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">grads_sparse_big</span><span class="p">])</span>  <span class="c1"># = 1 * 1.0 = 1.0</span>
+<span class="n">delta_sparse</span> <span class="o">=</span> <span class="mf">0.1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">cache_sparse</span><span class="p">)</span>  <span class="c1"># 0.1 / 1.0 = 0.1</span>
+</code></pre></div>
+<blockquote>
+<p>感觉讲得还是不太好。如果之后有更进一步的理解了，这里可以更新一下。</p>
+</blockquote>
+<h3 id="rmsprop">RMSProp</h3>
+<p>$$ E[g^2]<em t-1="t-1">t = \beta E[g^2]</em> + (1-\beta) g_t^2 $$
+$$ \theta_{t+1} = \theta_t - \frac{\eta}{\sqrt{E[g^2]_t + \epsilon}} \cdot g_t $$</p>
+<p>AdaGrad随着梯度平方的累积，学习率会递减到0，出现学习率消失问题。
+<strong>RMSProp在AdaGrad的基础上加入了衰减</strong>（称为“指数移动平均/EMA”），使得它看的历史从无限长变成了近期历史，解决了学习率消失问题，对学习率的适应更好。</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">RMSProp</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">decay</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lr</span> <span class="o">=</span> <span class="n">lr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">decay</span> <span class="o">=</span> <span class="n">decay</span>  <span class="c1"># 衰减率</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eps</span> <span class="o">=</span> <span class="n">eps</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">grads</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">grad</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">grads</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="c1"># 指数移动平均累积梯度平方</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decay</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">decay</span><span class="p">)</span> <span class="o">*</span> <span class="n">grad</span> <span class="o">**</span> <span class="mi">2</span>
+            <span class="c1"># 更新参数</span>
+            <span class="n">param</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lr</span> <span class="o">*</span> <span class="n">grad</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">**</span> <span class="mf">0.5</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">eps</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="adam">Adam</h3>
+<p>$$ m_t = \beta_1 m_{t-1} + (1-\beta_1) g_t $$
+$$ v_t = \beta_2 v_{t-1} + (1-\beta_2) g_t^2 $$
+$$ \hat{m}<em t_1="t+1">t = \frac{m_t}{1-\beta_1^t} $$
+$$ \hat{v}_t = \frac{v_t}{1-\beta_2^t} $$
+$$ \theta</em>_t $$} = \theta_t - \frac{\eta}{\sqrt{\hat{v}_t} + \epsilon} \hat{m</p>
+<p><strong>Adam = Momentum + RMSProp。</strong>
+相当于既要累积历史梯度方向（一阶， $m$ ），又要累积历史梯度大小（二阶，$v$ ）。</p>
+<hr/>
+<blockquote>
+<p>以下是对上述形式的一些数学推导证明：为什么是这样的衰减形式、以及修正系数的引入。</p>
+</blockquote>
+<p>但是，我们希望追问一下：RMSProp那个“<strong>指数移动平均</strong>”（加了个衰减系数）到底是什么？
+联系一下概率论的“矩估计”知识，结论是：<strong>指数移动平均是对期望的在线估计</strong>。也就是说，我们上面实际上是<strong>把梯度平方的累积值，换成了梯度平方的期望</strong>。</p>
+<p>下述证明一下。我们要找到估计 $\hat{\mu_t}$ 和值 $x_t$ 的关系。
+$$ \hat{\mu}<em t-1="t-1">t = \beta \hat{\mu}</em> + (1-\beta) x_t $$
+递归代入展开：
+$$ \hat{\mu}<em t-2="t-2">t = \beta [\beta \hat{\mu}</em>] + (1-\beta) x_t $$
+$$= \beta^2 \hat{\mu}} + (1-\beta) x_{t-1<em t-1="t-1">{t-2} + \beta(1-\beta) x</em> + (1-\beta) x_t $$
+$$= \beta^t \hat{\mu}<em i="1">0 + (1-\beta) \sum</em> x_i $$
+令 $\hat{\mu}}^t \beta^{t-i<em i="1">0 = 0$，则有估计值的公式为：
+$$ \hat{\mu}_t = (1-\beta) \sum</em> x_i $$
+这个形式是对 $x$ 的加权平均（所以才叫指数移动平均嘛）。权重是如下 $w_i$ 。（ps. 容易证明，权重总和为 $1$ 。）
+$$ w_i = (1-\beta) \beta^{t-i}, \quad i=1,...,t $$
+接下来取这个估计值的期望：
+$$ \begin{align}
+E[\hat{\mu}}^t \beta^{t-i<em i="1">t] &amp;= E\left[ (1-\beta) \sum</em> x_i \right] \
+&amp;= (1-\beta) \sum_{i=1}^t \beta^{t-i} E[x_i] \
+&amp;= (1-\beta) \mu \sum_{i=1}^t \beta^{t-i} \
+&amp;= \mu (1-\beta^t)
+\end{align} $$
+所以我们发现，对估计值 $\hat{\mu_t}$ 除以一个偏差系数 $1-\beta^t$ ，就可以得到对期望 $\mu=E[x_t]$ （其实这个式子不是显然的，而是基于局部近似平稳的假设）的无偏估计。}^t \beta^{t-i</p>
+<p>因此，我们一开始的结论得证：
+$$\hat{\mu}_t \approx E[x_t]$$</p>
+<hr/>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Adam</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">betas</span><span class="o">=</span><span class="p">(</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.999</span><span class="p">),</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lr</span> <span class="o">=</span> <span class="n">lr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">beta1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta2</span> <span class="o">=</span> <span class="n">betas</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eps</span> <span class="o">=</span> <span class="n">eps</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">m</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># 一阶矩（动量）</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># 二阶矩（自适应）</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t</span> <span class="o">=</span> <span class="mi">0</span>   <span class="c1"># 时间步</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">grads</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">grad</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">grads</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">v</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="c1"># 更新矩估计</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta1</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta1</span><span class="p">)</span> <span class="o">*</span> <span class="n">grad</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">v</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">v</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta2</span><span class="p">)</span> <span class="o">*</span> <span class="n">grad</span> <span class="o">**</span> <span class="mi">2</span>
+
+            <span class="c1"># 偏差修正</span>
+            <span class="n">m_hat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta1</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">t</span><span class="p">)</span>
+            <span class="n">v_hat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">v</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta2</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">t</span><span class="p">)</span>
+
+            <span class="c1"># Adam更新</span>
+            <span class="n">param</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lr</span> <span class="o">*</span> <span class="n">m_hat</span> <span class="o">/</span> <span class="p">(</span><span class="n">v_hat</span> <span class="o">**</span> <span class="mf">0.5</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">eps</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="adamw">AdamW</h3>
+<p>$$ m_t = \beta_1 m_{t-1} + (1-\beta_1) g_t $$
+$$ v_t = \beta_2 v_{t-1} + (1-\beta_2) g_t^2 $$
+$$ \hat{m}<em t_1="t+1">t = \frac{m_t}{1-\beta_1^t} $$
+$$ \hat{v}_t = \frac{v_t}{1-\beta_2^t} $$
+$$ \theta_t' = \theta_t - \frac{\eta}{\sqrt{\hat{v}_t} + \epsilon} \hat{m}_t $$
+$$ \theta</em> = \theta_t' - \eta \lambda \theta_t $$</p>
+<p>Adam本身很好了，就是加上权重衰减时，容易用错。</p>
+<p>对比以下Adam和AdamW的关键实现区别，发现AdamW<strong>把权重衰减和梯度更新分开</strong>了。
+原来Adam是先对梯度做权重衰减、然后用衰减后的值做梯度更新；
+现在AdamW直接用原始梯度值做梯度更新、然后对更新结果做权重衰减。
+省流一下，就是把权重衰减挪到了整个step的最后面单独做。
+不然的话，Adam的权重衰减（正则化）效果其实是被自适应学习率影响了的，这样的话才真正地同时实现了Adam和权重衰减两个目的的原始含义。</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Adam</span>
+<span class="c1"># 第1步：在梯度上加L2正则化</span>
+<span class="n">grad</span> <span class="o">=</span> <span class="n">grad</span> <span class="o">+</span> <span class="n">weight_decay</span> <span class="o">*</span> <span class="n">param</span>  <span class="c1"># g' = g + λθ</span>
+
+<span class="c1"># 第2步：用修改后的梯度更新矩估计</span>
+<span class="n">exp_avg</span> <span class="o">=</span> <span class="n">beta1</span> <span class="o">*</span> <span class="n">exp_avg</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">beta1</span><span class="p">)</span> <span class="o">*</span> <span class="n">grad</span>      <span class="c1"># m = β₁m + (1-β₁)(g+λθ)</span>
+<span class="n">exp_avg_sq</span> <span class="o">=</span> <span class="n">beta2</span> <span class="o">*</span> <span class="n">exp_avg_sq</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">beta2</span><span class="p">)</span> <span class="o">*</span> <span class="n">grad</span><span class="o">**</span><span class="mi">2</span>  <span class="c1"># v = β₂v + (1-β₂)(g+λθ)²</span>
+
+<span class="c1"># 第3步：Adam更新</span>
+<span class="n">param</span> <span class="o">-=</span> <span class="n">lr</span> <span class="o">*</span> <span class="n">m_hat</span> <span class="o">/</span> <span class="p">(</span><span class="n">sqrt</span><span class="p">(</span><span class="n">v_hat</span><span class="p">)</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span>  <span class="c1"># 更新步长包含了λθ的影响</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="c1"># AdamW</span>
+<span class="c1"># 第1步：更新矩估计（用原始梯度）</span>
+<span class="n">exp_avg</span> <span class="o">=</span> <span class="n">beta1</span> <span class="o">*</span> <span class="n">exp_avg</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">beta1</span><span class="p">)</span> <span class="o">*</span> <span class="n">grad</span>      <span class="c1"># m = β₁m + (1-β₁)g</span>
+<span class="n">exp_avg_sq</span> <span class="o">=</span> <span class="n">beta2</span> <span class="o">*</span> <span class="n">exp_avg_sq</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">beta2</span><span class="p">)</span> <span class="o">*</span> <span class="n">grad</span><span class="o">**</span><span class="mi">2</span>  <span class="c1"># v = β₂v + (1-β₂)g²</span>
+
+<span class="c1"># 第2步：Adam更新（用原始梯度）</span>
+<span class="n">param</span> <span class="o">-=</span> <span class="n">lr</span> <span class="o">*</span> <span class="n">m_hat</span> <span class="o">/</span> <span class="p">(</span><span class="n">sqrt</span><span class="p">(</span><span class="n">v_hat</span><span class="p">)</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span>  <span class="c1"># θ' = θ - η·m̂/√v̂</span>
+
+<span class="c1"># 第3步：单独进行权重衰减</span>
+<span class="n">param</span> <span class="o">-=</span> <span class="n">lr</span> <span class="o">*</span> <span class="n">weight_decay</span> <span class="o">*</span> <span class="n">param</span>  <span class="c1"># θ = θ' - ηλθ</span>
+</code></pre></div>
+<p>终于得到了最终的完整代码。完结撒花！</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">AdamW</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Optimizer</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">betas</span><span class="o">=</span><span class="p">(</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.999</span><span class="p">),</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span> <span class="n">weight_decay</span><span class="o">=</span><span class="mf">0.01</span><span class="p">):</span>
+        <span class="n">defaults</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">lr</span><span class="o">=</span><span class="n">lr</span><span class="p">,</span> <span class="n">betas</span><span class="o">=</span><span class="n">betas</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">eps</span><span class="p">,</span> <span class="n">weight_decay</span><span class="o">=</span><span class="n">weight_decay</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">defaults</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">closure</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">closure</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">closure</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_groups</span><span class="p">:</span>
+            <span class="n">beta1</span><span class="p">,</span> <span class="n">beta2</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="s1">'betas'</span><span class="p">]</span>
+            <span class="n">lr</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="s1">'lr'</span><span class="p">]</span>
+            <span class="n">eps</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="s1">'eps'</span><span class="p">]</span>
+            <span class="n">weight_decay</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="s1">'weight_decay'</span><span class="p">]</span>
+
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">group</span><span class="p">[</span><span class="s1">'params'</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+                <span class="n">grad</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">data</span>
+
+                <span class="c1"># 初始化状态</span>
+                <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">state</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">state</span><span class="p">[</span><span class="s1">'step'</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">state</span><span class="p">[</span><span class="s1">'m'</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>  <span class="c1"># 一阶矩</span>
+                    <span class="n">state</span><span class="p">[</span><span class="s1">'v'</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>  <span class="c1"># 二阶矩</span>
+
+                <span class="c1"># 更新步数</span>
+                <span class="n">state</span><span class="p">[</span><span class="s1">'step'</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">t</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">'step'</span><span class="p">]</span>
+
+                <span class="c1"># 更新矩估计</span>
+                <span class="n">state</span><span class="p">[</span><span class="s1">'m'</span><span class="p">]</span><span class="o">.</span><span class="n">mul_</span><span class="p">(</span><span class="n">beta1</span><span class="p">)</span><span class="o">.</span><span class="n">add_</span><span class="p">(</span><span class="n">grad</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">1</span> <span class="o">-</span> <span class="n">beta1</span><span class="p">)</span>
+                <span class="n">state</span><span class="p">[</span><span class="s1">'v'</span><span class="p">]</span><span class="o">.</span><span class="n">mul_</span><span class="p">(</span><span class="n">beta2</span><span class="p">)</span><span class="o">.</span><span class="n">addcmul_</span><span class="p">(</span><span class="n">grad</span><span class="p">,</span> <span class="n">grad</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">1</span> <span class="o">-</span> <span class="n">beta2</span><span class="p">)</span>
+
+                <span class="c1"># 偏差修正</span>
+                <span class="n">bias_correction1</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">beta1</span> <span class="o">**</span> <span class="n">t</span>
+                <span class="n">bias_correction2</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">beta2</span> <span class="o">**</span> <span class="n">t</span>
+
+                <span class="c1"># Adam更新</span>
+                <span class="n">denom</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">'v'</span><span class="p">]</span><span class="o">.</span><span class="n">sqrt</span><span class="p">()</span><span class="o">.</span><span class="n">add_</span><span class="p">(</span><span class="n">eps</span><span class="p">)</span>
+                <span class="n">step_size</span> <span class="o">=</span> <span class="n">lr</span> <span class="o">*</span> <span class="p">(</span><span class="n">bias_correction2</span> <span class="o">**</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">/</span> <span class="n">bias_correction1</span>
+                <span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">addcdiv_</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="s1">'m'</span><span class="p">],</span> <span class="n">denom</span><span class="p">,</span> <span class="n">value</span><span class="o">=-</span><span class="n">step_size</span><span class="p">)</span>
+
+                <span class="c1"># 权重衰减（解耦）</span>
+                <span class="k">if</span> <span class="n">weight_decay</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">add_</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=-</span><span class="n">lr</span> <span class="o">*</span> <span class="n">weight_decay</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">loss</span>
+</code></pre></div>
+  </div>
+
+  
+  <section class="post-comments">
+    <h2 class="comments-title">评论</h2>
+    <script src="https://giscus.app/client.js"
+      data-repo="Meredith2328/pilog"
+      data-repo-id="R_kgDOTpY2UA"
+      data-category="Announcements"
+      data-category-id="DIC_kwDOTpY2UM4DCZMy"
+      data-mapping="pathname"
+      data-strict="0"
+      data-reactions-enabled="1"
+      data-emit-metadata="0"
+      data-input-position="top"
+      data-theme="light"
+      data-lang="zh-CN"
+      crossorigin="anonymous"
+      async></script>
+  </section>
+  
+</article>
+</main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span>© 2026 Meredith — built with pilog</span>
+      <span class="footer-sep">::</span>
+      <a href="../../rss.xml">RSS</a>
+      <span class="footer-sep">::</span>
+      <span>powered by <a href="https://github.com/meredith2328/pilog" target="_blank" rel="noopener">pilog</a></span>
+    </div>
+  </footer>
+
+  
+  <div class="dino-widget" data-widget="dino">
+    <div class="dino-panel" hidden>
+      <div class="dino-bar">
+        <span class="dino-title">T-REX RUNNER</span>
+        <span class="dino-hint">点击游戏区域后按 空格</span>
+        <button class="dino-close" type="button" aria-label="关闭">×</button>
+      </div>
+      <iframe class="dino-frame" src="../../dino/index.html" title="Chrome 断网小恐龙" loading="lazy"></iframe>
+    </div>
+    <button class="dino-toggle" type="button" aria-label="打开小恐龙游戏">
+      <img src="../../img/dino-icon.png" alt="小恐龙" width="26" height="28">
+      <span>PLAY</span>
+    </button>
+  </div>
+  
+
+  <script src="../../js/main.js" defer></script>
+  <script>
+    window.PILOG_ROOT = "../../";
+    window.PILOG_DEFAULT_VIEW = "cards";
+  </script>
+  <script src="../../js/search.js" defer></script>
+  
+</body>
+</html>

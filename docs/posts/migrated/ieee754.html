@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="pilog">
+  <title>IEEE754 浮点数与十进制数互相转换流程及例子 · MEREDITH&#39;S LOG</title>
+  <meta name="description" content="原来只是精度、数量级，再加上偏移量这个从无符号数到有符号数的工程实现。 浮点数从未如此简单。 （不是） 十进制数转浮点数步骤： 十进制转二进制，如$10.001{2}$。 二进制转二进制的科学计数法表示（$1.xxx2 \times 2^{yyy}$），如$1.001{2} \times 2^1$，根据指数$yyy$参">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="MEREDITH&#39;S LOG">
+  <meta property="og:title" content="IEEE754 浮点数与十进制数互相转换流程及例子">
+  <meta property="og:description" content="原来只是精度、数量级，再加上偏移量这个从无符号数到有符号数的工程实现。 浮点数从未如此简单。 （不是） 十进制数转浮点数步骤： 十进制转二进制，如$10.001{2}$。 二进制转二进制的科学计数法表示（$1.xxx2 \times 2^{yyy}$），如$1.001{2} \times 2^1$，根据指数$yyy$参">
+  <link rel="canonical" href="https://meredith2328.github.io/posts/migrated/ieee754.html">
+  
+  <meta property="og:image" content="https://meredith2328.github.io/assets/.thumbs/0a2dcca88f6f.jpg">
+  <meta property="article:published_time" content="2025-06-17T00:00:00">
+
+  <link rel="icon" href="../../favicon.png">
+  <link rel="apple-touch-icon" href="../../favicon.png">
+  <link rel="alternate" type="application/rss+xml" title="MEREDITH&#39;S LOG · RSS" href="../../rss.xml">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="../../css/style.css">
+  
+</head>
+<body>
+  <div class="deco deco-left" aria-hidden="true"></div>
+  <div class="deco deco-right" aria-hidden="true"></div>
+  <header class="site-header">
+    <div class="header-banner is-default"
+         style="background-image:url('../../img/banner-default.svg')"></div>
+    <div class="header-row">
+      <a class="brand" href="../../index.html">
+        <img class="brand-icon" src="../../img/dino-icon.png" alt="dino" width="28" height="30">
+        <span class="brand-name">MEREDITH&#39;S LOG</span>
+        <span class="brand-sub">pixel · minimal · notes</span>
+      </a>
+
+      <div class="view-switch" role="tablist" aria-label="视图切换">
+        <button class="view-tab is-active" role="tab" data-view="cards" aria-selected="true">卡片视图</button>
+        <button class="view-tab" role="tab" data-view="tree" aria-selected="false">清单视图</button>
+        <button class="view-tab" role="tab" data-view="graph" aria-selected="false">图谱视图</button>
+      </div>
+
+      <div class="search-wrap" id="search-wrap">
+        <input id="search-input" type="search" placeholder="搜索 标题 / 全文 / 标签…"
+               autocomplete="off" aria-label="搜索">
+        <div class="search-results" id="search-results" hidden></div>
+      </div>
+
+      <div class="socials">
+        
+          
+            <a class="social-icon" href="https://github.com/meredith2328" title="github" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></a>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        
+          <a class="social-icon" href="../../rss.xml" title="RSS"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg></a>
+        
+      </div>
+    </div>
+    
+    <nav class="site-nav" aria-label="站点导航"><h1 id="_1">导航</h1>
+<ul>
+<li><a href="../../index.html">首页</a></li>
+<li><a href="../../about.html">关于</a></li>
+<li><a data-kind="folder" href="../../index.html#folder=posts/tech">技术</a></li>
+<li><a data-kind="folder" href="../../index.html#folder=posts/notes">随笔</a></li>
+<li><a href="../../dino/index.html">恐龙游戏</a></li>
+</ul></nav>
+    
+  </header>
+
+  <main class="site-main">
+<article class="post">
+  <header class="post-header">
+    <a class="back-link" href="../../index.html">← 返回首页</a>
+    <h1 class="post-title">IEEE754 浮点数与十进制数互相转换流程及例子</h1>
+    <div class="post-meta">
+      <time datetime="2025-06-17T00:00:00">2025-06-17</time>
+      
+      <a class="tag-chip" href="../../index.html#tag=CS%E7%9B%B8%E5%85%B3">#CS相关</a>
+      
+      <span class="post-folder">▣ posts/migrated</span>
+    </div>
+  </header>
+
+  <div class="post-body markdown-body">
+    <p>原来只是精度、数量级，再加上偏移量这个从无符号数到有符号数的工程实现。
+~~浮点数从未如此简单。~~ （不是）</p>
+<!-- more -->
+<blockquote>
+<p>edit time: 2025-06-17 01:43:17
+ps. 以下所有例子里的s都取0，即我们考虑的是正数和正0的浮点表示。
+s取1就是给正数前面添个负号。
+以下未引入由于精度带来舍入问题的例子。</p>
+</blockquote>
+<p><img alt="" src="post-images/20250617014314.png"/></p>
+<h2 id="_1">十进制数转浮点数、浮点数转十进制数步骤</h2>
+<p><strong>十进制数转浮点数步骤：</strong></p>
+<ol>
+<li>十进制转二进制，如$10.001_{2}$。</li>
+<li>二进制转二进制的科学计数法表示（$1.xxx_2 \times 2^{yyy}$），如$1.001_{2} \times 2^1$，根据指数$yyy$参考下述“规格化和非规格化判断”。</li>
+<li>根据二进制的科学计数法表示，参考下述“M和E是多少”，写出s, exp, frac。</li>
+</ol>
+<p><strong>浮点数转十进制数步骤</strong>：反过来
+根据exp判断为规格化、非规格化、无穷大、NaN中的哪一种，
+如果为规格化和非规格化，则将exp和frac按照对应规则转化为E和M，
+进而得到表示的数 $V=(-1)^s \times M \times 2^E$。</p>
+<h2 id="_2">规格化和非规格化判断</h2>
+<blockquote>
+<p>省流：看要表示的数的二进制科学计数法的指数是否在规格化可提供的E范围内。</p>
+</blockquote>
+<p>以s, exp, frac三个二进制段长度为1, 4, 3为例：
+根据浮点数表示给出的exp段长度k=4，可以得到$Bias = 2^{k - 1} - 1=7$。
+<strong>非规格化数</strong>是形如 0 0000 xxx 等的形式，即中间exp段全0。
+<strong>规格化数</strong>是形如 0 0011 xxx 等的形式，即中间exp段既不全0、也不全1。
+<strong>无穷大</strong>是 0 1111 000，即中间exp段全1且frac段全0。
+<strong>NaN</strong>是 0 1111 xxx（xxx≠000），即中间exp段全1且frac段不为全0。</p>
+<p>由规格化数的定义可以推得：
+<strong>最小的规格化数</strong>为 0 <strong>0001</strong> 000，即exp为0001。
+<strong>最大的规格化数</strong>为 0 <strong>1110</strong> 111，即exp为1110。
+ps. 可以记住：右边的frac从000到111对应的数逐渐增大，从而推得最小和最大的规格化数。</p>
+<p>对于规格化数，满足$E = exp - Bias$，
+所以最小的规格化数对应的E=1-7=<strong>-6</strong>（<strong>0001</strong>对应1），
+最大的规格化数对应的E=14-7=<strong>7</strong>（<strong>1110</strong>对应14）。
+关键：
+<strong>要表示的数的二进制科学计数法的指数在规格化能提供的$[-6, 7]$范围内，就一律为规格化数。</strong>
+<strong>如果指数小于-6，则为非规格化数。</strong>
+<strong>如果指数大于7，则为无穷大。</strong></p>
+<h2 id="me">M和E是多少</h2>
+<blockquote>
+<p>省流：
+根据判断出的是规格化还是非规格化，
+把二进制的科学计数法表示的小数部分和指数部分套进对应的规则。</p>
+</blockquote>
+<p>eg. 下面表示里s, exp, frac三个二进制段长度为1, 4, 3</p>
+<p>总结：还是以这个例子为例，
+<strong>要表示的数的二进制科学计数法的指数在规格化能提供的$[-6, 7]$范围内，就一律为规格化数，E即为指数，M=$1.xxx_2$。</strong>
+<strong>如果指数小于-6，则为非规格化数，E取-6，把科学计数法表示拆成 $1.xxx_2 \times 2^{yyy-E} \times 2^{E}$ 的形式。M=$1.xxx_2 \times 2^{yyy-E}$，从而M是$0.zzz$的形式，以表示更小的指数。如果指数实在太小（见备注），则直接用0表示。</strong>
+<strong>如果指数大于7，则用无穷大表示，不需要E和M。</strong></p>
+<p>在根据要表示的数的二进制科学计数法得到M和E之后，就能得到exp和frac字段：</p>
+<ol>
+<li>
+<p><strong>M和frac字段</strong>
+   非规格化数frac字段对应的$M$是 <strong>0.frac</strong>，即0.连上frac部分。
+   eg. 0 0000 <strong>010</strong>对应的小数是$0.010_{2}$ * 2^(-6) （为什么是-6后面说）
+   规格化数frac字段对应的M是 <strong>1.frac</strong>，即1.连上frac部分。
+   eg. 0 0111 <strong>001</strong>对应的小数是$1.001_2$ * 2^0（为什么是0后面说）</p>
+</li>
+<li>
+<p><strong>E和exp字段</strong>
+   非规格化数，exp字段对应的E是1-Bias。
+   eg. 0 0000 010对应的Bias是2^(4-1)-1=7（exp长度为4），E=1-7=-6，故对应的小数是0.010 * 2^(<strong>-6</strong>)
+   规格化数，exp字段对应的E是exp-Bias。
+   eg. 0 <strong>0111</strong> 001对应的Bias是2^(4-1)-1=7（exp长度为4），E=<strong>exp</strong>-Bias=<strong>7</strong>-7=0，故对应的小数是1.001 * 2^<strong>0</strong>。</p>
+</li>
+</ol>
+<p>注意exp和frac字段补0的方式不同，就像是它们之间有一个小数点一样。
+exp是往前补0，比如$10_2$补0变成$0010$，
+frac是往后补0，比如$01_2$补0变成$010$。</p>
+<p>备注. “指数实在太小”是多小？
+最小的非规格化数，上例即0 0000 001，此时E=1-7=-6，M=$0.001_2=2^{-3}$，这个数是$2^{-9}$。
+如果再小一些、且不能舍入到最小的非规格化数，就只能舍入到0 0000 000即0了。</p>
+<h2 id="_3">例题</h2>
+<p>以下例子不小心只有规格化和NaN，非规格化、指数太大、指数太小再找点例子练练。</p>
+<blockquote>
+<p>例题1：十进制转换为浮点表示。将0.625转换为浮点数表示，s, exp, frac分别为1, 4, 3位。</p>
+</blockquote>
+<ol start="0">
+<li>顺手算一下Bias = 2^(k - 1) - 1 = 2^(4-1)-1=7，其中k是exp的位数。</li>
+<li>十转二，整数除二看余、小数乘二看整。0.625乘二、乘二、乘二得到的整数分别为1、0、1，故它的二进制表示是0.<strong>101</strong>。</li>
+<li>转换为1.xxx的形式，即1.<strong>01</strong> ^ 2(<strong>-1</strong>)。</li>
+<li>对应到V的式子上，M=1.01，E=-1。因为E大于规格化数表示中最小的E（exp值为1、E=exp-Bias=1-7=-6），所以这个数按照规格化表示。</li>
+<li>规格化表示的frac直接写M舍去1和小数点、后面的一段（M=1.<strong>01</strong> -&gt; frac表示为010，注意根据位数<strong>往后</strong>补0）。exp=E+Bias=(-1)+7=6，exp表示为0110，注意根据位数<strong>往前</strong>补0。</li>
+</ol>
+<p>综上，s是0（正数），exp是0110，frac是001，所以0.625的浮点数表示是0 0110 001。</p>
+<blockquote>
+<p>例题2：十进制转换为浮点表示。将1.75转换为浮点数表示，s, exp, frac分别为1, 4, 3位。</p>
+</blockquote>
+<ol start="0">
+<li>Bias = 2^(4-1)-1=7。</li>
+<li>1.75 = $1.11_{(2)} \times 2^0$</li>
+<li>M=1.11，E=0，E&gt;1-7=-6，所以规格化表示。</li>
+<li>frac表示为110（注意往<strong>后</strong>补0），exp=0+7=7，表示为0111。</li>
+</ol>
+<p>综上，1.75 表示为 0 0111 110。</p>
+<blockquote>
+<p>例题3：浮点表示转换为十进制。0 0111 110表示的数是多少？s, exp, frac分别为1, 4, 3位。</p>
+</blockquote>
+<p>exp段是0111，不是全0、不是全1，所以是规格化。
+M=$1.110_{(2)}$，
+E=exp-Bias=7-7=0。
+s=0。
+所以表示的数 $V=(-1)^s \times M \times 2^E = (-1)^0 \times 1.11_{(2)} \times 2^0 = 1.11_{2}=1.75$</p>
+<blockquote>
+<p>例题4：十进制转换为浮点表示。0.375表示成多少？s, exp, frac分别为1, 4, 3位。</p>
+</blockquote>
+<ol start="0">
+<li>Bias = 7。</li>
+<li>0.375 = $0.011_{(2)}$，图省事口算转换也可以想0.375 = 1/4 + 1/8，然后1/4和1/8对应的那两位为1。再转换成科学计数法就是$1.1 \times 2^{-2}$</li>
+<li>M=1.1，E=-2，则frac为100，exp为E+Bias=5就是0101，故表示为 0 0101 100。</li>
+</ol>
+<blockquote>
+<p>例题5：√-1表示成多少？</p>
+</blockquote>
+<p>NaN，可以写0 1111 001之类的。</p>
+<p><strong>附录：对于上述s, exp, frac三个二进制段长度为1, 4, 3的非负数表格完整示例：</strong>
+<img alt="" src="post-images/20250617184539.png"/>
+ps. 建议从上表格任选位表示和十进制，练习从十进制推位表示或从位表示推十进制，熟练掌握转换方法。</p>
+  </div>
+
+  
+  <section class="post-comments">
+    <h2 class="comments-title">评论</h2>
+    <script src="https://giscus.app/client.js"
+      data-repo="Meredith2328/pilog"
+      data-repo-id="R_kgDOTpY2UA"
+      data-category="Announcements"
+      data-category-id="DIC_kwDOTpY2UM4DCZMy"
+      data-mapping="pathname"
+      data-strict="0"
+      data-reactions-enabled="1"
+      data-emit-metadata="0"
+      data-input-position="top"
+      data-theme="light"
+      data-lang="zh-CN"
+      crossorigin="anonymous"
+      async></script>
+  </section>
+  
+</article>
+</main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span>© 2026 Meredith — built with pilog</span>
+      <span class="footer-sep">::</span>
+      <a href="../../rss.xml">RSS</a>
+      <span class="footer-sep">::</span>
+      <span>powered by <a href="https://github.com/meredith2328/pilog" target="_blank" rel="noopener">pilog</a></span>
+    </div>
+  </footer>
+
+  
+  <div class="dino-widget" data-widget="dino">
+    <div class="dino-panel" hidden>
+      <div class="dino-bar">
+        <span class="dino-title">T-REX RUNNER</span>
+        <span class="dino-hint">点击游戏区域后按 空格</span>
+        <button class="dino-close" type="button" aria-label="关闭">×</button>
+      </div>
+      <iframe class="dino-frame" src="../../dino/index.html" title="Chrome 断网小恐龙" loading="lazy"></iframe>
+    </div>
+    <button class="dino-toggle" type="button" aria-label="打开小恐龙游戏">
+      <img src="../../img/dino-icon.png" alt="小恐龙" width="26" height="28">
+      <span>PLAY</span>
+    </button>
+  </div>
+  
+
+  <script src="../../js/main.js" defer></script>
+  <script>
+    window.PILOG_ROOT = "../../";
+    window.PILOG_DEFAULT_VIEW = "cards";
+  </script>
+  <script src="../../js/search.js" defer></script>
+  
+</body>
+</html>

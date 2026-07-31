@@ -89,11 +89,11 @@
   <div class="filter-tags">
     <span class="filter-label">筛选</span>
     
-    <button class="tag-chip" type="button" data-tag="pilog">#pilog</button>
+    <button class="tag-chip" type="button" data-tag="CS相关">#CS相关</button>
     
-    <button class="tag-chip" type="button" data-tag="about">#about</button>
+    <button class="tag-chip" type="button" data-tag="奇怪的东西">#奇怪的东西</button>
     
-    <button class="tag-chip" type="button" data-tag="demo">#demo</button>
+    <button class="tag-chip" type="button" data-tag="CS61A">#CS61A</button>
     
     <button class="filter-more" id="filter-more" type="button">更多标签 ▾</button>
   </div>
@@ -102,6 +102,12 @@
     <div class="filter-more-list" id="filter-more-list">
       
       <button class="tag-chip" type="button" data-tag="about">#about</button>
+      
+      <button class="tag-chip" type="button" data-tag="CS61A">#CS61A</button>
+      
+      <button class="tag-chip" type="button" data-tag="CSAPP">#CSAPP</button>
+      
+      <button class="tag-chip" type="button" data-tag="CS相关">#CS相关</button>
       
       <button class="tag-chip" type="button" data-tag="demo">#demo</button>
       
@@ -118,6 +124,10 @@
       <button class="tag-chip" type="button" data-tag="pilog">#pilog</button>
       
       <button class="tag-chip" type="button" data-tag="workflow">#workflow</button>
+      
+      <button class="tag-chip" type="button" data-tag="奇怪的东西">#奇怪的东西</button>
+      
+      <button class="tag-chip" type="button" data-tag="数据结构与算法">#数据结构与算法</button>
       
     </div>
   </div>
@@ -279,22 +289,88 @@
       </a>
     </article>
     
-    <article class="card" data-tags="about " data-folder="root" data-date="2026-01-01">
-      <a class="card-link" href="about.html">
+    <article class="card" data-tags="CS相关 " data-folder="posts/migrated" data-date="2026-05-16">
+      <a class="card-link" href="posts/migrated/nanovllm.html">
         <div class="card-body">
           <div class="card-meta">
-            <time datetime="2026-01-01">2026-01-01</time>
+            <time datetime="2026-05-16">2026-05-16</time>
             
             
+            
+            <span class="card-folder" title="点击目录片段筛选">
+              <button class="folder-part" type="button" data-folder="posts">posts</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/migrated">migrated</button>
+            </span>
             
           </div>
-          <h3 class="card-title">关于</h3>
+          <h3 class="card-title">结合nanovllm的FlashAttention和PagedAttention主要原理概述</h3>
           
-          <p class="card-preview">这是一个由 pilog 驱动的极简像素风博客。 这里记录技术笔记、生活随笔，以及一切值得留下来的片段。博客支持三种视图：卡片、清单与图谱，内容由 Markdown 编写，配合 Obsidian 使用体验最佳。 在 blogs/ 目录下新建 .md 文件，使用 Obsidian 或其他编辑器撰写； 运行 python build.py 生成静态站点； 用 GitHub Desktop 提交，GitHub Actions 会自动部署到 GitHub Pages。 页脚有社交账号入口。也可以直接通过 GitHub 发起…</p>
+          <p class="card-preview">总结：FlashAttention用于降低Attention计算阶段预存的显存消耗（内部计算范畴）， PagedAttention用于高效管理推理的KV Cache（外部推理范畴）。 FlashAttention： 问题：标准 Attention 需要存储 N×N 的中间矩阵，显存 O(N²) 解决：分块 + 在线 softmax，显存降到 O(N) 关键：外循环 Q 块，内循环 K、V 块，在线更新 m、l、O PagedAttention： 问题：预分配连续显存导致大量浪费（内部碎片 + 外部碎片）…</p>
           
           <div class="card-tags">
             
-            <button class="tag-chip" type="button" data-tag="about">#about</button>
+            <button class="tag-chip" type="button" data-tag="CS相关">#CS相关</button>
+            
+          </div>
+        </div>
+        
+        <div class="card-thumb">
+          <img src="assets/.thumbs/6a6b24883449.jpg" alt="" loading="lazy">
+        </div>
+        
+      </a>
+    </article>
+    
+    <article class="card" data-tags="奇怪的东西 " data-folder="posts/migrated" data-date="2026-05-16">
+      <a class="card-link" href="posts/migrated/notegotya.html">
+        <div class="card-body">
+          <div class="card-meta">
+            <time datetime="2026-05-16">2026-05-16</time>
+            
+            
+            
+            <span class="card-folder" title="点击目录片段筛选">
+              <button class="folder-part" type="button" data-folder="posts">posts</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/migrated">migrated</button>
+            </span>
+            
+          </div>
+          <h3 class="card-title">做了一个叫notegotya的五线谱识谱练习玩具</h3>
+          
+          <p class="card-preview">因为想学一下低音谱号，顺便再多熟练熟练不熟悉的高音谱号的读谱，所以做了个小玩具出来。 把谱面难度调低还挺好玩的 → notegotya</p>
+          
+          <div class="card-tags">
+            
+            <button class="tag-chip" type="button" data-tag="奇怪的东西">#奇怪的东西</button>
+            
+          </div>
+        </div>
+        
+        <div class="card-thumb">
+          <img src="assets/.thumbs/c30cc768b897.jpg" alt="" loading="lazy">
+        </div>
+        
+      </a>
+    </article>
+    
+    <article class="card" data-tags="CS相关 " data-folder="posts/migrated" data-date="2026-04-09">
+      <a class="card-link" href="posts/migrated/softmax.html">
+        <div class="card-body">
+          <div class="card-meta">
+            <time datetime="2026-04-09">2026-04-09</time>
+            
+            
+            
+            <span class="card-folder" title="点击目录片段筛选">
+              <button class="folder-part" type="button" data-folder="posts">posts</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/migrated">migrated</button>
+            </span>
+            
+          </div>
+          <h3 class="card-title">从原始Softmax到在线Softmax</h3>
+          
+          <p class="card-preview">撰写了原始的softmax、数值稳定的softmax、在线softmax的公式及其简单代码呈现。 我们讨论的起点是原始的softmax形式： $$pj = \frac{e^{zj}}{\sumk e^{zk}}.$$ 为保证数值稳定，令 m := \maxk zk, 则 softmax 可等价改写为数值稳定的softmax形式： pj = \frac{e^{zj - m}}{\sumk e^{zk - m}}. 其实就是给分子分母的 $z$ 先减去 $m$ ，然后再使用exp函数，相当于给 $pj$…</p>
+          
+          <div class="card-tags">
+            
+            <button class="tag-chip" type="button" data-tag="CS相关">#CS相关</button>
             
           </div>
         </div>
@@ -302,8 +378,135 @@
       </a>
     </article>
     
+    <article class="card" data-tags="奇怪的东西 " data-folder="posts/migrated" data-date="2026-03-25">
+      <a class="card-link" href="posts/migrated/fudan-mlsys-cn.html">
+        <div class="card-body">
+          <div class="card-meta">
+            <time datetime="2026-03-25">2026-03-25</time>
+            
+            
+            
+            <span class="card-folder" title="点击目录片段筛选">
+              <button class="folder-part" type="button" data-folder="posts">posts</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/migrated">migrated</button>
+            </span>
+            
+          </div>
+          <h3 class="card-title">给机器学习系统课程做了一下中文翻译</h3>
+          
+          <p class="card-preview">在线阅读： MLSys 中文翻译 搞到网页上方便阅读。 原网页链接： MLSys 课程名称：复旦大学2025-2026春机器学习系统课程（尚笠老师）</p>
+          
+          <div class="card-tags">
+            
+            <button class="tag-chip" type="button" data-tag="奇怪的东西">#奇怪的东西</button>
+            
+          </div>
+        </div>
+        
+      </a>
+    </article>
+    
+    <article class="card" data-tags="" data-folder="posts/migrated" data-date="2026-03-18">
+      <a class="card-link" href="posts/migrated/xiang-zuo-kairui-na-ge-shui-ping-de-dong-xi-zhe-li-de-yao-qiu-zhi-neng-gao-bu-neng-di.html">
+        <div class="card-body">
+          <div class="card-meta">
+            <time datetime="2026-03-18">2026-03-18</time>
+            
+            
+            
+            <span class="card-folder" title="点击目录片段筛选">
+              <button class="folder-part" type="button" data-folder="posts">posts</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/migrated">migrated</button>
+            </span>
+            
+          </div>
+          <h3 class="card-title">想做kairui那个水平的东西，这里的要求只能高不能低</h3>
+          
+          <p class="card-preview"></p>
+          
+          <div class="card-tags">
+            
+          </div>
+        </div>
+        
+      </a>
+    </article>
+    
+    <article class="card" data-tags="CS相关 " data-folder="posts/migrated" data-date="2026-03-14">
+      <a class="card-link" href="posts/migrated/TensorZero-6949.html">
+        <div class="card-body">
+          <div class="card-meta">
+            <time datetime="2026-03-14">2026-03-14</time>
+            
+            
+            
+            <span class="card-folder" title="点击目录片段筛选">
+              <button class="folder-part" type="button" data-folder="posts">posts</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/migrated">migrated</button>
+            </span>
+            
+          </div>
+          <h3 class="card-title">Pull Request 6949</h3>
+          
+          <p class="card-preview">Allow env::... for objectstorage.endpoint by Meredith2328 · Pull Request #6949 · tensorzero/tensorzero 感悟：对ai工作流的优化 codex用于处理环境配置等耗时的问题，并且负责整理整体代码结构（慢）， deepseek用于快速问答、给我讲解我要做什么（快）。 crates/tensorzero-core/src/config/mod.rs 这里从原来的 config 必须字面写出 endpoint…</p>
+          
+          <div class="card-tags">
+            
+            <button class="tag-chip" type="button" data-tag="CS相关">#CS相关</button>
+            
+          </div>
+        </div>
+        
+      </a>
+    </article>
+    
+    <article class="card" data-tags="CS相关 " data-folder="posts/migrated" data-date="2026-03-12">
+      <a class="card-link" href="posts/migrated/LLMestimate2.html">
+        <div class="card-body">
+          <div class="card-meta">
+            <time datetime="2026-03-12">2026-03-12</time>
+            
+            
+            
+            <span class="card-folder" title="点击目录片段筛选">
+              <button class="folder-part" type="button" data-folder="posts">posts</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/migrated">migrated</button>
+            </span>
+            
+          </div>
+          <h3 class="card-title">怎么估算LLM训练的内存和计算需求？推一推、测一测</h3>
+          
+          <p class="card-preview">本部分适合于知道AdamW更新流程、但没有尝试推导过peak memory和计算量、计算时间的朋友。 A{per\layer} ≈ 9BLd + 2BhL^2 C ≈ 6 × P × D Problem (adamwAccounting): Resource accounting for training with AdamW 接下来我们计算一下使用AdamW需要多少内存和计算。tensor一律使用float32。 (a) 运行AdamW的peak memory是多少？…</p>
+          
+          <div class="card-tags">
+            
+            <button class="tag-chip" type="button" data-tag="CS相关">#CS相关</button>
+            
+          </div>
+        </div>
+        
+        <div class="card-thumb">
+          <img src="assets/.thumbs/31abc74ea940.jpg" alt="" loading="lazy">
+        </div>
+        
+      </a>
+    </article>
+    
   </div>
 
+  
+  <nav class="pager" aria-label="分页">
+    <span class="pager-info">第 1 / 4 页</span>
+    
+    <span class="pager-pages">
+      
+      <a class="pager-page is-current" href="index.html">1</a>
+      
+      <a class="pager-page" href="page/2.html">2</a>
+      
+      <a class="pager-page" href="page/3.html">3</a>
+      
+      <a class="pager-page" href="page/4.html">4</a>
+      
+    </span>
+    <a class="pixel-btn" href="page/2.html">下一页 →</a>
+  </nav>
   
 </section>
 
@@ -329,6 +532,472 @@
             </div>
             <ul class="tree-children">
               
+        
+          
+          <li class="tree-folder" data-path="posts/migrated">
+            <div class="tree-row" role="button" tabindex="0">
+              <span class="tree-toggle">▼</span>
+              <img class="tree-icon-img tree-icon-folder" src="img/pixel-folder.svg" alt="folder">
+              <span class="tree-name">migrated</span>
+            </div>
+            <ul class="tree-children">
+              
+        
+          
+          <li class="tree-file" data-path="posts/migrated/10pi">
+            <a class="tree-row" href="posts/migrated/10pi.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">十派的玩具箱有哪些内容？</span>
+              <span class="tree-date">2024-08-30</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/algorithm-1">
+            <a class="tree-row" href="posts/migrated/algorithm-1.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">【数据结构与算法1】数学篇：从几个专题审视算法课的数学部分</span>
+              <span class="tree-date">2026-01-04</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/algorithm-2">
+            <a class="tree-row" href="posts/migrated/algorithm-2.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">【数据结构与算法2】算法篇：用3x2审视算法课的算法部分</span>
+              <span class="tree-date">2026-01-05</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/algorithm-3">
+            <a class="tree-row" href="posts/migrated/algorithm-3.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">【数据结构与算法3】基础数据结构与算法模板整理</span>
+              <span class="tree-date">2026-01-18</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/algorithm-4">
+            <a class="tree-row" href="posts/migrated/algorithm-4.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">【数据结构与算法4】LeetCode HOT 100 in Python（前50）</span>
+              <span class="tree-date">2026-03-02</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/algorithm-5">
+            <a class="tree-row" href="posts/migrated/algorithm-5.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">【数据结构与算法5】LeetCode HOT 100 in Python（后50）</span>
+              <span class="tree-date">2026-03-02</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/career-advice-by-tao">
+            <a class="tree-row" href="posts/migrated/career-advice-by-tao.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">Career advice 丨 职业建议（翻译自 Terence Tao 的博客）</span>
+              <span class="tree-date">2025-08-01</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/cs61a-disc01">
+            <a class="tree-row" href="posts/migrated/cs61a-disc01.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">CS61A disc01 “迭代与抽象”</span>
+              <span class="tree-date">2023-07-17</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/cs61a-disc02">
+            <a class="tree-row" href="posts/migrated/cs61a-disc02.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">CS61A disc02 高阶函数</span>
+              <span class="tree-date">2023-07-17</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/cs61a-disc03">
+            <a class="tree-row" href="posts/migrated/cs61a-disc03.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">CS61A disc03 递归</span>
+              <span class="tree-date">2023-08-30</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/cs61a-disc04">
+            <a class="tree-row" href="posts/migrated/cs61a-disc04.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">CS61A disc04 树的递归</span>
+              <span class="tree-date">2023-08-30</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/cs61a-disc05">
+            <a class="tree-row" href="posts/migrated/cs61a-disc05.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">CS61A disc05 迭代、时空复杂度</span>
+              <span class="tree-date">2023-08-30</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/cs61a-disc07">
+            <a class="tree-row" href="posts/migrated/cs61a-disc07.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">CS61A disc07 树、链表</span>
+              <span class="tree-date">2023-08-30</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/CS336-hw1-1">
+            <a class="tree-row" href="posts/migrated/CS336-hw1-1.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">CS336 Assignment 1 前半段记录：架构</span>
+              <span class="tree-date">2026-03-10</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/CS336-hw1-2">
+            <a class="tree-row" href="posts/migrated/CS336-hw1-2.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">CS336 Assignment 1 后半段记录：实验</span>
+              <span class="tree-date">2026-03-10</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/csapp-attacklab">
+            <a class="tree-row" href="posts/migrated/csapp-attacklab.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">CSAPP: attacklab</span>
+              <span class="tree-date">2024-05-15</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/csapp-bomblab">
+            <a class="tree-row" href="posts/migrated/csapp-bomblab.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">CSAPP: bomblab</span>
+              <span class="tree-date">2024-04-30</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/csapp-cachelab">
+            <a class="tree-row" href="posts/migrated/csapp-cachelab.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">CSAPP: cachelab</span>
+              <span class="tree-date">2024-06-05</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/csapp-datalab">
+            <a class="tree-row" href="posts/migrated/csapp-datalab.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">CSAPP: datalab</span>
+              <span class="tree-date">2024-04-30</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/csapp-shelllab">
+            <a class="tree-row" href="posts/migrated/csapp-shelllab.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">CSAPP: shelllab</span>
+              <span class="tree-date">2024-06-27</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/einops">
+            <a class="tree-row" href="posts/migrated/einops.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">用einops包替换掉PyTorch的大部分矩阵变换函数</span>
+              <span class="tree-date">2026-02-09</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/freshdan-xin-sheng-wiki-xiang-mu">
+            <a class="tree-row" href="posts/migrated/freshdan-xin-sheng-wiki-xiang-mu.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">freshdan 新生wiki项目</span>
+              <span class="tree-date">2024-08-26</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/friends">
+            <a class="tree-row" href="posts/migrated/friends.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">友情链接们</span>
+              <span class="tree-date">2024-04-30</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/fudan-mlsys-cn">
+            <a class="tree-row" href="posts/migrated/fudan-mlsys-cn.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">给机器学习系统课程做了一下中文翻译</span>
+              <span class="tree-date">2026-03-25</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/gridea-de-bug">
+            <a class="tree-row" href="posts/migrated/gridea-de-bug.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">Gridea的bug</span>
+              <span class="tree-date">2026-03-02</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/hao-xiang-wo-xu-yao-tian-yi-tian-keng">
+            <a class="tree-row" href="posts/migrated/hao-xiang-wo-xu-yao-tian-yi-tian-keng.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">好像我需要填一填坑</span>
+              <span class="tree-date">2024-06-14</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/ieee754">
+            <a class="tree-row" href="posts/migrated/ieee754.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">IEEE754 浮点数与十进制数互相转换流程及例子</span>
+              <span class="tree-date">2025-06-17</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/KaguraHikari">
+            <a class="tree-row" href="posts/migrated/KaguraHikari.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">为什么神乐光很萌？</span>
+              <span class="tree-date">2024-01-07</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/linux-command">
+            <a class="tree-row" href="posts/migrated/linux-command.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">值得顺便掌握一下的那些linux指令</span>
+              <span class="tree-date">2026-03-10</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/LLMestimate">
+            <a class="tree-row" href="posts/migrated/LLMestimate.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">怎么估算LLM的参数量和训练FLOPs？推一推、测一测</span>
+              <span class="tree-date">2026-03-03</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/LLMestimate2">
+            <a class="tree-row" href="posts/migrated/LLMestimate2.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">怎么估算LLM训练的内存和计算需求？推一推、测一测</span>
+              <span class="tree-date">2026-03-12</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/minitorch">
+            <a class="tree-row" href="posts/migrated/minitorch.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">minitorch</span>
+              <span class="tree-date">2026-01-05</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/nanovllm">
+            <a class="tree-row" href="posts/migrated/nanovllm.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">结合nanovllm的FlashAttention和PagedAttention主要原理概述</span>
+              <span class="tree-date">2026-05-16</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/notegotya">
+            <a class="tree-row" href="posts/migrated/notegotya.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">做了一个叫notegotya的五线谱识谱练习玩具</span>
+              <span class="tree-date">2026-05-16</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/optimizer">
+            <a class="tree-row" href="posts/migrated/optimizer.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">从SGD到AdamW，优化器怎么发展过来的？</span>
+              <span class="tree-date">2026-03-11</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/reverseChess">
+            <a class="tree-row" href="posts/migrated/reverseChess.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">贴贴棋（reverseChess）介绍</span>
+              <span class="tree-date">2026-02-26</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/softmax">
+            <a class="tree-row" href="posts/migrated/softmax.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">从原始Softmax到在线Softmax</span>
+              <span class="tree-date">2026-04-09</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/TensorZero-6949">
+            <a class="tree-row" href="posts/migrated/TensorZero-6949.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">Pull Request 6949</span>
+              <span class="tree-date">2026-03-14</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/wandb">
+            <a class="tree-row" href="posts/migrated/wandb.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">WanDB基础使用教程总结</span>
+              <span class="tree-date">2026-03-08</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/xiang-zuo-kairui-na-ge-shui-ping-de-dong-xi-zhe-li-de-yao-qiu-zhi-neng-gao-bu-neng-di">
+            <a class="tree-row" href="posts/migrated/xiang-zuo-kairui-na-ge-shui-ping-de-dong-xi-zhe-li-de-yao-qiu-zhi-neng-gao-bu-neng-di.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">想做kairui那个水平的东西，这里的要求只能高不能低</span>
+              <span class="tree-date">2026-03-18</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/migrated/zi-she">
+            <a class="tree-row" href="posts/migrated/zi-she.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">自设</span>
+              <span class="tree-date">2022-08-13</span>
+            </a>
+          </li>
+          
+        
+      
+            </ul>
+          </li>
+          
         
           
           <li class="tree-folder is-open" data-path="posts/notes">
