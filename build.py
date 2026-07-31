@@ -322,6 +322,7 @@ def build_site(
         has_header_banner=(blog_root / "assets" / "header.png").exists(),
     )
 
+    generated_pages = set()
     for page_num, page_posts in enumerate(pages, start=1):
         current_url = page_path(page_num)
         pager = {
@@ -369,6 +370,7 @@ def build_site(
         }
         dst = out_root / current_url
         dst.parent.mkdir(parents=True, exist_ok=True)
+        generated_pages.add(dst.resolve())
         dst.write_text(
             env.get_template("index.html").render(**index_vars),
             encoding="utf-8",
@@ -388,12 +390,15 @@ def build_site(
         }
         dst = out_root / post.url
         dst.parent.mkdir(parents=True, exist_ok=True)
+        generated_pages.add(dst.resolve())
         dst.write_text(
             env.get_template("post.html").render(**post_vars),
             encoding="utf-8",
         )
 
-    (out_root / "404.html").write_text(
+    page_404 = out_root / "404.html"
+    generated_pages.add(page_404.resolve())
+    page_404.write_text(
         env.get_template("404.html").render(
             **{
                 **base_vars,
@@ -418,6 +423,7 @@ def build_site(
         (out_root / "dino").mkdir(parents=True, exist_ok=True)
         shutil.copy2(dino_src, out_root / "dino" / "index.html")
         dino_out = out_root / "dino" / "index.html"
+        generated_pages.add(dino_out.resolve())
         html = dino_out.read_text(encoding="utf-8")
         if '<div class="toolbar">' in html:
             html = html.replace(
@@ -433,6 +439,17 @@ def build_site(
             )
         dino_out.write_text(html, encoding="utf-8")
         log("copied dino game")
+
+    # prune stale html pages (deleted posts / leftovers from imports)
+    pruned = 0
+    for html in out_root.rglob("*.html"):
+        if "assets" in html.parts:
+            continue
+        if html.resolve() not in generated_pages:
+            html.unlink()
+            pruned += 1
+    if pruned:
+        log(f"pruned {pruned} stale pages")
 
     make_dino_icons(cfg.root, out_root)
 
