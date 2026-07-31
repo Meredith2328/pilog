@@ -69,7 +69,9 @@ def run_publish(message: str | None = None, build: bool = True) -> dict:
             ),
         }
     owner, name = repo.split("/", 1)
-    push_url = f"https://x-access-token:{token}@github.com/{owner}/{name}.git"
+    # token as username (empty password) works for classic / fine-grained /
+    # OAuth tokens alike; never stored in git config
+    push_url = f"https://{token}@github.com/{owner}/{name}.git"
     lines: list[str] = []
 
     if build:
