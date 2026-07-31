@@ -83,13 +83,26 @@ def run_publish(message: str | None = None, build: bool = True) -> dict:
         lines.append("[1/3] 跳过构建")
 
     status = git(["status", "--porcelain"]).stdout
-    if not status.strip():
-        return {"ok": True, "output": "\n".join(lines) + "\n[2/3] 没有需要提交的变更，跳过提交与推送", "pushed": False}
+    local_head = git(["rev-parse", "HEAD"]).stdout.strip()
+    try:
+        remote_head = git(["ls-remote", push_url, f"refs/heads/{branch}"]).stdout.split("\t")[0].strip()
+    except Exception:
+        remote_head = ""
 
-    git(["add", "-A"])
-    msg = message or f"site update ({datetime.now():%Y-%m-%d %H:%M})"
-    git(["commit", "-m", msg])
-    lines.append(f"[2/3] 已提交：{msg}")
+    if not status.strip() and remote_head == local_head:
+        return {
+            "ok": True,
+            "output": "\n".join(lines) + "\n[2/3] 没有需要提交或推送的变更",
+            "pushed": False,
+        }
+
+    if status.strip():
+        git(["add", "-A"])
+        msg = message or f"site update ({datetime.now():%Y-%m-%d %H:%M})"
+        git(["commit", "-m", msg])
+        lines.append(f"[2/3] 已提交：{msg}")
+    else:
+        lines.append("[2/3] 工作区无变更，推送已有本地提交")
 
     result = git(
         ["push", push_url, f"HEAD:{branch}"],
