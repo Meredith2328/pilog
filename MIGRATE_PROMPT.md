@@ -4,7 +4,7 @@
 
 ## 0. 先读，再动手
 
-1. 完整阅读 `GUIDE.md`，理解本框架的使用流程：`blogs/` 即内容根目录、每篇 Markdown 即一篇文章、目录结构即文章层级、front matter 约定（title/date/tags/preview/preview_image/pin/highlight/draft）、图片的三种引用写法（`![相对路径](..)`、`![[xxx.png]]`、`![[xxx.png|宽度]]`）、以及批量导入与发布命令。
+1. 完整阅读 `README.md` 与 `blogs/posts/toy/pilog-blog.md`，理解本框架的使用流程：`blogs/` 即内容根目录、每篇 Markdown 即一篇文章、目录结构即文章层级、front matter 约定（title/date/tags/preview/preview_image/pin/highlight/draft）、图片的三种引用写法（`![相对路径](..)`、`![[xxx.png]]`、`![[xxx.png|宽度]]`）、以及批量导入与发布命令。
 2. 阅读 `config.json` 的 `site` 与 `publish` 段，确认部署目标与令牌配置。
 3. 需要了解命令实现时可查阅 `pilog.py` / `publish.py` / `build.py`，但**不要修改**它们。
 4. 若工作区存在 `AGENTS.md`，先遵守其中的环境要求（例如激活指定的 Python 环境）。

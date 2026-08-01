@@ -2,7 +2,7 @@
 
 轻量、美观、面向 Obsidian 工作流的静态博客生成器。读取 `blogs/` 目录下的 Markdown，生成带**卡片 / 清单 / 图谱**三种视图的静态站点；主题复刻 Chrome 断网页小恐龙的像素美学（灰白底、锐利直角、无多余圆角）。
 
-> 想快速上手（或让 Agent 帮你操作）？先读 [GUIDE.md](GUIDE.md)——不需要看代码或配置文件。
+> 想快速上手（或让 Agent 帮你操作）？直接读本文档即可；API 与配置项清单见博客里的 [pilog-blog](blogs/posts/toy/pilog-blog.md)。
 
 ![主题预览](docs/preview-cards.png)
 
