@@ -168,6 +168,11 @@ def main() -> None:
         nodes = page.locator(".graph-node").count()
         links = page.locator(".graph-link").count()
         refs = page.locator(".graph-link.ref").count()
+        # reference edges sit inside collapsed topic folders by default;
+        # expand to verify wiki-link edges are actually rendered
+        page.click("#graph-expand-all")
+        page.wait_for_timeout(800)
+        refs = page.locator(".graph-link.ref").count()
         assert refs > 0, f"expected wiki-link ref edges in the graph, got {refs}"
         zoom = page.evaluate("""
             () => {

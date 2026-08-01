@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="pilog">
+  <title>结合nanovllm的FlashAttention和PagedAttention主要原理概述 · MEREDITH&#39;S LOG</title>
+  <meta name="description" content="总结：FlashAttention用于降低Attention计算阶段预存的显存消耗（内部计算范畴）， PagedAttention用于高效管理推理的KV Cache（外部推理范畴）。 FlashAttention： 问题：标准 Attention 需要存储 N×N 的中间矩阵，显存 O(N²) 解决：分块 + 在线 s">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="MEREDITH&#39;S LOG">
+  <meta property="og:title" content="结合nanovllm的FlashAttention和PagedAttention主要原理概述">
+  <meta property="og:description" content="总结：FlashAttention用于降低Attention计算阶段预存的显存消耗（内部计算范畴）， PagedAttention用于高效管理推理的KV Cache（外部推理范畴）。 FlashAttention： 问题：标准 Attention 需要存储 N×N 的中间矩阵，显存 O(N²) 解决：分块 + 在线 s">
+  <link rel="canonical" href="https://meredith2328.github.io/posts/notes/ml/nanovllm.html">
+  
+  <meta property="og:image" content="https://meredith2328.github.io/assets/.thumbs/6a6b24883449.jpg">
+  <meta property="article:published_time" content="2026-05-16T00:00:00">
+
+  <link rel="icon" href="../../../favicon.png">
+  <link rel="apple-touch-icon" href="../../../favicon.png">
+  <link rel="alternate" type="application/rss+xml" title="MEREDITH&#39;S LOG · RSS" href="../../../rss.xml">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <link rel="stylesheet" href="../../../css/style.css">
+  
+</head>
+<body>
+  <div class="deco deco-left" aria-hidden="true"></div>
+  <div class="deco deco-right" aria-hidden="true"></div>
+  <header class="site-header">
+    <div class="header-banner is-default"
+         style="background-image:url('../../../img/banner-default.svg')"></div>
+    <div class="header-row">
+      <a class="brand" href="../../../index.html">
+        <img class="brand-icon" src="../../../img/dino-icon.png" alt="dino" width="28" height="30">
+        <span class="brand-name">MEREDITH&#39;S LOG</span>
+        <span class="brand-sub">pixel · minimal · notes</span>
+      </a>
+
+      <div class="view-switch" role="tablist" aria-label="视图切换">
+        <button class="view-tab is-active" role="tab" data-view="cards" aria-selected="true">卡片视图</button>
+        <button class="view-tab" role="tab" data-view="tree" aria-selected="false">清单视图</button>
+        <button class="view-tab" role="tab" data-view="graph" aria-selected="false">图谱视图</button>
+      </div>
+
+      <div class="search-wrap" id="search-wrap">
+        <input id="search-input" type="search" placeholder="搜索 标题 / 全文 / 标签…"
+               autocomplete="off" aria-label="搜索">
+        <div class="search-results" id="search-results" hidden></div>
+      </div>
+
+      <div class="socials">
+        
+          
+            <a class="social-icon" href="https://github.com/meredith2328" title="github" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></a>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        
+          <a class="social-icon" href="../../../rss.xml" title="RSS"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg></a>
+        
+      </div>
+    </div>
+    
+    <nav class="site-nav" aria-label="站点导航"><h1 id="_1">导航</h1>
+<ul>
+<li><a href="../../../index.html">首页</a></li>
+<li><a href="../../toy/10pi.html">关于</a></li>
+<li><a data-kind="folder" href="../../../index.html#folder=posts/courses">CS相关</a></li>
+<li><a data-kind="folder" href="../../../index.html#folder=posts/toy">玩具</a></li>
+<li><a href="../../../dino/index.html">恐龙游戏</a></li>
+</ul></nav>
+    
+  </header>
+
+  <main class="site-main">
+<article class="post">
+  <header class="post-header">
+    <a class="back-link" href="../../../index.html">← 返回首页</a>
+    <h1 class="post-title">结合nanovllm的FlashAttention和PagedAttention主要原理概述</h1>
+    <div class="post-meta">
+      <time datetime="2026-05-16T00:00:00">2026-05-16</time>
+      
+      <span class="post-folder">▣ posts/notes/ml</span>
+    </div>
+  </header>
+
+  
+
+  <div class="post-body markdown-body">
+    <blockquote>
+<p>edit time: 2026-05-16 18:20:34 做了FlashAttention部分好耶
+edit time: 2026-05-16 19:04:38 做了PagedAttention部分好耶</p>
+</blockquote>
+<p>总结：FlashAttention用于降低Attention计算阶段预存的显存消耗（内部计算范畴），
+PagedAttention用于高效管理推理的KV Cache（外部推理范畴）。</p>
+<p><strong>FlashAttention</strong>：
+- 问题：标准 Attention 需要存储 N×N 的中间矩阵，显存 O(N²)
+- 解决：分块 + 在线 softmax，显存降到 O(N)
+- 关键：外循环 Q 块，内循环 K、V 块，在线更新 m、l、O</p>
+<p><strong>PagedAttention</strong>：
+- 问题：预分配连续显存导致大量浪费（内部碎片 + 外部碎片）
+- 解决：分块 + 页表映射 + 动态分配
+- 扩展：Prefix Cache + 引用计数，共享公共前缀</p>
+<h2 id="1">题目1：中间矩阵的显存问题</h2>
+<p>在单头情况下（分头时把 <span class="arithmatex">\(d\_model\)</span> 换成 <span class="arithmatex">\(d\_model / num\_heads\)</span> ）有</p>
+<div class="arithmatex">\[Q,K,V \in \mathbb{R}^{seq\_len \times d\_model}\]</div>
+<div class="arithmatex">\[S=\text{softmax}(Q \times K^T / \sqrt{d}) \times V \in \mathbb{R}^{seq\_len \times seq\_len}\]</div>
+<ol>
+<li>S矩阵有 <span class="arithmatex">\(10^5 \times 10^5 = 10^{10}\)</span> 个元素，即序列长度的平方。</li>
+<li>存储S需要 <span class="arithmatex">\(10^{10} \times 4B=40GB\)</span> 。</li>
+<li>只有 <span class="arithmatex">\(24GB\)</span> 时放不下。
+总之，<strong>标准Attention的显存复杂度是序列长度的平方</strong>，序列长度变大时显存会爆炸。FlashAttention的目标就是不存储完整的 <span class="arithmatex">\(S\)</span> 矩阵。</li>
+</ol>
+<h2 id="2softmax">题目2：Softmax的在线计算</h2>
+<p>softmax是对行做的一个操作，把整行从分数转换成概率分布。</p>
+<div class="arithmatex">\[\text{softmax}(z_i)=\frac{e^{z_i - m}}{\sum_{j \in 1,2,\dots, n} e^{z_j - m}}\]</div>
+<p>其中 <span class="arithmatex">\(m=\max\{z_1,z_2, \dots, z_n\}\)</span> 。</p>
+<p>下述研究的是上式的“分母求和项”，即 <span class="arithmatex">\(\sum_{j \in 1,2,\dots, n} e^{z_j - m}\)</span> 。
+但是问题在于，我们并不想立刻遍历大矩阵的整个行得到分母这个求和项，而是希望先对其中的一部分块做操作，得到一个部分的求和。只有在后面的块来了之后，才能逐渐更新这个部分和，直到整行都覆盖到之后得到全局和。
+这怎么做呢？就是下述的在线softmax的思想。</p>
+<p>维护在线最大值 <span class="arithmatex">\(m\)</span>，和已看到的所有 <span class="arithmatex">\(e^{x-m}\)</span> 的和 <span class="arithmatex">\(l\)</span>。
+和 <span class="arithmatex">\(l\)</span> 中的第一项是对之前计算的 <span class="arithmatex">\(l\)</span> 乘以修正系数（因为在线最大值变了），第二项是加上在线到来的新的 <span class="arithmatex">\(e^{x-m}\)</span> 项。</p>
+<div class="arithmatex">\[m_{new} \leftarrow \max\{m_{old}, x_{new}\}\]</div>
+<div class="arithmatex">\[l_{new} \leftarrow l_{old} \cdot e^{m_{old}-m_{new}} + e^{x_{new}-m_{new}}\]</div>
+<p>初始时 <span class="arithmatex">\([m,l]=[-\infty,0]\)</span> 。</p>
+<p>接下来用一个简单例子来练习上述的更新过程：计算 <span class="arithmatex">\(x=[2,1,4,3]\)</span> 的在线softmax。
+- 第一步：</p>
+<div class="arithmatex">\[m_{new} \leftarrow \max\{-\infty, 2\}=2\]</div>
+<div class="arithmatex">\[l_{new} \leftarrow e^{2-2}=1\]</div>
+<p>看到第一个元素时的 <span class="arithmatex">\([m,l]\)</span> 为 <span class="arithmatex">\([2,1]\)</span> 。</p>
+<ul>
+<li>第二步：</li>
+</ul>
+<div class="arithmatex">\[m_{new} \leftarrow \max\{2,1\}=2\]</div>
+<div class="arithmatex">\[l_{new} \leftarrow 1 \times e^{2-2} + e^{1-2}=1+e^{-1} \approx 1.3679\]</div>
+<p>看到前两个元素时的 <span class="arithmatex">\([m,l]\)</span> 更新为 <span class="arithmatex">\([2,1.3679]\)</span> 。</p>
+<ul>
+<li>第三步：</li>
+</ul>
+<div class="arithmatex">\[m_{new} \leftarrow \max\{2,4\}=4\]</div>
+<div class="arithmatex">\[l_{new} \leftarrow 1.3679 \times e^{2-4} + e^{4-4} \approx 1.1851\]</div>
+<p>看到前三个元素时的 <span class="arithmatex">\([m,l]\)</span> 更新为 <span class="arithmatex">\([4,1.1851]\)</span> 。</p>
+<ul>
+<li>第四步：</li>
+</ul>
+<div class="arithmatex">\[m_{new} \leftarrow \max\{4,3\}=4\]</div>
+<div class="arithmatex">\[l_{new} \leftarrow . \times e^{4-4} + e^{3-4} \approx 1.5529\]</div>
+<p>看到全部四个元素时的 <span class="arithmatex">\([m,l]\)</span> 更新为 <span class="arithmatex">\([4,1.5529]\)</span> 。</p>
+<p>忽略掉一些数值上的舍入误差（当然，也可以通过解析解完全相同来验证），会发现 <span class="arithmatex">\(l\)</span> 的结果恰好等于我们对 <span class="arithmatex">\(x=[2,1,3,4]\)</span> 希望求的分母求和项 <span class="arithmatex">\(l=e^{2-4}+e^{1-4}+e^{3-4}+e^{4-4}\)</span> 。</p>
+<h2 id="3flashattention">题目3：FlashAttention的核心思想</h2>
+<p>现在我们有了标准Attention需要乘 <span class="arithmatex">\(N \times N\)</span> 的 <span class="arithmatex">\(S\)</span> 矩阵（显存爆炸），
+Softmax可以在不存全部值的情况下在线计算这两个知识。
+那么，FlashAttention的解决方案就是，把 <span class="arithmatex">\(Q,K,V\)</span> 都分块，每次只加载一小块到高速SRAM中计算，然后在线更新结果。</p>
+<p>简化掉一些算法细节，大致的算法如下。
+（为了新手理解方便，把 <span class="arithmatex">\(Q\)</span> 放在了外层、<span class="arithmatex">\(K\)</span> 放在了内层，
+实际上因为 <span class="arithmatex">\(K/V\)</span> 被多个 <span class="arithmatex">\(Q\)</span> 块共用，应该把 <span class="arithmatex">\(K\)</span> 放在外层、<span class="arithmatex">\(Q\)</span> 放在内层）
+注意它不存储完整的 <span class="arithmatex">\(S\)</span> ，只存当前小块（<span class="arithmatex">\(B_r \times B_c\)</span> ，其中 <span class="arithmatex">\(r\)</span> 和 <span class="arithmatex">\(c\)</span> 是row和column的意思）。
+<img alt="" src="../../migrated/post-images/20260516175339.png"/></p>
+<p>问题：对下述设置中的 <span class="arithmatex">\(Q_1\)</span> 尝试进行一次完整的迭代更新过程。
+- 序列长度 <span class="arithmatex">\(N = 4\)</span>
+- 分块大小 <span class="arithmatex">\(B_r = 2\)</span>，<span class="arithmatex">\(B_c = 2\)</span>
+- 特征维度 <span class="arithmatex">\(d = 2\)</span>，缩放因子 <span class="arithmatex">\(\sqrt{d} = \sqrt{2}\)</span></p>
+<div class="arithmatex">\[
+Q = \begin{bmatrix}
+1 &amp; 0 \\
+0 &amp; 1 \\
+1 &amp; 1 \\
+0 &amp; 0
+\end{bmatrix}, \quad
+K = \begin{bmatrix}
+1 &amp; 1 \\
+0 &amp; 1 \\
+1 &amp; 0 \\
+0 &amp; 0
+\end{bmatrix}, \quad
+V = \begin{bmatrix}
+1 &amp; 0 \\
+0 &amp; 1 \\
+1 &amp; 1 \\
+0 &amp; 0
+\end{bmatrix}
+\]</div>
+<p>分块（按行划分）：
+- <span class="arithmatex">\(Q_1 = Q[0:2] = \begin{bmatrix}1 &amp; 0 \\ 0 &amp; 1\end{bmatrix}\)</span>, <span class="arithmatex">\(\quad Q_2 = Q[2:4] = \begin{bmatrix}1 &amp; 1 \\ 0 &amp; 0\end{bmatrix}\)</span>
+- <span class="arithmatex">\(K_1 = K[0:2] = \begin{bmatrix}1 &amp; 1 \\ 0 &amp; 1\end{bmatrix}\)</span>, <span class="arithmatex">\(\quad K_2 = K[2:4] = \begin{bmatrix}1 &amp; 0 \\ 0 &amp; 0\end{bmatrix}\)</span>
+- <span class="arithmatex">\(V_1 = V[0:2] = \begin{bmatrix}1 &amp; 0 \\ 0 &amp; 1\end{bmatrix}\)</span>, <span class="arithmatex">\(\quad V_2 = V[2:4] = \begin{bmatrix}1 &amp; 1 \\ 0 &amp; 0\end{bmatrix}\)</span>
+算法状态（对每个 Q 块单独维护）：
+- <span class="arithmatex">\(O\)</span>：输出累加器（形状 <span class="arithmatex">\(B_r \times d_v\)</span>），初始为零矩阵
+- <span class="arithmatex">\(m\)</span>：当前看到的行最大值（形状 <span class="arithmatex">\(B_r\)</span> 的向量），初始为 <span class="arithmatex">\(-\infty\)</span>
+- <span class="arithmatex">\(l\)</span>：当前看到的分母和（形状 <span class="arithmatex">\(B_r\)</span> 的向量），初始为 <span class="arithmatex">\(0\)</span>
+外循环：遍历每个 <span class="arithmatex">\(Q_i\)</span> 块  </p>
+<p>解决：我们需要处理 <span class="arithmatex">\(Q_1\)</span> （一次外层循环迭代），
+那么分别要计算 <span class="arithmatex">\(K_1\)</span> 和 <span class="arithmatex">\(K_2\)</span> 的两次内层循环迭代。</p>
+<hr/>
+<p>首先计算 <span class="arithmatex">\(S_{11}=Q_1K_1^T / \sqrt{d}\)</span> 。</p>
+<div class="arithmatex">\[
+Q_1 K_1^\top = \begin{bmatrix}1 &amp; 0 \\ 0 &amp; 1\end{bmatrix}
+\begin{bmatrix}1 &amp; 0 \\ 1 &amp; 1\end{bmatrix} = \begin{bmatrix}1 \cdot 1 + 0 \cdot 1 &amp; 1 \cdot 0 + 0 \cdot 1 \\ 0 \cdot 1 + 1 \cdot 1 &amp; 0 \cdot 0 + 1 \cdot 1\end{bmatrix}
+= \begin{bmatrix}1 &amp; 0 \\ 1 &amp; 1\end{bmatrix}
+\]</div>
+<div class="arithmatex">\[
+S_{11} = \frac{1}{1.414} \begin{bmatrix}1 &amp; 0 \\ 1 &amp; 1\end{bmatrix}
+\approx \begin{bmatrix}0.707 &amp; 0 \\ 0.707 &amp; 0.707\end{bmatrix}
+\]</div>
+<p>接下来在线更新 <span class="arithmatex">\(m\)</span> 和 <span class="arithmatex">\(l\)</span>。</p>
+<div class="arithmatex">\[
+m = [-\infty, -\infty], \quad l = [0, 0]
+\]</div>
+<div class="arithmatex">\[
+\text{row\_max}(S_{11}) = [0.707, 0.707]
+\]</div>
+<div class="arithmatex">\[
+m_{\text{new}} = \max(m,\; \text{row\_max}) = [0.707, 0.707]
+\]</div>
+<div class="arithmatex">\[e^{m - m_{\text{new}}} = [0, 0]\]</div>
+<div class="arithmatex">\[
+\begin{bmatrix}0.707-0.707 &amp; 0-0.707 \\ 0.707-0.707 &amp; 0.707-0.707\end{bmatrix}
+= \begin{bmatrix}0 &amp; -0.707 \\ 0 &amp; 0\end{bmatrix}
+\]</div>
+<div class="arithmatex">\[
+e^{(\cdot)} = \begin{bmatrix}1 &amp; e^{-0.707} \\ 1 &amp; 1\end{bmatrix}
+\approx \begin{bmatrix}1 &amp; 0.493 \\ 1 &amp; 1\end{bmatrix}
+\]</div>
+<div class="arithmatex">\[
+\text{row\_sum} = [1 + 0.493,\; 1 + 1] = [1.493,\; 2.000]
+\]</div>
+<div class="arithmatex">\[
+l_{\text{new}} = l \cdot e^{m - m_{\text{new}}} + \text{row\_sum}
+= [0,0] + [1.493, 2.000] = [1.493, 2.000]
+\]</div>
+<p>再接下来更新输出 <span class="arithmatex">\(O\)</span> ，处理 <span class="arithmatex">\(S_{11}\)</span> 。
+初始 <span class="arithmatex">\(O = \begin{bmatrix}0 &amp; 0 \\ 0 &amp; 0\end{bmatrix}\)</span></p>
+<div class="arithmatex">\[
+e^{S_{11} - m_{\text{new}}} \approx \begin{bmatrix}1 &amp; 0.493 \\ 1 &amp; 1\end{bmatrix}, \quad
+V_1 = \begin{bmatrix}1 &amp; 0 \\ 0 &amp; 1\end{bmatrix}
+\]</div>
+<div class="arithmatex">\[
+\begin{bmatrix}
+1 \cdot 1 + 0.493 \cdot 0 &amp; 1 \cdot 0 + 0.493 \cdot 1 \\
+1 \cdot 1 + 1 \cdot 0 &amp; 1 \cdot 0 + 1 \cdot 1
+\end{bmatrix}
+= \begin{bmatrix}1 &amp; 0.493 \\ 1 &amp; 1\end{bmatrix}
+\]</div>
+<p>更新 <span class="arithmatex">\(O\)</span>（注意 <span class="arithmatex">\(O\)</span> 也要乘修正系数 <span class="arithmatex">\(e^{m - m_{\text{new}}} = [0,0]\)</span>）</p>
+<div class="arithmatex">\[
+O \leftarrow 0 + \begin{bmatrix}1 &amp; 0.493 \\ 1 &amp; 1\end{bmatrix}
+= \begin{bmatrix}1 &amp; 0.493 \\ 1 &amp; 1\end{bmatrix}
+\]</div>
+<hr/>
+<p>上述 <span class="arithmatex">\(K_1\)</span> 相关的已经计算完毕，接下来对 <span class="arithmatex">\(K_2\)</span> 执行相同步骤。
+<span class="arithmatex">\(K_2 = \begin{bmatrix}1 &amp; 0 \\ 0 &amp; 0\end{bmatrix}\)</span>，<span class="arithmatex">\(K_2^\top = \begin{bmatrix}1 &amp; 0 \\ 0 &amp; 0\end{bmatrix}\)</span></p>
+<div class="arithmatex">\[
+Q_1 K_2^\top = \begin{bmatrix}1 &amp; 0 \\ 0 &amp; 1\end{bmatrix}
+\begin{bmatrix}1 &amp; 0 \\ 0 &amp; 0\end{bmatrix}
+= \begin{bmatrix}1 &amp; 0 \\ 0 &amp; 0\end{bmatrix}
+\]</div>
+<div class="arithmatex">\[
+S_{12} \approx \begin{bmatrix}0.707 &amp; 0 \\ 0 &amp; 0\end{bmatrix}
+\]</div>
+<p>当前 <span class="arithmatex">\(m = [0.707, 0.707]\)</span>，<span class="arithmatex">\(l = [1.493, 2.000]\)</span></p>
+<div class="arithmatex">\[
+\text{row\_max}(S_{12}) = [0.707, 0]
+\]</div>
+<div class="arithmatex">\[
+m_{\text{new}} = \max([0.707, 0.707], [0.707, 0]) = [0.707, 0.707]
+\]</div>
+<p>修正系数 <span class="arithmatex">\(e^{m - m_{\text{new}}} = e^{[0,0]} = [1, 1]\)</span></p>
+<div class="arithmatex">\[S_{12} - m_{\text{new}} = \begin{bmatrix}0.707-0.707 &amp; 0-0.707 \\ 0-0.707 &amp; 0-0.707\end{bmatrix}
+= \begin{bmatrix}0 &amp; -0.707 \\ -0.707 &amp; -0.707\end{bmatrix}\]</div>
+<div class="arithmatex">\[
+e^{S_{12} - m_{\text{new}}}=\begin{bmatrix}1 &amp; 0.493 \\ 0.493 &amp; 0.493\end{bmatrix}
+\]</div>
+<div class="arithmatex">\[
+\text{row\_sum} = [1.493,\; 0.986]
+\]</div>
+<div class="arithmatex">\[
+l_{\text{new}} = l \cdot [1,1] + \text{row\_sum} = [1.493, 2.000] + [1.493, 0.986] = [2.986, 2.986]
+\]</div>
+<div class="arithmatex">\[
+e^{S_{12} - m_{\text{new}}} \approx \begin{bmatrix}1 &amp; 0.493 \\ 0.493 &amp; 0.493\end{bmatrix}, \quad
+V_2 = \begin{bmatrix}1 &amp; 1 \\ 0 &amp; 0\end{bmatrix}
+\]</div>
+<div class="arithmatex">\[
+\begin{bmatrix}
+1 \cdot 1 + 0.493 \cdot 0 &amp; 1 \cdot 1 + 0.493 \cdot 0 \\
+0.493 \cdot 1 + 0.493 \cdot 0 &amp; 0.493 \cdot 1 + 0.493 \cdot 0
+\end{bmatrix}
+= \begin{bmatrix}1 &amp; 1 \\ 0.493 &amp; 0.493\end{bmatrix}
+\]</div>
+<div class="arithmatex">\[
+O \leftarrow O \cdot [1,1] = \begin{bmatrix}1 &amp; 0.493 \\ 1 &amp; 1\end{bmatrix} \quad
+\]</div>
+<div class="arithmatex">\[
+O \leftarrow \begin{bmatrix}1 &amp; 0.493 \\ 1 &amp; 1\end{bmatrix} + \begin{bmatrix}1 &amp; 1 \\ 0.493 &amp; 0.493\end{bmatrix}
+= \begin{bmatrix}2 &amp; 1.493 \\ 1.493 &amp; 1.493\end{bmatrix}
+\]</div>
+<hr/>
+<p>接下来归一化 <span class="arithmatex">\(Q_1\)</span> 块的输出</p>
+<div class="arithmatex">\[
+O_1 = \frac{O}{l} = \begin{bmatrix}2/2.986 &amp; 1.493/2.986 \\ 1.493/2.986 &amp; 1.493/2.986\end{bmatrix}
+\approx \begin{bmatrix}0.670 &amp; 0.500 \\ 0.500 &amp; 0.500\end{bmatrix}
+\]</div>
+<p>这就是 <span class="arithmatex">\(Q_1\)</span> 中两个 token 经过完整 softmax 注意力后的输出。</p>
+<hr/>
+<p>补充：离 <a href="https://arxiv.org/abs/2205.14135">原论文</a> 还差在哪里？
+<img alt="" src="../../migrated/post-images/20260516181328.png"/>
+事实上，
+原版算法的 <span class="arithmatex">\(K/V\)</span> 在外层，<span class="arithmatex">\(Q\)</span> 在内层。这是为了共用。
+原版算法最后才做归一化（<span class="arithmatex">\(\text{diag}(l_i^{new})^{-1}\)</span> 乘在前面），写到HBM时 <span class="arithmatex">\(O_i\)</span> 已经是归一化后的值，下一轮循环可以直接使用（不用再除以 <span class="arithmatex">\(l\)</span>），我们这里的简化版算法是在 <span class="arithmatex">\(Q\)</span> 块全部循环结束后统一进行归一化的。
+原版算法有堪称实现灵魂的块大小计算公式 <span class="arithmatex">\(B_c=\lceil \frac{M}{4d} \rceil\)</span> 和 <span class="arithmatex">\(B_r = \min(\lceil \frac{M}{4d} \rceil,d)\)</span> ，保证 <span class="arithmatex">\(Q_i,K_j,V_j,O_i\)</span> 能同时放进SRAM，我们未对这一部分做阐述。
+原版用 diag⁡(ℓ)diag(ℓ) 来表达「逐行缩放」，数学上更严谨，也对应代码实现（广播乘法）。
+简化用 <code>O * e^(m - m_new)</code> 隐式假设逐行乘，没有强调向量和矩阵的广播语义。</p>
+<h2 id="4pagedattention">题目4：PagedAttention的显存管理优势</h2>
+<p>在生成文本时，每次只生成一个新的token，但做这个token的预测时，需要它之前所有token的 <span class="arithmatex">\(K\)</span> 和 <span class="arithmatex">\(V\)</span> 。标准做法是把之前算过的 <span class="arithmatex">\(K\)</span> 和 <span class="arithmatex">\(V\)</span> 存起来，避免重复计算，这就是<strong>KV Cache</strong>。</p>
+<p>但是，由于每个请求所需要的tokens数未知、有的多有的少，
+传统方法是直接给它们分配一块连续的显存，长度设为最大可能值。这需要连续空间、会造成显存浪费、甚至在释放时出现外部碎片，管理不够灵活。
+为了解决这一问题，<strong>PagedAttention</strong>把分页管理的思想引入了KV Cache的管理。</p>
+<hr/>
+<p>直接看以下题目。</p>
+<p>传统方式：每个请求预先分配最大长度 8 tokens 的连续显存
+PagedAttention：block size = 4 tokens，按需动态分配
+显卡总 KV Cache：32 tokens（即 8 个 block）
+当前有 3 个请求：
+请求 A：实际使用 3 tokens
+请求 B：实际使用 5 tokens
+请求 C：实际使用 2 tokens</p>
+<p>1.传统方法分配量和浪费量是多少，浪费率是多少？
+每个请求分配8 tokens，请求A浪费5 tokens，请求B浪费3 tokens，请求C浪费6 tokens。
+总计分配量是24 tokens，总浪费量是14 tokens，浪费率是58.33%。</p>
+<p>2.PagedAttention（Block Size = 4）时，每个请求按需分配block。分配量和浪费量是多少，浪费率是多少？
+请求A需要一个block，浪费1 tokens。
+请求B需要两个block，浪费3 tokens。
+请求C需要一个block，浪费2 tokens。
+总分配量为四个block对应16 tokens，总浪费量是6 tokens，浪费率是37.5%。
+这显现了PagedAttention可以节省分配量，同时降低浪费。</p>
+<p>3.请求B从5 tokens增长到7 tokens，传统方式和PagedAttention是否需要重新分配？如果请求B是从5 tokens增长到9 tokens呢？
+对于增长到7 tokens，传统方法和PagedAttention均不需要重新分配。因为预先分配的均已经足够用了。
+而对于增长到9 tokens，传统方法需要重新分配更大（16 tokens）的连续空间，并且将原来的5 tokens也拷贝到新空间、再写入新增加的4 tokens；
+而PagedAttention只需要动态增加1个block。
+这显现了PagedAttention不需要连续内存，动态分配、更加灵活。</p>
+<h2 id="5block-table">题目5：Block Table的工作原理</h2>
+<p>Block Table 实现了逻辑连续、物理不连续的映射，就像操作系统的虚拟内存。</p>
+<p>直接看题目。
+设定Block Size = 4，请求的 <span class="arithmatex">\(\text{Block Table} = [3,1,5]\)</span> 。
+（表示逻辑块0→物理块3，逻辑块1→物理块1，逻辑块2→物理块5）
+1. 画出这个请求的物理布局（哪个物理块存哪几个 token）
+2. 要访问 token 索引 9（第 10 个 token），应该去哪个物理块的哪个偏移位置？
+3. 如果这个请求共有 10 个 tokens（索引 0-9），最后一个 token（索引 9）在哪个物理
+块？这个块是否存满了？</p>
+<p>1.按顺序排布各个物理块：
+物理块0（无请求）
+物理块1（token 4,5,6,7）
+物理块2（无请求）
+物理块3（token 0,1,2,3）
+物理块4（无请求）
+物理块5（token 8,9,10,11）
+2.访问token索引9时应该去逻辑块 <span class="arithmatex">\(9 // 4=2\)</span> ，查表对应物理块5，块内偏移为 <span class="arithmatex">\(9 \% 4=1\)</span> 。
+3.同2可知，最后一个token在物理块5，这个块只存了token 8,9，没有存满。</p>
+<h2 id="6prefix-cache">题目6：Prefix Cache（前缀共享）的引用计数实现</h2>
+<p>我们发现很多请求共享相同的前缀。例如：
+- 系统 prompt："你是一个 AI 助手"（5 tokens）
+- 请求 A："你是一个 AI 助手，今天天气怎么样"（11 tokens）
+- 请求 B："你是一个 AI 助手，推荐一部电影"（11 tokens）
+两个请求的前 5 个 tokens 完全相同。
+传统方式是各自存一份 KV Cache，这会浪费 5 tokens × 2  = 10 tokens。
+而Prefix Cache则是只存一份共享的prefix，每个请求的Block Table指向共享blocks，用<strong>引用计数</strong>管理（多个请求共享时，<code>ref_count &gt; 1</code>；没有请求使用时才释放）。</p>
+<p>根据上述思想，参考自 <code>nanovllm/engine/block_manager.py</code> 的简化代码如下：
+（思想很简单，就是引用计数，共享的只存一份，每次要分配时先看看是不是已经存过了）</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Block</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">block_id</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">block_id</span> <span class="o">=</span> <span class="n">block_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ref_count</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># 引用计数</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hash</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="c1"># 内容哈希，用于查找共享</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">token_ids</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># 实际存储的 tokens</span>
+
+<span class="c1"># 分配时，先通过哈希查找是否已有相同内容的 block</span>
+<span class="nb">hash</span> <span class="o">=</span> <span class="n">compute_hash</span><span class="p">(</span><span class="n">token_ids</span><span class="p">,</span> <span class="n">prefix_hash</span><span class="p">)</span>
+<span class="k">if</span> <span class="nb">hash</span> <span class="ow">in</span> <span class="n">hash_to_block_id</span><span class="p">:</span>
+    <span class="n">block</span> <span class="o">=</span> <span class="n">blocks</span><span class="p">[</span><span class="n">block_id</span><span class="p">]</span>
+    <span class="n">block</span><span class="o">.</span><span class="n">ref_count</span> <span class="o">+=</span> <span class="mi">1</span> <span class="c1"># 共享！只是增加引用</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="c1"># 分配新 block</span>
+    <span class="n">block</span> <span class="o">=</span> <span class="n">allocate_new_block</span><span class="p">()</span>
+</code></pre></div>
+<p>设定：
+- block_size = 2
+- 基础 prefix：tokens <code>[A, B, C, D]</code>（需要 2 个 blocks）
+- 请求 1：<code>[A, B, C, D, E, F]</code>（3 个 blocks）
+- 请求 2：<code>[A, B, C, D, G, H]</code>（3 个 blocks）
+初始状态：空闲 blocks = <code>[0,1,2,3,4,5,...]</code> 无限多
+问题：
+1. 分配基础 prefix（假设还没有人用过），画出两个 block 的 ref_count
+2. 分配请求 1，哪些 blocks 是共享的？ref_count 变成多少？
+3. 分配请求 2，再次共享 prefix，更新 ref_count
+4. 请求 1 结束，deallocate 时，哪些 blocks 的 ref_count 减少？哪些被真正释放？
+5. 最终请求 2 的 Block Table 是什么？</p>
+<p><strong>1. 分配基础 prefix</strong></p>
+<ul>
+<li>Block0：存 <code>[A, B]</code>，hash=h_AB，ref_count=1</li>
+<li>Block1：存 <code>[C, D]</code>，hash=h_CD，ref_count=1</li>
+</ul>
+<p><strong>2. 分配请求 1（需要 <code>[A,B,C,D,E,F]</code>）</strong></p>
+<p>请求 1 的 blocks：
+- Block0：<code>[A,B]</code>，哈希匹配 → 共享，ref_count=2
+- Block1：<code>[C,D]</code>，哈希匹配 → 共享，ref_count=2
+- Block2：<code>[E,F]</code>，新 block，ref_count=1</p>
+<p>hash_to_block_id 新增：h_EF → Block2</p>
+<p><strong>3. 分配请求 2（需要 <code>[A,B,C,D,G,H]</code>）</strong></p>
+<ul>
+<li>Block0：<code>[A,B]</code>，哈希匹配 → 共享，ref_count=3</li>
+<li>Block1：<code>[C,D]</code>，哈希匹配 → 共享，ref_count=3</li>
+<li>Block3：<code>[G,H]</code>，新 block，ref_count=1</li>
+</ul>
+<p>hash_to_block_id 新增：h_GH → Block3</p>
+<p><strong>4. 请求 1 结束，deallocate</strong></p>
+<p>遍历请求 1 的 Block Table <code>[0,1,2]</code>（逆序）：
+- Block2：ref_count=1 → 减到 0，释放（从 hash_to_block_id 删除，加入 free list）
+- Block1：ref_count=3 → 减到 2（仍被基础 prefix 和请求 2 共享）
+- Block0：ref_count=3 → 减到 2（仍被共享）</p>
+<p><strong>5. 请求 2 的最终 Block Table</strong></p>
+<div class="highlight"><pre><span></span><code>请求 2 的 Block Table = [0, 1, 3]
+</code></pre></div>
+<ul>
+<li>Block0（<code>[A,B]</code>），Block1（<code>[C,D]</code>）仍在，ref_count=2</li>
+<li>Block3（<code>[G,H]</code>），ref_count=1</li>
+</ul>
+<p><strong>核心优势</strong>：通过引用计数，我们节省了 2 blocks × 2 = 4 tokens 的显存。实际场景中，系统 prompt 可能很长（如 1000 tokens），共享效果非常显著。</p>
+  </div>
+
+  
+  <section class="post-comments">
+    <h2 class="comments-title">评论</h2>
+    <script src="https://giscus.app/client.js"
+      data-repo="Meredith2328/pilog"
+      data-repo-id="R_kgDOTpY2UA"
+      data-category="Announcements"
+      data-category-id="DIC_kwDOTpY2UM4DCZMy"
+      data-mapping="pathname"
+      data-strict="0"
+      data-reactions-enabled="1"
+      data-emit-metadata="0"
+      data-input-position="top"
+      data-theme="light"
+      data-lang="zh-CN"
+      crossorigin="anonymous"
+      async></script>
+  </section>
+  
+</article>
+</main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span>© 2026 Meredith — built with pilog</span>
+      <span class="footer-sep">::</span>
+      <a href="../../../rss.xml">RSS</a>
+      <span class="footer-sep">::</span>
+      <span>powered by <a href="https://github.com/meredith2328/pilog" target="_blank" rel="noopener">pilog</a></span>
+    </div>
+  </footer>
+
+  
+  <div class="dino-widget" data-widget="dino">
+    <div class="dino-panel" hidden>
+      <div class="dino-bar">
+        <span class="dino-title">T-REX RUNNER</span>
+        <span class="dino-hint">点击游戏区域后按 空格</span>
+        <button class="dino-close" type="button" aria-label="关闭">×</button>
+      </div>
+      <iframe class="dino-frame" src="../../../dino/index.html" title="Chrome 断网小恐龙" loading="lazy"></iframe>
+    </div>
+    <button class="dino-toggle" type="button" aria-label="打开小恐龙游戏">
+      <img src="../../../img/dino-icon.png" alt="小恐龙" width="26" height="28">
+      <span>PLAY</span>
+    </button>
+  </div>
+  
+
+  <script src="../../../js/main.js" defer></script>
+  <script>
+    window.PILOG_ROOT = "../../../";
+    window.PILOG_DEFAULT_VIEW = "cards";
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+          onload="try{if(window.renderMathInElement){renderMathInElement(document.body,{delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});}}catch(e){}"></script>
+  <script src="../../../js/search.js" defer></script>
+  
+</body>
+</html>

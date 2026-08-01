@@ -85,8 +85,9 @@ def _parse_wiki(text: str) -> str:
         line = re.sub(r"(`+)([^`\n]+?)\1", stash, line)
         line = WIKI_IMAGE_RE.sub(img, line)
         line = WIKI_LINK_RE.sub(link, line)
-        for i, code in enumerate(spans):
-            line = line.replace(f"{CODE_TOKEN}{i}", code)
+        # descending order: replace :41 before its prefix :4
+        for i in range(len(spans) - 1, -1, -1):
+            line = line.replace(f"{CODE_TOKEN}{i}", spans[i])
         out.append(line)
     return "".join(out)
 
@@ -100,6 +101,17 @@ def _extract_block_math(text: str) -> tuple[str, list]:
     in_code = False
     fence = ""
     pending: list | None = None
+    spans: list = []
+
+    def stash(m: re.Match) -> str:
+        spans.append(m.group(0))
+        return f"{CODE_TOKEN}{len(spans) - 1}"
+
+    def restore(s: str) -> str:
+        for i in range(len(spans) - 1, -1, -1):
+            s = s.replace(f"{CODE_TOKEN}{i}", spans[i])
+        return s
+
     for line in text.splitlines(keepends=True):
         stripped = line.strip()
         if in_code:
@@ -112,13 +124,15 @@ def _extract_block_math(text: str) -> tuple[str, list]:
             fence = stripped[:3]
             out.append(line)
             continue
+        # stash inline code spans so `$$...$$` shown as an example stays literal
+        line = re.sub(r"(`+)([^`\n]+?)\1", stash, line)
         if pending is not None:
             end = line.find("$$")
             if end >= 0:
                 pending.append(line[:end])
-                maths.append("".join(pending))
+                maths.append(restore("".join(pending)))
                 token = f"{BLOCK_MATH_TOKEN}{len(maths) - 1}"
-                out.append("\n\n" + token + "\n\n" + line[end + 2 :])
+                out.append("\n\n" + token + "\n\n" + restore(line[end + 2 :]))
                 pending = None
             else:
                 pending.append(line)
@@ -126,20 +140,20 @@ def _extract_block_math(text: str) -> tuple[str, list]:
         while True:
             idx = line.find("$$")
             if idx < 0:
-                out.append(line)
+                out.append(restore(line))
                 break
             rest = line[idx + 2 :]
             end = rest.find("$$")
             if end < 0:
                 pending = [rest]
-                out.append(line[:idx])
+                out.append(restore(line[:idx]))
                 break
-            maths.append(rest[:end])
+            maths.append(restore(rest[:end]))
             token = f"{BLOCK_MATH_TOKEN}{len(maths) - 1}"
-            out.append(line[:idx] + "\n\n" + token + "\n\n")
+            out.append(restore(line[:idx]) + "\n\n" + token + "\n\n")
             line = rest[end + 2 :]
     if pending is not None:
-        out.append("".join(pending))
+        out.append(restore("".join(pending)))
     return "".join(out), maths
 
 

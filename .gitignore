@@ -5,6 +5,7 @@ __pycache__/
 .stress/
 .publish-token
 .publish-token-pages
+.obsidian/
 output/
 .DS_Store
 Thumbs.db

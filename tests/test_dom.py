@@ -92,17 +92,17 @@ def main() -> None:
         ok &= check("chip x clears filter", page.locator(".sel-chip").count() == 0)
 
         # clicking a folder segment on a card selects a folder filter
-        page.locator(".folder-part[data-folder='posts/tech']").first.click()
+        page.locator(".folder-part[data-folder='posts/toy']").first.click()
         ok &= check("folder chip appears", page.locator(".sel-chip.sel-folder").count() == 1)
         vis = page.locator(".card:visible").count()
-        ok &= check("folder filter narrows cards", vis == 1, str(vis))
+        ok &= check("folder filter narrows cards", vis == 8, str(vis))
         page.locator(".sel-chip .sel-x").first.click()
 
         # multi-condition: tag + folder with no overlap -> empty state
-        page.locator(".folder-part[data-folder='posts/tech']").first.click()
+        page.evaluate("window.pilogFilters.toggleFolder('posts/reference')")
         page.click("#filter-more")
-        page.fill("#filter-more-search", "奇怪的东西")
-        page.locator("#filter-more-list .tag-chip[data-tag='奇怪的东西']").click()
+        page.fill("#filter-more-search", "CS61A")
+        page.locator("#filter-more-list .tag-chip[data-tag='CS61A']").click()
         ok &= check("empty cards state", page.locator(".empty-cards").count() == 1)
         page.locator(".sel-chip .sel-x").first.click()
         page.locator(".sel-chip .sel-x").first.click()
@@ -124,7 +124,9 @@ def main() -> None:
         page.wait_for_timeout(300)
 
         # nav folder link in cards view selects the folder filter
+        page.goto(base + "/", wait_until="networkidle")  # reset the no-cards.json fallback
         page.locator(".site-nav a[data-kind='folder']", has_text="CS相关").click()
+        page.wait_for_timeout(500)
         ok &= check("nav folder selects filter", page.locator(".sel-chip.sel-folder").count() == 1)
         vis = page.locator(".card:visible").count()
         ok &= check("nav folder shows only its posts", vis >= 5, str(vis))
@@ -195,24 +197,24 @@ def main() -> None:
         page.wait_for_timeout(700)
         ok &= check("search finds results", page.locator(".search-item").count() >= 1)
         # #tag searches tags only; plain words never match tags
-        page.fill("#search-input", "#dino")
+        page.fill("#search-input", "#奇怪的东西")
         page.wait_for_timeout(700)
         ok &= check("#tag search finds tag", page.locator(".search-item").count() >= 1)
-        page.fill("#search-input", "dino")
+        page.fill("#search-input", "奇怪的东西")
         page.wait_for_timeout(700)
         ok &= check("plain word ignores tags", page.locator(".search-item").count() == 0)
-        page.fill("#search-input", "#dino")
+        page.fill("#search-input", "#奇怪的东西")
         page.wait_for_timeout(700)
-        page.locator(".search-tag[data-tag='dino']").first.click()
+        page.locator(".search-tag[data-tag='奇怪的东西']").first.click()
         page.wait_for_timeout(300)
         ok &= check("search tag click selects filter", page.locator(".sel-chip").count() == 1)
         page.locator(".sel-chip .sel-x").first.click()
         page.fill("#search-input", "")
 
         # post page
-        page.goto(base + "/posts/tech/pixel-blog.html", wait_until="networkidle")
-        ok &= check("pygments highlight", page.locator(".highlight").count() >= 3)
-        ok &= check("code token spans", page.locator(".highlight span.k, .highlight span.kd").count() >= 2)
+        page.goto(base + "/posts/toy/pilog-blog.html", wait_until="networkidle")
+        ok &= check("pygments highlight", page.locator(".highlight").count() >= 1)
+        ok &= check("code token spans", page.locator(".highlight span").count() >= 2)
         ok &= check("heading ids", page.locator("h2[id]").count() >= 3)
         ok &= check("wiki image resolved", page.locator('.post-body img[src*="cover-pixel"]').count() >= 1)
         ok &= check("dino iframe present", page.locator(".dino-frame").count() == 1)
@@ -223,8 +225,8 @@ def main() -> None:
         iframe = page.frame_locator(".dino-frame")
         ok &= check("dino iframe loaded", iframe.locator("canvas").count() >= 1)
 
-        # pixel-blog rich markdown: strikethrough + LaTeX math
-        page.goto(base + "/posts/tech/pixel-blog.html", wait_until="networkidle")
+        # pilog-blog rich markdown: strikethrough + LaTeX math
+        page.goto(base + "/posts/toy/pilog-blog.html", wait_until="networkidle")
         ok &= check("strikethrough renders", page.locator("del").count() >= 1)
         ok &= check("latex math markup present", page.locator(".arithmatex").count() >= 2)
 
@@ -236,7 +238,7 @@ def main() -> None:
                 ok &= check(f"screenshot {name} not blank", std > 12, f"std={std} {size}")
 
         # view default behavior: returning home shows cards
-        page.goto(base + "/posts/tech/pixel-blog.html", wait_until="networkidle")
+        page.goto(base + "/posts/toy/pilog-blog.html", wait_until="networkidle")
         page.click(".back-link")
         page.wait_for_load_state("networkidle")
         ok &= check("home defaults to cards", page.locator("#view-cards").evaluate("el => !el.hidden"))
@@ -247,7 +249,7 @@ def main() -> None:
         page.goto(base + "/index.html#view-graph", wait_until="networkidle")
         page.wait_for_timeout(1800)
         ok &= check("deep link #view-graph works", page.locator("#view-graph").evaluate("el => !el.hidden"))
-        page.goto(base + "/index.html#folder=posts/tech", wait_until="networkidle")
+        page.goto(base + "/index.html#folder=posts/toy", wait_until="networkidle")
         ok &= check("deep link #folder selects folder", page.locator(".sel-chip.sel-folder").count() == 1)
         # same-document hash changes accumulate (multi-condition); a real visit
         # from a post page reloads with a clean slate

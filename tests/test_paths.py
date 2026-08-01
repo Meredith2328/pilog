@@ -86,7 +86,7 @@ def main() -> None:
               page.url.replace("/index.html", "").rstrip("/") == base)
 
         # 5. dino link inside a post
-        page.goto(base + "/posts/notes/dino-game.html", wait_until="networkidle")
+        page.goto(base + "/posts/toy/pilog-blog.html", wait_until="networkidle")
         page.click("a[href$='dino/index.html']")
         page.wait_for_load_state("networkidle")
         check("dino game reachable", "runner" in page.content().lower() or page.title() != "")

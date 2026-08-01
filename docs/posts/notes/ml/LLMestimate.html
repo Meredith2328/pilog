@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="pilog">
+  <title>怎么估算LLM的参数量和训练FLOPs？推一推、测一测 · MEREDITH&#39;S LOG</title>
+  <meta name="description" content="本Blog适合于知道 Transformer 基础结构、但没有尝试推导过参数量和FLOPs的朋友。 省流：P ≈ 12Nd^2 + Vd 本文的LLM基于Transformer Decoder结构，以 GPT2-XL 为例。它有以下超参数设置： 实测得到的可训练参数量为 1,557,611,200 = 1.56B。 以">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="MEREDITH&#39;S LOG">
+  <meta property="og:title" content="怎么估算LLM的参数量和训练FLOPs？推一推、测一测">
+  <meta property="og:description" content="本Blog适合于知道 Transformer 基础结构、但没有尝试推导过参数量和FLOPs的朋友。 省流：P ≈ 12Nd^2 + Vd 本文的LLM基于Transformer Decoder结构，以 GPT2-XL 为例。它有以下超参数设置： 实测得到的可训练参数量为 1,557,611,200 = 1.56B。 以">
+  <link rel="canonical" href="https://meredith2328.github.io/posts/notes/ml/LLMestimate.html">
+  
+  <meta property="og:image" content="https://meredith2328.github.io/posts/migrated/post-images/20260303103200.png">
+  <meta property="article:published_time" content="2026-03-03T00:00:00">
+
+  <link rel="icon" href="../../../favicon.png">
+  <link rel="apple-touch-icon" href="../../../favicon.png">
+  <link rel="alternate" type="application/rss+xml" title="MEREDITH&#39;S LOG · RSS" href="../../../rss.xml">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <link rel="stylesheet" href="../../../css/style.css">
+  
+</head>
+<body>
+  <div class="deco deco-left" aria-hidden="true"></div>
+  <div class="deco deco-right" aria-hidden="true"></div>
+  <header class="site-header">
+    <div class="header-banner is-default"
+         style="background-image:url('../../../img/banner-default.svg')"></div>
+    <div class="header-row">
+      <a class="brand" href="../../../index.html">
+        <img class="brand-icon" src="../../../img/dino-icon.png" alt="dino" width="28" height="30">
+        <span class="brand-name">MEREDITH&#39;S LOG</span>
+        <span class="brand-sub">pixel · minimal · notes</span>
+      </a>
+
+      <div class="view-switch" role="tablist" aria-label="视图切换">
+        <button class="view-tab is-active" role="tab" data-view="cards" aria-selected="true">卡片视图</button>
+        <button class="view-tab" role="tab" data-view="tree" aria-selected="false">清单视图</button>
+        <button class="view-tab" role="tab" data-view="graph" aria-selected="false">图谱视图</button>
+      </div>
+
+      <div class="search-wrap" id="search-wrap">
+        <input id="search-input" type="search" placeholder="搜索 标题 / 全文 / 标签…"
+               autocomplete="off" aria-label="搜索">
+        <div class="search-results" id="search-results" hidden></div>
+      </div>
+
+      <div class="socials">
+        
+          
+            <a class="social-icon" href="https://github.com/meredith2328" title="github" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></a>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        
+          <a class="social-icon" href="../../../rss.xml" title="RSS"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg></a>
+        
+      </div>
+    </div>
+    
+    <nav class="site-nav" aria-label="站点导航"><h1 id="_1">导航</h1>
+<ul>
+<li><a href="../../../index.html">首页</a></li>
+<li><a href="../../toy/10pi.html">关于</a></li>
+<li><a data-kind="folder" href="../../../index.html#folder=posts/courses">CS相关</a></li>
+<li><a data-kind="folder" href="../../../index.html#folder=posts/toy">玩具</a></li>
+<li><a href="../../../dino/index.html">恐龙游戏</a></li>
+</ul></nav>
+    
+  </header>
+
+  <main class="site-main">
+<article class="post">
+  <header class="post-header">
+    <a class="back-link" href="../../../index.html">← 返回首页</a>
+    <h1 class="post-title">怎么估算LLM的参数量和训练FLOPs？推一推、测一测</h1>
+    <div class="post-meta">
+      <time datetime="2026-03-03T00:00:00">2026-03-03</time>
+      
+      <span class="post-folder">▣ posts/notes/ml</span>
+    </div>
+  </header>
+
+  
+
+  <div class="post-body markdown-body">
+    <p>本Blog适合于知道 Transformer 基础结构、但没有尝试推导过参数量和FLOPs的朋友。
+省流：P ≈ 12Nd^2 + Vd</p>
+<!-- more -->
+<blockquote>
+<p>本文是第一篇。第二篇为 <a href="https://meredith2328.github.io/post/LLMestimate2/">怎么估算LLM训练的内存和计算需求？推一推、测一测  | 十派的玩具箱</a> 。
+edit time: 2026-03-05 17:03:20</p>
+</blockquote>
+<p>本文的LLM基于Transformer Decoder结构，以 <a href="https://huggingface.co/openai-community/gpt2-xl">GPT2-XL</a> 为例。它有以下超参数设置：</p>
+<div class="highlight"><pre><span></span><code>GPT2-XL
+vocab_size: 50257
+context_length: 1024
+num_layers: 48
+d_models: 1600
+num_heads: 25
+d_ff: 6400
+</code></pre></div>
+<p>实测得到的可训练参数量为 <code>1,557,611,200</code> = 1.56B。</p>
+<h2 id="_1">参数量实测结果</h2>
+<p>以下是使用HuggingFace Transformers库实际加载了GPT2 XL并统计可训练参数量的结果。代码见下述附录A。</p>
+<div class="highlight"><pre><span></span><code>==========================================================================
+总参数量                 params: 1,557,611,200
+单位换算                 1557.61M 参数 / 1.56B 参数
+==========================================================================
+
+==========================================================================
+单层结构验证（以 Layer 0 为例）
+==========================================================================
+LayerNorm 1              :      3,200 (0.00M)
+Attention QKV            :  7,684,800 (7.68M)
+Attention Output         :  2,561,600 (2.56M)
+LayerNorm 2              :      3,200 (0.00M)
+FFN Input (c_fc)         : 10,246,400 (10.25M)
+FFN Output (c_proj)      : 10,241,600 (10.24M)
+Layer 0 总计               : 30,740,800 (30.74M)
+</code></pre></div>
+<h2 id="_2">最常用的参数量估算公式</h2>
+<p>可训练参数量的估算公式为：</p>
+<div class="arithmatex">\[12Nd^2+Vd\]</div>
+<p>其中 <span class="arithmatex">\(N\)</span> 为层数 <code>num_layers</code> ， <span class="arithmatex">\(d\)</span> 为维度 <code>d_models</code> ，<span class="arithmatex">\(V\)</span> 为词表大小 <code>vocab_size</code> 。
+适用于 <code>d_ff = 4 * d_models</code> 且多头注意力不改变整体参数大小的情况。</p>
+<p>直接代入得到：</p>
+<div class="arithmatex">\[12 \times 48 \times 1600^2 + 50257 \times 1600=1554971200=1.55B\]</div>
+<p>相比于实际值1.56B，这已经是一个非常好的估计了。</p>
+<h2 id="_3">“最常用的参数量估算公式”推导</h2>
+<p><img alt="" src="../../migrated/post-images/20260303103200.png"/></p>
+<p>我们需要确定这个公式适用于什么情况，所以需要引入它的适用范围。</p>
+<p>(1) Embedding
+<span class="arithmatex">\(Vd\)</span> 很好理解：这是Embedding层的大小，可训练参数量就是一个大小为 <span class="arithmatex">\(Vd\)</span> 的二维大矩阵。并且我们在把表示换回token时，使用的LM_head权重是和Embedding共享的、而不需要额外再训练一个 <span class="arithmatex">\(Vd\)</span> ，所以它们总共只需要训练一个 <span class="arithmatex">\(Vd\)</span> 。</p>
+<p>(2) Attention &amp; FFN
+那么 <span class="arithmatex">\(12Nd^2\)</span> 又是怎么来的呢？答案就是Attention和FFN。
+对于Attention，有 <span class="arithmatex">\(W_Q,W_K,W_V\)</span> ，还有输出使用的 <span class="arithmatex">\(W_O\)</span> ，它们都是 <span class="arithmatex">\(d \times d = d^2\)</span> 的方阵，总共就是 <span class="arithmatex">\(4d^2\)</span>。
+对于FFN，它首先负责把维度从 <span class="arithmatex">\(d\)</span> 扩大到 <span class="arithmatex">\(d_{ff}=4d\)</span> ，然后再从 <span class="arithmatex">\(d_{ff}\)</span> 缩小回 <span class="arithmatex">\(d\)</span> 。因此前者为 <span class="arithmatex">\(d \times 4d=4d^2\)</span> ，后者是 <span class="arithmatex">\(4d \times d = 4d^2\)</span> ，总共 <span class="arithmatex">\(8d^2\)</span> 。
+因此，一个Transformer Block内的Attention和FFN加起来应该是 <span class="arithmatex">\(12d^2\)</span> 。<span class="arithmatex">\(N\)</span> 层堆叠起来就是 <span class="arithmatex">\(12Nd^2\)</span> 。</p>
+<h2 id="_4">怎么更精确地估算参数量？</h2>
+<p>(1) Layer Norm
+由上可见，我们忽略了Layer Norm里面的可训练参数开销（<span class="arithmatex">\(\beta\)</span> 和 <span class="arithmatex">\(\gamma\)</span>），它们都是用于缩放的可训练向量（防止归一化不合适而添加的缩放因子），大小均为 <span class="arithmatex">\(d\)</span> ，所以每个 LayerNorm 应该还有 <span class="arithmatex">\(2d\)</span> ，符合实测的 <code>3,200</code> 。</p>
+<p>(2) Attention &amp; FFN?
+我们之前算下来，Attention的每个 <span class="arithmatex">\(W\)</span> 按理来说应该是 <span class="arithmatex">\(d^2=1600^2=2560000\)</span> 的方阵，可实测结果是 <code>2,561,600</code> ；
+FFN也有类似的差距，FFN Input和FFN Output都应该是 <span class="arithmatex">\(4d^2=10240000\)</span> ，可它们一个是 <code>10,246,400</code> ，另一个是 <code>10,241,600</code> 。
+相信对数字敏感的话已经知道问题在哪里了。我们估算时假定可训练参数只有 <span class="arithmatex">\(W\)</span> ，可这是GPT-2，不是llama等更加现代的模型，在GPT-2的时代还是有 <span class="arithmatex">\(Wx+b\)</span> 中这个 <code>bias</code> 的！
+加上之后马上符合事实了：
+Attention输入和输出维度都是 <span class="arithmatex">\(d\)</span> ，所以 <span class="arithmatex">\(W\)</span> 和 <span class="arithmatex">\(b\)</span> 总共 <span class="arithmatex">\(d^2+d=2561600\)</span> 正确；
+FFN Input输入维度是 <span class="arithmatex">\(d\)</span> 、输出维度是 <span class="arithmatex">\(4d\)</span> ，所以总共 <span class="arithmatex">\(4d^2+4d = 10246400\)</span> 正确；
+FFN Output输入维度是 <span class="arithmatex">\(4d\)</span> 、输出维度是 <span class="arithmatex">\(d\)</span> ，所以总共 <span class="arithmatex">\(4d^2+d=10241600\)</span> 正确。</p>
+<p>参数量部分完结撒花！</p>
+<h2 id="llmflops">怎么估算LLM的训练FLOPs？</h2>
+<blockquote>
+<p>参数量决定了模型的“内存占用”，而FLOPs（浮点运算次数）决定了模型的“计算成本”。</p>
+</blockquote>
+<p>FLOPs（Floating Point Operations）指的是模型进行一次前向传播所需的浮点运算次数。对于矩阵乘法，<strong>一个 <span class="arithmatex">\(m \times n\)</span> 的矩阵乘以 <span class="arithmatex">\(n \times p\)</span> 的矩阵，FLOPs大约是 <span class="arithmatex">\(2mnp\)</span></strong> ，因为：
+- 结果矩阵有 m×p 个元素，
+- 每个元素由两个长度为 <span class="arithmatex">\(n\)</span> 的向量点积得到，因此大约需要 <span class="arithmatex">\(n\)</span> 次乘法和 <span class="arithmatex">\(n\)</span> 次加法（共 <span class="arithmatex">\(2n\)</span> 次运算）。</p>
+<p>下表汇总了Transformer Decoder层中各操作的FLOPs计算方式。
+（记 <code>batch_size = 1</code>，<code>context_length = n</code>，维度为 <span class="arithmatex">\(d\)</span> ，<span class="arithmatex">\(d_{ff}=4d\)</span>）</p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>输入形状</th>
+<th>权重形状</th>
+<th>输出形状</th>
+<th>FLOPs计算公式</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Attention部分</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td><span class="arithmatex">\(8nd^2+4n^2d\)</span></td>
+<td></td>
+</tr>
+<tr>
+<td>Q线性映射</td>
+<td>(n, d)</td>
+<td>(d, d)</td>
+<td>(n, d)</td>
+<td>2 × n × d × d</td>
+<td></td>
+</tr>
+<tr>
+<td>K线性映射</td>
+<td>(n, d)</td>
+<td>(d, d)</td>
+<td>(n, d)</td>
+<td>2 × n × d × d</td>
+<td></td>
+</tr>
+<tr>
+<td>V线性映射</td>
+<td>(n, d)</td>
+<td>(d, d)</td>
+<td>(n, d)</td>
+<td>2 × n × d × d</td>
+<td></td>
+</tr>
+<tr>
+<td>Q·K^T</td>
+<td>(n, d)</td>
+<td>(d, n)</td>
+<td>(n, n)</td>
+<td>2 × n × d × n</td>
+<td>注意力分数矩阵</td>
+</tr>
+<tr>
+<td>Attention·V</td>
+<td>(n, n)</td>
+<td>(n, d)</td>
+<td>(n, d)</td>
+<td>2 × n × n × d</td>
+<td>加权求和</td>
+</tr>
+<tr>
+<td>输出映射WO</td>
+<td>(n, d)</td>
+<td>(d, d)</td>
+<td>(n, d)</td>
+<td>2 × n × d × d</td>
+<td>多头输出融合</td>
+</tr>
+<tr>
+<td><strong>FFN部分</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td><span class="arithmatex">\(16nd^2\)</span></td>
+<td></td>
+</tr>
+<tr>
+<td>FFN第一层</td>
+<td>(n, d)</td>
+<td>(d, 4d)</td>
+<td>(n, 4d)</td>
+<td>2 × n × d × 4d</td>
+<td>维度扩展</td>
+</tr>
+<tr>
+<td>FFN第二层</td>
+<td>(n, 4d)</td>
+<td>(4d, d)</td>
+<td>(n, d)</td>
+<td>2 × n × 4d × d</td>
+<td>维度压缩</td>
+</tr>
+<tr>
+<td><strong>输出部分</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td><span class="arithmatex">\(2nVd\)</span></td>
+<td></td>
+</tr>
+<tr>
+<td>LM Head</td>
+<td>(n, d)</td>
+<td>(d, V)</td>
+<td>(n, V)</td>
+<td>2 × n × d × V</td>
+<td>映射到词表</td>
+</tr>
+</tbody>
+</table>
+<p>（LayerNorm、残差连接等操作：复杂度O(dn)，相比矩阵乘法可忽略）</p>
+<p>每个Transformer块总和为 <span class="arithmatex">\(24nd^2+4n^2d\)</span> ， <span class="arithmatex">\(N\)</span> 层总计为</p>
+<div class="arithmatex">\[FLOPs_{fwd\_block}=2n \cdot (12Nd^2 + Vd) + 4Nn^2d=2nP+4Nn^2d\]</div>
+<p>其实就是之前提到的参数量 <span class="arithmatex">\(P = 12Nd^2 + Vd\)</span> ，再多出注意力<span class="arithmatex">\(QK^T\)</span>和<span class="arithmatex">\(Attention \cdot V\)</span>两个矩阵乘法的额外开销 <span class="arithmatex">\(4Nn^2d\)</span> 。fwd指forward：前向传播。</p>
+<p>再考虑进来batch size（记为 <span class="arithmatex">\(b\)</span> ），有最终的公式：</p>
+<div class="arithmatex">\[FLOPs_{fwd}=N(24bnd^2+4bn^2d)+2bnVd\]</div>
+<p>或者用另一套符号：</p>
+<div class="highlight"><pre><span></span><code>L: layers          B: batch_size  V: vocab_size
+T: context_length  D: d_model
+F_fwd ≈ L(24BTD^2 + 4BT^2D) + 2BTVD
+</code></pre></div>
+<div class="arithmatex">\[F_{fwd} ≈ L(24BTD^2 + 4BT^2D) + 2BTVD\]</div>
+<p>这就是比较精细估算的FLOPs公式。</p>
+<p>从而有了以下三条观察：</p>
+<ol>
+<li><strong>Attention的上下文平方复杂度</strong>：当 <code>context_length = n</code> 较大时， <span class="arithmatex">\(4Nn^2d\)</span> 项占主导，这使得长上下文时，Attention项成为毫无疑问的瓶颈。</li>
+<li><strong>训练 vs 推理</strong>：
+   - 前向传播：使用上述表格的FLOPs，即2倍训练token数乘以参数量
+   - 后向传播：约2倍前向FLOPs
+   - 总训练FLOPs ≈ 3倍前向FLOPs</li>
+<li><strong>经验公式</strong>：训练总FLOPs ≈ 6 × 参数量 × 训练token数</li>
+</ol>
+<p>代入GPT2-XL参数： <span class="arithmatex">\(N=48\)</span>, <span class="arithmatex">\(d=1600\)</span>, <span class="arithmatex">\(n=1024\)</span>, <span class="arithmatex">\(V=50257\)</span>, <span class="arithmatex">\(P=1.56B\)</span>
+得到的前向 <span class="arithmatex">\(FLOPs \approx 3.507T\)</span> 。</p>
+<h2 id="d-vs-nflops">维度d增大 vs 上下文长度n增大，FLOPs瓶颈在哪里？</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>公式</th>
+<th>对上下文长度n</th>
+<th>对维度d</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Attention的 <span class="arithmatex">\(QK^T\)</span> 和 <span class="arithmatex">\(Attention \cdot V\)</span></td>
+<td><span class="arithmatex">\(4Nn^2d\)</span></td>
+<td><span class="arithmatex">\(O(n^2)\)</span></td>
+<td><span class="arithmatex">\(O(d)\)</span></td>
+</tr>
+<tr>
+<td>Attention其余部分，FFN，LM Head</td>
+<td><span class="arithmatex">\(2n(12Nd^2+Vd)\)</span></td>
+<td><span class="arithmatex">\(O(n)\)</span></td>
+<td><span class="arithmatex">\(O(d^2)\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>令 <span class="arithmatex">\(4Nn^2d &gt; 24Nnd^2\)</span> ，有context length <span class="arithmatex">\(n&gt;6d\)</span> 。</p>
+<p>从上述FLOPs的公式可以看到，
+<strong>随着模型大小的显著增大（<span class="arithmatex">\(d\)</span> 增大、<span class="arithmatex">\(N\)</span> 增大），Attention其余部分，FFN，LM Head将会占主导。</strong>
+<strong>而随着上下文增长（<span class="arithmatex">\(n\)</span> 增大，或者一般常用的字母是 <span class="arithmatex">\(L\)</span> ），超过 <span class="arithmatex">\(6d\)</span> 时，Attention的两个矩阵乘法将会占主导。</strong></p>
+<p>可以代入一些数据实际比较一下：</p>
+<div class="highlight"><pre><span></span><code>vocab_size = 50257
+d_ff = 4 \times d_model
+
+GPT-2 small (12 layers, 768 d_model, 12 heads)
+GPT-2 medium (24 layers, 1024 d_model, 16 heads)
+GPT-2 large (36 layers, 1280 d_model, 20 heads)
+GPT2-XL (48 layers, 1600 d_model, 25 heads)
+
+context length: from 1024 to 16,384
+</code></pre></div>
+<p>以下是结果（代码见附录B）。可见，
+显著增大 context length 之后，Attention两个乘法（红色部分）马上成为了所有模型的绝对主导。
+而在相同的context length情况下，随着模型增大，其余部分比Attention两个乘法增大得快一些（绿色占比上升，红色占比下降）。</p>
+<p><img alt="" src="../../migrated/post-images/flops.png"/></p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>N</th>
+<th>d</th>
+<th>context length n</th>
+<th><span class="arithmatex">\(4Nn^2d\)</span> (A)</th>
+<th><span class="arithmatex">\(2n(12Nd^2+Vd)\)</span> (B)</th>
+<th>总FLOPs (A+B)</th>
+<th>A占比</th>
+<th>B占比</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GPT-2 small</td>
+<td>12</td>
+<td>768</td>
+<td>1,024</td>
+<td>3.87e+10</td>
+<td>2.53e+11</td>
+<td>2.92e+11</td>
+<td>13.3%</td>
+<td>86.7%</td>
+</tr>
+<tr>
+<td>GPT-2 small</td>
+<td>12</td>
+<td>768</td>
+<td>16,384</td>
+<td>9.90e+12</td>
+<td>4.05e+12</td>
+<td>1.39e+13</td>
+<td>71.0%</td>
+<td>29.0%</td>
+</tr>
+<tr>
+<td>GPT-2 medium</td>
+<td>24</td>
+<td>1024</td>
+<td>1,024</td>
+<td>1.03e+11</td>
+<td>7.24e+11</td>
+<td>8.27e+11</td>
+<td>12.5%</td>
+<td>87.5%</td>
+</tr>
+<tr>
+<td>GPT-2 medium</td>
+<td>24</td>
+<td>1024</td>
+<td>16,384</td>
+<td>2.64e+13</td>
+<td>1.16e+13</td>
+<td>3.80e+13</td>
+<td>69.5%</td>
+<td>30.5%</td>
+</tr>
+<tr>
+<td>GPT-2 large</td>
+<td>36</td>
+<td>1280</td>
+<td>1,024</td>
+<td>1.93e+11</td>
+<td>1.58e+12</td>
+<td>1.77e+12</td>
+<td>10.9%</td>
+<td>89.1%</td>
+</tr>
+<tr>
+<td>GPT-2 large</td>
+<td>36</td>
+<td>1280</td>
+<td>16,384</td>
+<td>4.95e+13</td>
+<td>2.53e+13</td>
+<td>7.48e+13</td>
+<td>66.2%</td>
+<td>33.8%</td>
+</tr>
+<tr>
+<td>GPT-2 XL</td>
+<td>48</td>
+<td>1600</td>
+<td>1,024</td>
+<td>3.22e+11</td>
+<td>3.18e+12</td>
+<td>3.51e+12</td>
+<td>9.2%</td>
+<td>90.8%</td>
+</tr>
+<tr>
+<td>GPT-2 XL</td>
+<td>48</td>
+<td>1600</td>
+<td>16,384</td>
+<td>8.25e+13</td>
+<td>5.10e+13</td>
+<td>1.33e+14</td>
+<td>61.8%</td>
+<td>38.2%</td>
+</tr>
+</tbody>
+</table>
+<h2 id="a">附录A: “参数量实测结果”使用的代码</h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">transformers</span><span class="w"> </span><span class="kn">import</span> <span class="n">GPT2LMHeadModel</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+
+<span class="c1"># 加载模型</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"正在加载 GPT-2 XL 模型..."</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">GPT2LMHeadModel</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s1">'gpt2-xl'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"加载完成！</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"="</span><span class="o">*</span><span class="mi">80</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"GPT-2 XL 按层参数量统计"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"="</span><span class="o">*</span><span class="mi">80</span><span class="p">)</span>
+
+<span class="c1"># 统计各层参数量</span>
+<span class="n">layer_params</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+<span class="n">total_params</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="c1"># 按参数名分类统计</span>
+<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span>
+    <span class="n">total_params</span> <span class="o">+=</span> <span class="n">params</span>
+
+    <span class="c1"># 解析层级</span>
+    <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">'transformer.h.'</span><span class="p">):</span>
+        <span class="c1"># 提取层号，格式如：transformer.h.0.attn.c_attn.weight</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">'.'</span><span class="p">)</span>
+        <span class="n">layer_num</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>  <span class="c1"># '0', '1', '2', ...</span>
+        <span class="n">layer_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"Layer </span><span class="si">{</span><span class="n">layer_num</span><span class="si">}</span><span class="s2">"</span>
+
+        <span class="c1"># 进一步细分是 attention 还是 mlp</span>
+        <span class="k">if</span> <span class="s1">'attn'</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">'c_attn'</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+                <span class="n">sub_type</span> <span class="o">=</span> <span class="s2">"  ├─ Attention QKV (c_attn)"</span>
+            <span class="k">elif</span> <span class="s1">'c_proj'</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+                <span class="n">sub_type</span> <span class="o">=</span> <span class="s2">"  ├─ Attention Output (c_proj)"</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sub_type</span> <span class="o">=</span> <span class="s2">"  ├─ Attention Other"</span>
+        <span class="k">elif</span> <span class="s1">'mlp'</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">'c_fc'</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+                <span class="n">sub_type</span> <span class="o">=</span> <span class="s2">"  ├─ FFN Input (c_fc)"</span>
+            <span class="k">elif</span> <span class="s1">'c_proj'</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+                <span class="n">sub_type</span> <span class="o">=</span> <span class="s2">"  ├─ FFN Output (c_proj)"</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sub_type</span> <span class="o">=</span> <span class="s2">"  ├─ FFN Other"</span>
+        <span class="k">elif</span> <span class="s1">'ln_'</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">'ln_1'</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+                <span class="n">sub_type</span> <span class="o">=</span> <span class="s2">"  ├─ LayerNorm 1 (pre-attention)"</span>
+            <span class="k">elif</span> <span class="s1">'ln_2'</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+                <span class="n">sub_type</span> <span class="o">=</span> <span class="s2">"  ├─ LayerNorm 2 (pre-ffn)"</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sub_type</span> <span class="o">=</span> <span class="s2">"  ├─ LayerNorm Other"</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sub_type</span> <span class="o">=</span> <span class="s2">"  ├─ Other"</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">layer_name</span><span class="si">:</span><span class="s2">10s</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">sub_type</span><span class="si">:</span><span class="s2">35s</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">name</span><span class="si">:</span><span class="s2">40s</span><span class="si">}</span><span class="s2"> params: </span><span class="si">{</span><span class="n">params</span><span class="si">:</span><span class="s2">10,d</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">layer_params</span><span class="p">[</span><span class="sa">f</span><span class="s2">"Layer </span><span class="si">{</span><span class="n">layer_num</span><span class="si">}</span><span class="s2"> Total"</span><span class="p">]</span> <span class="o">+=</span> <span class="n">params</span>
+
+    <span class="k">elif</span> <span class="s1">'transformer.wte'</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'Embedding'</span><span class="si">:</span><span class="s2">10s</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'  └─ Token Embedding'</span><span class="si">:</span><span class="s2">35s</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">name</span><span class="si">:</span><span class="s2">40s</span><span class="si">}</span><span class="s2"> params: </span><span class="si">{</span><span class="n">params</span><span class="si">:</span><span class="s2">10,d</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">layer_params</span><span class="p">[</span><span class="s1">'Embedding'</span><span class="p">]</span> <span class="o">+=</span> <span class="n">params</span>
+    <span class="k">elif</span> <span class="s1">'transformer.wpe'</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'Embedding'</span><span class="si">:</span><span class="s2">10s</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'  └─ Position Embedding'</span><span class="si">:</span><span class="s2">35s</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">name</span><span class="si">:</span><span class="s2">40s</span><span class="si">}</span><span class="s2"> params: </span><span class="si">{</span><span class="n">params</span><span class="si">:</span><span class="s2">10,d</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">layer_params</span><span class="p">[</span><span class="s1">'Embedding'</span><span class="p">]</span> <span class="o">+=</span> <span class="n">params</span>
+    <span class="k">elif</span> <span class="s1">'transformer.ln_f'</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'Final'</span><span class="si">:</span><span class="s2">10s</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'  └─ Final LayerNorm'</span><span class="si">:</span><span class="s2">35s</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">name</span><span class="si">:</span><span class="s2">40s</span><span class="si">}</span><span class="s2"> params: </span><span class="si">{</span><span class="n">params</span><span class="si">:</span><span class="s2">10,d</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">layer_params</span><span class="p">[</span><span class="s1">'Final Norm'</span><span class="p">]</span> <span class="o">+=</span> <span class="n">params</span>
+    <span class="k">elif</span> <span class="s1">'lm_head'</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'LM Head'</span><span class="si">:</span><span class="s2">10s</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'  └─ Language Model Head'</span><span class="si">:</span><span class="s2">35s</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">name</span><span class="si">:</span><span class="s2">40s</span><span class="si">}</span><span class="s2"> params: </span><span class="si">{</span><span class="n">params</span><span class="si">:</span><span class="s2">10,d</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">layer_params</span><span class="p">[</span><span class="s1">'LM Head'</span><span class="p">]</span> <span class="o">+=</span> <span class="n">params</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'Other'</span><span class="si">:</span><span class="s2">10s</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'  └─'</span><span class="si">:</span><span class="s2">35s</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">name</span><span class="si">:</span><span class="s2">40s</span><span class="si">}</span><span class="s2"> params: </span><span class="si">{</span><span class="n">params</span><span class="si">:</span><span class="s2">10,d</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">layer_params</span><span class="p">[</span><span class="s1">'Other'</span><span class="p">]</span> <span class="o">+=</span> <span class="n">params</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span> <span class="o">+</span> <span class="s2">"="</span><span class="o">*</span><span class="mi">80</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"各层总参数汇总"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"="</span><span class="o">*</span><span class="mi">80</span><span class="p">)</span>
+
+<span class="c1"># 按层汇总</span>
+<span class="k">for</span> <span class="n">layer_name</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">layer_params</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="n">layer_params</span><span class="p">[</span><span class="n">layer_name</span><span class="p">]</span>
+    <span class="n">percentage</span> <span class="o">=</span> <span class="p">(</span><span class="n">params</span> <span class="o">/</span> <span class="n">total_params</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">layer_name</span><span class="si">:</span><span class="s2">20s</span><span class="si">}</span><span class="s2"> params: </span><span class="si">{</span><span class="n">params</span><span class="si">:</span><span class="s2">12,d</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">params</span><span class="o">/</span><span class="mf">1e6</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">M) </span><span class="si">{</span><span class="n">percentage</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%"</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span> <span class="o">+</span> <span class="s2">"="</span><span class="o">*</span><span class="mi">80</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'总参数量'</span><span class="si">:</span><span class="s2">20s</span><span class="si">}</span><span class="s2"> params: </span><span class="si">{</span><span class="n">total_params</span><span class="si">:</span><span class="s2">12,d</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'单位换算'</span><span class="si">:</span><span class="s2">20s</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">total_params</span><span class="o">/</span><span class="mf">1e6</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">M 参数 / </span><span class="si">{</span><span class="n">total_params</span><span class="o">/</span><span class="mf">1e9</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">B 参数"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"="</span><span class="o">*</span><span class="mi">80</span><span class="p">)</span>
+
+<span class="c1"># 验证单层参数量是否匹配理论计算</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span> <span class="o">+</span> <span class="s2">"="</span><span class="o">*</span><span class="mi">80</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"单层结构验证（以 Layer 0 为例）"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"="</span><span class="o">*</span><span class="mi">80</span><span class="p">)</span>
+
+<span class="c1"># 计算第一层的详细结构</span>
+<span class="n">layer_0_params</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">'transformer.h.0.'</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s1">'attn.c_attn'</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+            <span class="n">layer_0_params</span><span class="p">[</span><span class="s1">'Attention QKV'</span><span class="p">]</span> <span class="o">+=</span> <span class="n">param</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="s1">'attn.c_proj'</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+            <span class="n">layer_0_params</span><span class="p">[</span><span class="s1">'Attention Output'</span><span class="p">]</span> <span class="o">+=</span> <span class="n">param</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="s1">'mlp.c_fc'</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+            <span class="n">layer_0_params</span><span class="p">[</span><span class="s1">'FFN Input (c_fc)'</span><span class="p">]</span> <span class="o">+=</span> <span class="n">param</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="s1">'mlp.c_proj'</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+            <span class="n">layer_0_params</span><span class="p">[</span><span class="s1">'FFN Output (c_proj)'</span><span class="p">]</span> <span class="o">+=</span> <span class="n">param</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="s1">'ln_1'</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+            <span class="n">layer_0_params</span><span class="p">[</span><span class="s1">'LayerNorm 1'</span><span class="p">]</span> <span class="o">+=</span> <span class="n">param</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="s1">'ln_2'</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+            <span class="n">layer_0_params</span><span class="p">[</span><span class="s1">'LayerNorm 2'</span><span class="p">]</span> <span class="o">+=</span> <span class="n">param</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span>
+
+<span class="k">for</span> <span class="n">comp</span><span class="p">,</span> <span class="n">params</span> <span class="ow">in</span> <span class="n">layer_0_params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">comp</span><span class="si">:</span><span class="s2">25s</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">params</span><span class="si">:</span><span class="s2">10,d</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">params</span><span class="o">/</span><span class="mf">1e6</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">M)"</span><span class="p">)</span>
+
+<span class="n">layer_0_total</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">layer_0_params</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'Layer 0 总计'</span><span class="si">:</span><span class="s2">25s</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">layer_0_total</span><span class="si">:</span><span class="s2">10,d</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">layer_0_total</span><span class="o">/</span><span class="mf">1e6</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">M)"</span><span class="p">)</span>
+
+<span class="c1"># 验证是否与理论计算一致</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">理论计算值: 30.72M"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"实际统计值: </span><span class="si">{</span><span class="n">layer_0_total</span><span class="o">/</span><span class="mf">1e6</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">M"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"差异: </span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="mf">30.72</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">layer_0_total</span><span class="o">/</span><span class="mf">1e6</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">M"</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="b-d-vs-nflops">附录B: “维度d增大 vs 上下文长度n增大，FLOPs瓶颈在哪里”使用的代码</h2>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># 模型配置</span>
+<span class="n">models</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"GPT-2 small"</span><span class="p">,</span> <span class="s2">"N"</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span> <span class="s2">"d"</span><span class="p">:</span> <span class="mi">768</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"GPT-2 medium"</span><span class="p">,</span> <span class="s2">"N"</span><span class="p">:</span> <span class="mi">24</span><span class="p">,</span> <span class="s2">"d"</span><span class="p">:</span> <span class="mi">1024</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"GPT-2 large"</span><span class="p">,</span> <span class="s2">"N"</span><span class="p">:</span> <span class="mi">36</span><span class="p">,</span> <span class="s2">"d"</span><span class="p">:</span> <span class="mi">1280</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"GPT-2 XL"</span><span class="p">,</span> <span class="s2">"N"</span><span class="p">:</span> <span class="mi">48</span><span class="p">,</span> <span class="s2">"d"</span><span class="p">:</span> <span class="mi">1600</span><span class="p">},</span>
+<span class="p">]</span>
+
+<span class="c1"># 固定参数</span>
+<span class="n">vocab_size</span> <span class="o">=</span> <span class="mi">50257</span>
+<span class="n">context_lengths</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">16384</span><span class="p">]</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_flops</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">V</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    计算FLOPs</span>
+<span class="sd">    A = 4Nn²d  (Attention的QK^T和Attention·V)</span>
+<span class="sd">    B = 2n(12Nd² + Vd)  (Attention其余部分 + FFN + LM Head)</span>
+<span class="sd">    """</span>
+    <span class="c1"># 计算A: 4Nn²d</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">N</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">d</span>
+
+    <span class="c1"># 计算B: 2n(12Nd² + Vd)</span>
+    <span class="n">B</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n</span> <span class="o">*</span> <span class="p">(</span><span class="mi">12</span> <span class="o">*</span> <span class="n">N</span> <span class="o">*</span> <span class="p">(</span><span class="n">d</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">V</span> <span class="o">*</span> <span class="n">d</span><span class="p">)</span>
+
+    <span class="n">total</span> <span class="o">=</span> <span class="n">A</span> <span class="o">+</span> <span class="n">B</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">"A"</span><span class="p">:</span> <span class="n">A</span><span class="p">,</span>
+        <span class="s2">"B"</span><span class="p">:</span> <span class="n">B</span><span class="p">,</span>
+        <span class="s2">"total"</span><span class="p">:</span> <span class="n">total</span><span class="p">,</span>
+        <span class="s2">"A_ratio"</span><span class="p">:</span> <span class="n">A</span> <span class="o">/</span> <span class="n">total</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span>
+        <span class="s2">"B_ratio"</span><span class="p">:</span> <span class="n">B</span> <span class="o">/</span> <span class="n">total</span> <span class="o">*</span> <span class="mi">100</span>
+    <span class="p">}</span>
+
+<span class="c1"># 生成Markdown表格</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"| 模型 | N | d | context length n | $4Nn^2d$ (A) | $2n(12Nd^2+Vd)$ (B) | 总FLOPs (A+B) | A占比 | B占比 |"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"|------|---|---|-------------------|--------------|---------------------|---------------|-------|-------|"</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">models</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">context_lengths</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">calculate_flops</span><span class="p">(</span><span class="n">model</span><span class="p">[</span><span class="s2">"N"</span><span class="p">],</span> <span class="n">model</span><span class="p">[</span><span class="s2">"d"</span><span class="p">],</span> <span class="n">n</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">)</span>
+
+        <span class="c1"># 格式化数字为科学计数法</span>
+        <span class="n">A_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">'A'</span><span class="p">]</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2">"</span>
+        <span class="n">B_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">'B'</span><span class="p">]</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2">"</span>
+        <span class="n">total_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">'total'</span><span class="p">]</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2">"</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"| </span><span class="si">{</span><span class="n">model</span><span class="p">[</span><span class="s1">'name'</span><span class="p">]</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">model</span><span class="p">[</span><span class="s1">'N'</span><span class="p">]</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">model</span><span class="p">[</span><span class="s1">'d'</span><span class="p">]</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">n</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">A_str</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">B_str</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">total_str</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">'A_ratio'</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">% | </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">'B_ratio'</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">% |"</span><span class="p">)</span>
+
+<span class="c1"># 打印详细数值（可选）</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">## 详细数值</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">models</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">context_lengths</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">calculate_flops</span><span class="p">(</span><span class="n">model</span><span class="p">[</span><span class="s2">"N"</span><span class="p">],</span> <span class="n">model</span><span class="p">[</span><span class="s2">"d"</span><span class="p">],</span> <span class="n">n</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="si">{</span><span class="n">model</span><span class="p">[</span><span class="s1">'name'</span><span class="p">]</span><span class="si">}</span><span class="s2">, n=</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">:"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  A = 4 × </span><span class="si">{</span><span class="n">model</span><span class="p">[</span><span class="s1">'N'</span><span class="p">]</span><span class="si">}</span><span class="s2"> × </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">² × </span><span class="si">{</span><span class="n">model</span><span class="p">[</span><span class="s1">'d'</span><span class="p">]</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">'A'</span><span class="p">]</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  B = 2 × </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> × (12 × </span><span class="si">{</span><span class="n">model</span><span class="p">[</span><span class="s1">'N'</span><span class="p">]</span><span class="si">}</span><span class="s2"> × </span><span class="si">{</span><span class="n">model</span><span class="p">[</span><span class="s1">'d'</span><span class="p">]</span><span class="si">}</span><span class="s2">² + </span><span class="si">{</span><span class="n">vocab_size</span><span class="si">}</span><span class="s2"> × </span><span class="si">{</span><span class="n">model</span><span class="p">[</span><span class="s1">'d'</span><span class="p">]</span><span class="si">}</span><span class="s2">) = </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">'B'</span><span class="p">]</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Total = </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">'total'</span><span class="p">]</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  A占比 = </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">'A_ratio'</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%, B占比 = </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">'B_ratio'</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%"</span><span class="p">)</span>
+</code></pre></div>
+  </div>
+
+  
+  <section class="post-comments">
+    <h2 class="comments-title">评论</h2>
+    <script src="https://giscus.app/client.js"
+      data-repo="Meredith2328/pilog"
+      data-repo-id="R_kgDOTpY2UA"
+      data-category="Announcements"
+      data-category-id="DIC_kwDOTpY2UM4DCZMy"
+      data-mapping="pathname"
+      data-strict="0"
+      data-reactions-enabled="1"
+      data-emit-metadata="0"
+      data-input-position="top"
+      data-theme="light"
+      data-lang="zh-CN"
+      crossorigin="anonymous"
+      async></script>
+  </section>
+  
+</article>
+</main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span>© 2026 Meredith — built with pilog</span>
+      <span class="footer-sep">::</span>
+      <a href="../../../rss.xml">RSS</a>
+      <span class="footer-sep">::</span>
+      <span>powered by <a href="https://github.com/meredith2328/pilog" target="_blank" rel="noopener">pilog</a></span>
+    </div>
+  </footer>
+
+  
+  <div class="dino-widget" data-widget="dino">
+    <div class="dino-panel" hidden>
+      <div class="dino-bar">
+        <span class="dino-title">T-REX RUNNER</span>
+        <span class="dino-hint">点击游戏区域后按 空格</span>
+        <button class="dino-close" type="button" aria-label="关闭">×</button>
+      </div>
+      <iframe class="dino-frame" src="../../../dino/index.html" title="Chrome 断网小恐龙" loading="lazy"></iframe>
+    </div>
+    <button class="dino-toggle" type="button" aria-label="打开小恐龙游戏">
+      <img src="../../../img/dino-icon.png" alt="小恐龙" width="26" height="28">
+      <span>PLAY</span>
+    </button>
+  </div>
+  
+
+  <script src="../../../js/main.js" defer></script>
+  <script>
+    window.PILOG_ROOT = "../../../";
+    window.PILOG_DEFAULT_VIEW = "cards";
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+          onload="try{if(window.renderMathInElement){renderMathInElement(document.body,{delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});}}catch(e){}"></script>
+  <script src="../../../js/search.js" defer></script>
+  
+</body>
+</html>

@@ -86,7 +86,7 @@ with sync_playwright() as p:
     check("rss 200", resp.status == 200)
 
     # giscus config present on post pages
-    pg.goto(BASE + "/posts/tech/pixel-blog.html", wait_until="domcontentloaded")
+    pg.goto(BASE + "/posts/toy/pilog-blog.html", wait_until="domcontentloaded")
     giscus = pg.locator('script[src*="giscus.app/client.js"]')
     check("giscus script present", giscus.count() == 1)
     if giscus.count():
