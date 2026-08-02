@@ -98,8 +98,28 @@ def main() -> None:
         ok &= check("folder filter narrows cards", vis == 8, str(vis))
         page.locator(".sel-chip .sel-x").first.click()
 
+        # only one folder condition at a time: selecting another folder
+        # replaces the previous one, and clicking the same folder keeps it;
+        # clearing happens via the selected chip's ×
+        page.evaluate("window.pilogFilters.selectFolder('posts/toy')")
+        page.wait_for_timeout(300)
+        page.evaluate("window.pilogFilters.selectFolder('posts/notes')")
+        page.wait_for_timeout(300)
+        ok &= check("single folder condition", page.locator(".sel-chip.sel-folder").count() == 1)
+        ok &= check("folder chip replaced",
+                    "posts/notes" in page.locator(".sel-chip.sel-folder").first.inner_text())
+        vis = page.locator(".card:visible").count()
+        ok &= check("folder filter switched", vis == 14, str(vis))
+        page.evaluate("window.pilogFilters.selectFolder('posts/notes')")
+        page.wait_for_timeout(200)
+        ok &= check("same folder keeps condition",
+                    page.locator(".sel-chip.sel-folder").count() == 1)
+        page.locator(".sel-chip .sel-x").first.click()
+        page.wait_for_timeout(200)
+        ok &= check("chip x clears folder", page.locator(".sel-chip.sel-folder").count() == 0)
+
         # multi-condition: tag + folder with no overlap -> empty state
-        page.evaluate("window.pilogFilters.toggleFolder('posts/reference')")
+        page.evaluate("window.pilogFilters.selectFolder('posts/reference')")
         page.click("#filter-more")
         page.fill("#filter-more-search", "CS61A")
         page.locator("#filter-more-list .tag-chip[data-tag='CS61A']").click()

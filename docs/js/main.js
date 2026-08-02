@@ -299,7 +299,7 @@
     chip.appendChild(name);
     chip.appendChild(x);
     chip.addEventListener("click", function () {
-      if (isFolder) toggleFolder(key);
+      if (isFolder) removeFolder(key);
       else toggleTag(key);
     });
     return chip;
@@ -349,11 +349,26 @@
     }
   }
 
-  function toggleFolder(folder) {
+  function selectFolder(folder) {
     folder = normFolder(folder);
     if (!folder) return;
-    if (filterState.folders[folder]) delete filterState.folders[folder];
-    else filterState.folders[folder] = true;
+    // only one folder condition at a time; clicking the same folder again
+    // keeps it (idempotent, so repeated nav clicks do not flicker), while a
+    // different folder replaces the previous one. Clearing happens via the
+    // selected chip's ×.
+    if (!filterState.folders[folder]) {
+      filterState.folders = {};
+      filterState.folders[folder] = true;
+    }
+    syncChips();
+    renderSelected();
+    applyFilters();
+  }
+
+  function removeFolder(folder) {
+    folder = normFolder(folder);
+    if (!folder || !filterState.folders[folder]) return;
+    delete filterState.folders[folder];
     syncChips();
     renderSelected();
     applyFilters();
@@ -386,7 +401,11 @@
     }, 2400);
   }
 
-  window.pilogFilters = { toggleTag: toggleTag, toggleFolder: toggleFolder };
+  window.pilogFilters = {
+    toggleTag: toggleTag,
+    selectFolder: selectFolder,
+    removeFolder: removeFolder
+  };
 
   /* ---------- filter bar wiring (homepage only) ---------- */
 
@@ -445,7 +464,7 @@
       var folderPart = e.target.closest(".folder-part[data-folder]");
       if (folderPart) {
         e.preventDefault();
-        toggleFolder(folderPart.dataset.folder);
+        selectFolder(folderPart.dataset.folder);
       }
     });
   }
@@ -460,7 +479,7 @@
     }
     if (h.indexOf("#folder=") === 0) {
       activateView("cards", false);
-      toggleFolder(decodeURIComponent(h.slice(8)));
+      selectFolder(decodeURIComponent(h.slice(8)));
       return;
     }
     if (h.indexOf("#tag=") === 0) {
@@ -503,7 +522,7 @@
         } else if (view === "graph") {
           if (window.pilogGraph) window.pilogGraph.highlightFolder(folder);
         } else {
-          toggleFolder(folder);
+          selectFolder(folder);
         }
       });
     });

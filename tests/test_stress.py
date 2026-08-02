@@ -137,7 +137,7 @@ def main() -> None:
         page.goto(base + "/", wait_until="load")
 
         # cross-page filtering: a folder filter pulls in posts from every page
-        page.evaluate("window.pilogFilters.toggleFolder('posts/topic01')")
+        page.evaluate("window.pilogFilters.selectFolder('posts/topic01')")
         page.wait_for_timeout(700)
         filtered = page.locator(".card.is-client").count()
         pager_hidden = (
@@ -148,7 +148,7 @@ def main() -> None:
         print(f"folder filter: {filtered} cards from all pages, pager hidden: {pager_hidden}")
         assert filtered == 10, f"expected 10 cards in topic01, got {filtered}"
         assert pager_hidden, "pager should hide while filtering"
-        page.evaluate("window.pilogFilters.toggleFolder('posts/topic01')")
+        page.evaluate("window.pilogFilters.removeFolder('posts/topic01')")
         page.wait_for_timeout(300)
 
         page.click('[data-view="tree"]')
