@@ -81,6 +81,9 @@
     align-items: center;
     gap: 12px;
   }
+  
+  .dino-back { font-family: Consolas, 'Courier New', monospace; font-size: 13px; font-weight: 700; color: #3c4043; background: #fff; border: 2px solid #3c4043; padding: 5px 12px; text-decoration: none; box-shadow: 3px 3px 0 #e8eaed; }
+  .dino-back:hover { background: #3c4043; color: #f7f7f7; }
   .sound-toggle {
     border: 1px solid #dadce0;
     background: #fff;
@@ -108,6 +111,8 @@
       </div>
     </div>
     <div class="toolbar">
+      <a class="dino-back" href="../index.html">← 返回博客</a>
+      <script>(function(){if(!window.top||window.top===window)return;var b=document.querySelector('.dino-back');if(b)b.style.display='none';var s=document.createElement('style');s.textContent='body{align-items:flex-start;justify-content:center}.page{padding:10px 8px 12px;gap:10px}.hint,.credit{display:none!important}.stage{overflow:hidden}';document.head.appendChild(s);var st=document.querySelector('.stage');function fit(){var k=Math.min(1,(window.innerWidth-16)/600);if(k>=1){st.style.transform='';st.style.width='';st.style.height='';return;}st.style.transform='scale('+k+')';st.style.transformOrigin='top left';st.style.width=Math.round(600*k)+'px';st.style.height=Math.round(150*k)+'px';}fit();window.addEventListener('resize',fit);})();</script>
       <button id="sound-toggle" class="sound-toggle" type="button"></button>
     </div>
     <div class="hint">
