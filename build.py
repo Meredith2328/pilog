@@ -461,19 +461,32 @@ def build_site(
 
     page_404 = out_root / "404.html"
     generated_pages.add(page_404.resolve())
-    page_404.write_text(
-        env.get_template("404.html").render(
-            **{
-                **base_vars,
-                "root": "",
-                "page_title": "404",
-                "description": "页面不存在",
-                "canonical": "",
-                "nav_html": Markup(render_nav("404.html", ctx)),
-            }
-        ),
-        encoding="utf-8",
+    # GitHub Pages serves 404.html at ANY missing path (e.g. /posts/x.html),
+    # so relative asset/link URLs would resolve against the wrong directory.
+    # Render with a root-absolute prefix and rewrite every href/src.
+    abs_root = (cfg.base_path or "") + "/"
+    html_404 = env.get_template("404.html").render(
+        **{
+            **base_vars,
+            "root": abs_root,
+            "page_title": "404",
+            "description": "页面不存在",
+            "canonical": "",
+            "nav_html": Markup(render_nav("404.html", ctx)),
+        }
     )
+    soup_404 = BeautifulSoup(html_404, "html.parser")
+    for tag in soup_404.find_all(href=True):
+        h = tag["href"].strip()
+        if h and not h.startswith(
+            ("http://", "https://", "mailto:", "tel:", "data:", "javascript:", "#", "/")
+        ):
+            tag["href"] = abs_root + h
+    for tag in soup_404.find_all(src=True):
+        s = tag["src"].strip()
+        if s and not s.startswith(("http://", "https://", "data:", "blob:", "/")):
+            tag["src"] = abs_root + s
+    page_404.write_text(str(soup_404), encoding="utf-8")
 
     # 5. static assets + blog assets + dino
     static_src = Path(__file__).parent / "generator" / "static"

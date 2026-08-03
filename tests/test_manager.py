@@ -177,6 +177,16 @@ def main() -> None:
         pg2.wait_for_timeout(300)
         check("custom 404 page shown", pg2.locator(".notfound-art").count() == 1)
         check("404 countdown present", "自动返回首页" in pg2.locator("#notfound-count").inner_text())
+        # nested paths: assets must stay root-absolute so the page is styled
+        resp2 = pg2.goto("http://127.0.0.1:8195/posts/deeply/nested/missing.html",
+                         wait_until="domcontentloaded")
+        check("nested missing page returns 404", resp2.status == 404)
+        pg2.wait_for_timeout(500)
+        check("nested 404 styled",
+              "mono" in pg2.evaluate(
+                  "getComputedStyle(document.querySelector('.notfound-art')).fontFamily"))
+        check("nested 404 image loads",
+              pg2.evaluate("document.querySelector('.notfound-img').naturalWidth") > 0)
         pg2.wait_for_timeout(5600)
         check("404 auto redirects home",
               pg2.url.replace("/index.html", "").rstrip("/").endswith("8195"))
@@ -199,6 +209,9 @@ def main() -> None:
             p.unlink()
     import shutil
 
+    # rebuild with the restored config so the generated site stays in sync
+    # (the default-view test temporarily builds with default_view=tree)
+    serve.rebuild()
     if STRESS.exists():
         shutil.rmtree(STRESS)
     srv.shutdown()

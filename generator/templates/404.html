@@ -12,20 +12,19 @@
   <a class="pixel-btn" id="notfound-link" href="{{ root }}index.html">立即返回首页</a>
 </div>
 <script>
-/* 404 页面可能在任何路径下被访问（如 /blogtest/posts/x.html），
-   所以回首页不能只用相对链接：优先用站点绝对地址，本地开发回退相对路径。 */
+/* 404 页面可能在任何路径下被访问（如 /pilog/posts/x.html），构建时已把
+   首页链接写成根绝对路径（带 base_path），这里只在站点绝对地址可匹配时
+   校正一次，其余情况直接用构建好的链接。 */
 (function () {
-  var bp = {{ site.base_path|tojson }};
+  var link = document.getElementById("notfound-link");
   var url = {{ site.site_url|tojson }};
-  var home = "index.html";
+  var home = link.href;
   try {
     if (url && location.origin === new URL(url, location.href).origin) {
       home = new URL(url, location.href).pathname.replace(/\/+$/, "") + "/index.html";
-    } else if (bp && location.pathname.indexOf(bp) === 0) {
-      home = bp + "/index.html";
     }
-  } catch (e) { /* keep relative fallback */ }
-  document.getElementById("notfound-link").href = home;
+  } catch (e) { /* keep the built absolute link */ }
+  link.href = home;
   var left = 5;
   var el = document.getElementById("notfound-count");
   var timer = setInterval(function () {
