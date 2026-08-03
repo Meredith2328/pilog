@@ -116,6 +116,39 @@ def auto_preview(body: str, max_chars: int = 260) -> str:
     return text
 
 
+def auto_preview_md(body: str, max_chars: int = 260) -> str:
+    """Extract a markdown snippet (keeping inline syntax) for card previews.
+
+    Skips headings, code blocks, tables, blockquotes, footnotes and images so
+    the rendered preview stays tidy; heading flattening is applied by the
+    caller after markdown rendering.
+    """
+    parts: list[str] = []
+    total = 0
+    in_code = False
+    for raw in body.splitlines():
+        line = raw.strip()
+        if line.startswith(("```", "~~~")):
+            in_code = not in_code
+            continue
+        if in_code or not line:
+            continue
+        if line.startswith(("#", ">", "!", "[[", "[^")) or line in ("---", "***", "==="):
+            continue
+        if line.startswith("|") and line.endswith("|"):
+            continue
+        parts.append(line)
+        total += len(line)
+        if total >= max_chars:
+            break
+    text = "\n\n".join(parts)
+    if len(text) > max_chars:
+        cut = text.rfind(" ", 0, max_chars)
+        text = text[: cut if cut > max_chars * 0.6 else max_chars].rstrip()
+        text += "…"
+    return text
+
+
 def parse_tags(fm: dict, rel_dir: str) -> list:
     tags = fm.get("tags") or []
     if isinstance(tags, str):

@@ -144,7 +144,14 @@
           </div>
           <h3 class="card-title">CSAPP: shelllab</h3>
           
-          <p class="card-preview">以test16为例，其余效果相似。 根据课本，我们在编写信号处理程序时应当遵守以下规则类怪谈： 我们为了阻塞信号，提供的主要函数有： 课本（中文）8.4.6节（P525）提供了不回收后台子进程的eval缺陷版本，在此之上加入信号处理： 改变全局变量前后需要阻塞和取消阻塞全部信号，保证原子性； 在使用Fork之前阻塞SIGCHLD，防止子进程在fork之后、addjob之前终止并被handler回收。同时要在子进程中取消阻塞SIGCHLD。 上述两条信号处理是基于下列文档提示的。 eval block:…</p>
+          <div class="card-preview"><p>以<code>test16</code>为例，其余效果相似。</p>
+<p>根据课本，我们在编写信号处理程序时应当遵守以下规则~~类怪谈~~：</p>
+<p>我们为了阻塞信号，提供的主要函数有：</p>
+<p>课本（中文）8.4.6节（P525）提供了不回收后台子进程的eval缺陷版本，在此之上加入信号处理：</p>
+<ol>
+<li>改变全局变量前后需要阻塞和取消阻塞全部信号，保证原子性；</li>
+</ol>
+<p>2.…</p></div>
           
           <div class="card-tags">
             
@@ -174,7 +181,19 @@
           </div>
           <h3 class="card-title">CSAPP: cachelab</h3>
           
-          <p class="card-preview">由于测试程序driver.py是python2程序，首先需要安装python2。流程如下： 从Python官网（https://www.python.org/downloads/release/python-2718/）下载Python2的源码包(.tar.xz)并解压，进入解压后的目录。 安装python2依赖。 进入源码目录，逐一执行以下指令进行构建和安装。 通过查看版本号，验证Python2安装是否成功。 另外为了执行driver.py，需要用apt安装valgrind。…</p>
+          <div class="card-preview"><p>由于测试程序driver.py是python2程序，首先需要安装python2。流程如下：</p>
+<ol>
+<li>
+<p>从Python官网（https://www.python.org/downloads/release/python-2718/）下载Python2的源码包(.tar.xz)并解压，进入解压后的目录。</p>
+</li>
+<li>
+<p>安装python2依赖。</p>
+</li>
+<li>
+<p>进入源码目录，逐一执行以下指令进行构建和安装。</p>
+</li>
+</ol>
+<p>4.…</p></div>
           
           <div class="card-tags">
             
@@ -204,7 +223,14 @@
           </div>
           <h3 class="card-title">CSAPP: attacklab</h3>
           
-          <p class="card-preview">这个lab不用打断点方便很多。 末尾加 -q 是不发送到评测服务器。 我们要做的事情类似于phase3，如下： 此时我们要解决以下问题： 0x556400b8 本来是我们用于存放字符串的位置（执行的命令之后），但是我们现在此位置未知。 首先类似于phase4，将我们所需注入的代码： mov 字符串地址,%rdi 和执行touch3拆解为：（伪代码） 那么接下来只要考虑如何获取到存放的字符串地址。分析farm发现： gadget为我们提供了addxy指令，区别于其他所有指令，可能会完整用到该指令。结合课本…</p>
+          <div class="card-preview"><p>这个lab不用打断点方便很多。</p>
+<p>末尾加 -q 是不发送到评测服务器。</p>
+<p>我们要做的事情类似于phase3，如下：</p>
+<p>此时我们要解决以下问题：</p>
+<ol>
+<li><code>0x556400b8</code> 本来是我们用于存放字符串的位置（执行的命令之后），但是我们现在此位置未知。</li>
+</ol>
+<p>首先类似于phase4，将我们所需注入的代码： <code>mov 字符串地址,%rdi</code>…</p></div>
           
           <div class="card-tags">
             
@@ -234,7 +260,21 @@
           </div>
           <h3 class="card-title">CSAPP: bomblab</h3>
           
-          <p class="card-preview">各phase答案: 读入整数，整数，字符串 b secretphase rdi: &amp;inputstr rbx: rax=int(inputstr)=inputint rax: inputint - 1 u&lt;=3e8, so 1 ≤ inputint ≤ 3e9 esi: inputint x/512x 0x604110 8 32 (50) 6 16 2d 6b 1 7 14 23 28 2f(47) 63 3e9(1001) 要求fun7的返回值为1 参数1: edi=edx，开始时是树的根节点 参数2:…</p>
+          <div class="card-preview"><p>各phase答案:</p>
+<p>读入整数，整数，字符串</p>
+<p><code>b secret_phase</code></p>
+<p>edx: a</p>
+<p>esi: 0</p>
+<p>rdi: &amp;input_str</p>
+<p>rbx: rax=int(input_str)=input_int</p>
+<p>rax: input_int - 1</p>
+<p>u&lt;=3e8, so 1 ≤ input_int ≤ 3e9</p>
+<p>esi: input_int</p>
+<p><code>x/512x 0x604110</code></p>
+<p>24</p>
+<p>8    <strong>32 (50)</strong></p>
+<p>6  16  2d  6b</p>
+<p>1 7  14 23  28 2f(47)  63…</p></div>
           
           <div class="card-tags">
             
@@ -264,7 +304,17 @@
           </div>
           <h3 class="card-title">CSAPP: datalab</h3>
           
-          <p class="card-preview">对于浮点数部分，额外写了笔记，欢迎参阅： IEEE754浮点数与十进制数互相转换流程及例子 直接考虑所求的两种情况。 利用对称差公式：x ^ y = (x&amp;\y) | (y&amp;\x)， 我们需要取这两种情况，所以取两次反， 并将其中一次取反运用于狄·摩根律完成从|到&amp;的转换，即得所求为 ((x &amp; y) &amp; (y &amp; x))。 考虑反面的另外两种情况。 x和y均为1或0时，x^y返回0。单独取这两种情况即为 (x &amp; y) | (\x &amp; \y)。 取其反面即为( (x &amp; y) | (\x &amp; \y) )。…</p>
+          <div class="card-preview"><p>对于浮点数部分，额外写了笔记，欢迎参阅：</p>
+<p><a href="https://meredith2328.github.io/post/ieee754/">IEEE754浮点数与十进制数互相转换流程及例子</a></p>
+<ul>
+<li>解法一</li>
+</ul>
+<p>直接考虑所求的两种情况。</p>
+<p>利用对称差公式：x ^ y = (x&amp;~y) | (y&amp;~x)，</p>
+<p>我们需要取这两种情况，所以取两次反，</p>
+<p>并将其中一次取反运用于<em>狄·摩根律</em>完成从|到&amp;的转换，即得所求为</p>
+<p><code>~(~(x &amp; ~y) &amp; ~(y &amp; ~x))</code>。</p>
+<p>-…</p></div>
           
           <div class="card-tags">
             
@@ -294,7 +344,9 @@
           </div>
           <h3 class="card-title">友情链接们</h3>
           
-          <p class="card-preview">TLP&#39;s Blog 星间纪行 - 不著名星际贡献者不完全记录 Xia&#39;s Blog</p>
+          <div class="card-preview"><p><a href="http://tlp.fenesisu.moe/" title="这是TLP's Blog，强大的大蛇老师！">TLP's Blog</a></p>
+<p><a href="https://xlog.abli.me/" title="Abligail老师的Blog！有趣的人增加了">星间纪行 - 不著名星际贡献者不完全记录</a></p>
+<p><a href="https://hz-xiaxz.github.io/typst-blog/" title="natsu san的Blog，有趣的物理人！">Xia's Blog</a></p></div>
           
           <div class="card-tags">
             
@@ -324,7 +376,11 @@
           </div>
           <h3 class="card-title">为什么神乐光很萌？</h3>
           
-          <p class="card-preview">by. 看少女歌剧看魔怔了的十派 如何界定神乐光的萌点？ 首先可以盖棺定论地说，神乐光绝对不是“傲娇”一词就能概括的。 事实上，对比于“傲娇”一词的起源明日香，神乐光无论傲和娇都是“不称职”的。假定傲娇一词针对的对象是其在意的人，eva对应男主，神乐光对应华恋，神乐光从来没有对华恋冷言相向，也没有在突破特定阈值时突然展现出“娇”的姿态。 神乐光平日里始终是冷冷、捉摸不透的表情，虽然这种情况下更可能是在发呆。或许用“谜语人”一词更好形容她——带有电波感又内心坚定的无口天然少女，这是我想到的不吝用词的界定。…</p>
+          <div class="card-preview"><p>by. ~~看少女歌剧看魔怔了的~~十派</p>
+<p>如何界定神乐光的萌点？</p>
+<p>首先可以盖棺定论地说，神乐光绝对不是“傲娇”一词就能概括的。</p>
+<p>事实上，对比于“傲娇”一词的起源明日香，神乐光无论傲和娇都是“不称职”的。假定傲娇一词针对的对象是其在意的人，eva对应男主，神乐光对应华恋，神乐光从来没有对华恋冷言相向，也没有在突破特定阈值时突然展现出“娇”的姿态。</p>
+<p>神乐光平日里始终是冷冷、捉摸不透的表情，虽然这种情况下更可能是在发呆。或许用“谜语人”一词更好形容她——带有电波感又内心坚定的无口天然少女，这是我想到的不吝用词的界…</p></div>
           
           <div class="card-tags">
             
@@ -352,7 +408,10 @@
           </div>
           <h3 class="card-title">CS61A disc03 递归</h3>
           
-          <p class="card-preview">依旧遵从disc01的案例-过程-抽象-实现的思路。 为了简化本blog及之后的blog，对于部分题目，首先会省略写出实现后、代入案例检验的过程；也可能会只取一个案例做分析，其他案例请自行思考；还可能会省略从案例抽象出某些符号的观察思考过程，直接给出实现。 在分析案例时可能会尽量将案例拆分开、遵照由简单到复杂的思考过程。如果某些步骤整合后一次性给出不易理解，可以尝试自行拆分。…</p>
+          <div class="card-preview"><p>依旧遵从disc01的<strong>案例-过程-抽象-实现</strong>的思路。</p>
+<p>为了简化本blog及之后的blog，对于部分题目，首先会省略写出实现后、代入案例检验的过程；也可能会只取一个案例做分析，其他案例请自行思考；还可能会省略从案例抽象出某些符号的观察思考过程，直接给出实现。</p>
+<p>在分析案例时可能会尽量将案例拆分开、遵照由简单到复杂的思考过程。如果某些步骤整合后一次性给出不易理解，可以尝试自行拆分。</p>
+<p>还请读者自行对比思考，尽量完整理解，注意掌握分析思想。如果对理解上述思路有疑惑，可以看看本blog中讲解比较详细的题目，或者之…</p></div>
           
           <div class="card-tags">
             
@@ -384,7 +443,11 @@
           </div>
           <h3 class="card-title">CS61A disc04 树的递归</h3>
           
-          <p class="card-preview">For the following questions, don&#39;t start trying to write code right away. Instead, start by describing the recursive case in words. Some examples: In fib from lecture, the recursive case is to add together the previous two Fibonacci numbers. In doubleeights…</p>
+          <div class="card-preview"><p>For the following questions, don't start trying to write code right away. Instead, start by <strong>describing the recursive case in words</strong>. Some examples:</p>
+<ul>
+<li>In <code>fib</code> from lecture, the recursive case is to add together the previous two Fibonacci numbers.</li>
+</ul>
+<p>-…</p></div>
           
           <div class="card-tags">
             
@@ -412,7 +475,9 @@
           </div>
           <h3 class="card-title">CS61A disc05 迭代、时空复杂度</h3>
           
-          <p class="card-preview">使用try-except块是为了在循环内调用next(t)足够多次、通过StopIteration退出循环时将其处理掉。 用for还是很直接的，重点提一下用yield from构造生成函数的递归。 首先理解yield from，它是使用另外一个迭代器，效果类似于 for item in iterable: yield item。…</p>
+          <div class="card-preview"><p>使用<code>try-except</code>块是为了在循环内调用<code>next(t)</code>足够多次、通过<code>StopIteration</code>退出循环时将其处理掉。</p>
+<p>用<code>for</code>还是很直接的，重点提一下用<code>yield from</code>构造生成函数的递归。</p>
+<p>首先理解<code>yield from</code>，它是使用另外一个迭代器，效果类似于 `for item in iterable: yield…</p></div>
           
           <div class="card-tags">
             
@@ -440,7 +505,14 @@
           </div>
           <h3 class="card-title">CS61A disc07 树、链表</h3>
           
-          <p class="card-preview">左子树的所有节点的值都小于等于父节点的值， 右子树的所有节点的值都大于父节点的值。 Solution 1 Solution 2 Hint写得很清楚，摘抄一下。 Hint: Approach Place the division pattern from the example above in a while statement: While constructing the decimal expansion, store the tail for each n in a dictionary keyed by…</p>
+          <div class="card-preview"><p>左子树的所有节点的值都小于等于父节点的值，</p>
+<p>右子树的所有节点的值都大于父节点的值。</p>
+<p>Solution 1</p>
+<p>Solution 2</p>
+<p>Hint写得很清楚，摘抄一下。</p>
+<p><strong>Hint: Approach</strong></p>
+<p>Place the division pattern from the example above in a <code>while</code> statement:</p>
+<p>While constructing the decimal expansion, store the <code>tail</code> for each <code>n</code> in a…</p></div>
           
           <div class="card-tags">
             
@@ -468,7 +540,13 @@
           </div>
           <h3 class="card-title">CS61A disc01 “迭代与抽象”</h3>
           
-          <p class="card-preview">Discussion 1 | CS 61A Summer 2024 eg. race(3, 4) 以下先考虑前10min中构造无限循环。 第一个条件显然不符合我们的需要。 因为第二个条件是 tortoise - hare ，若其为负值、则仍可以继续循环。 0-4min 由于y&gt;x，hare=my &gt; tortoise=mx，不可能追上。 5-9min 此时 hare=5y ，tortoise=mx, m = 6, ..., 10，恰好追上即mx=5y，即6x=5y, 7x=5y, 8x=5y, 9x=5y,…</p>
+          <div class="card-preview"><p><a href="https://cs61a.org/disc/disc01/">Discussion 1 | CS 61A Summer 2024</a></p>
+<p>eg. <code>race(3, 4)</code></p>
+<p>以下先考虑前10min中构造无限循环。</p>
+<p>第一个条件显然不符合我们的需要。</p>
+<p>因为第二个条件是 <code>tortoise - hare</code> ，若其为负值、则仍可以继续循环。</p>
+<p>0-4min 由于<code>y&gt;x</code>，<code>hare=my &gt; tortoise=mx</code>，不可能追上。</p>
+<p>5-9min 此时 <code>hare=5y</code> ，`tortoise=mx, m = 6,…</p></div>
           
           <div class="card-tags">
             

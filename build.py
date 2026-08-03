@@ -31,6 +31,7 @@ from generator.assets import (
 from generator.config import Config
 from generator.content import (
     auto_preview,
+    auto_preview_md,
     build_tree,
     folder_segments,
     scan_posts,
@@ -205,6 +206,14 @@ def render_nav(page_url: str, ctx: MarkdownContext) -> str:
     return str(soup)
 
 
+def _flatten_preview_headings(html: str) -> str:
+    """Card previews render full markdown, but headings become body-size text."""
+    soup = BeautifulSoup(html, "html.parser")
+    for h in soup.find_all(["h1", "h2", "h3", "h4", "h5", "h6"]):
+        h.name = "p"
+    return str(soup)
+
+
 def build_site(
     config_path: str | Path = "config.json",
     blog_dir: str | None = None,
@@ -259,11 +268,19 @@ def build_site(
             preview_html = render_markdown(
                 post.preview, post.src, "index.html", ctx
             ).html
-            post.preview_html = preview_html
             post.preview_plain = auto_preview(post.preview, 260)
         else:
             _, body = split_front_matter(text)
+            preview_md = auto_preview_md(body, 260)
+            preview_html = (
+                render_markdown(preview_md, post.src, "index.html", ctx).html
+                if preview_md
+                else ""
+            )
             post.preview_plain = auto_preview(body, 260)
+        post.preview_html = (
+            _flatten_preview_headings(preview_html) if preview_html else ""
+        )
 
     # 2. thumbnails
     thumbs_dir = out_root / "assets" / ".thumbs"

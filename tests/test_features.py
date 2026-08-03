@@ -105,6 +105,13 @@ def test_hidden_posts_feature_hero_and_nojekyll() -> None:
         ),
         encoding="utf-8",
     )
+    (blog / "posts" / "prev.md").write_text(
+        "---\n"
+        "title: 预览语法测试\n"
+        'preview: "# 预览里的标题\\n**加粗** 与 $x^2$ 和 ~~删除线~~"\n'
+        "---\n\n正文。\n",
+        encoding="utf-8",
+    )
 
     build_site(
         config_path=ROOT / "config.json",
@@ -118,8 +125,23 @@ def test_hidden_posts_feature_hero_and_nojekyll() -> None:
     assert 'class="post-hero"' in hero, hero[:400]
     home = (out / "index.html").read_text(encoding="utf-8")
     assert "is-cover" in home, "card cover (feature) missing on homepage"
+    # preview supports markdown (bold / math / strikethrough), but headings
+    # are flattened to body-size paragraphs
+    from bs4 import BeautifulSoup
+
+    soup = BeautifulSoup(home, "html.parser")
+    cards = soup.select(".card")
+    prev_card = next(
+        (c for c in cards if "预览语法测试" in c.get_text()), None
+    )
+    assert prev_card is not None, "preview test card missing"
+    preview = prev_card.select_one(".card-preview")
+    assert preview is not None
+    assert not preview.find(["h1", "h2", "h3"]), "headings must be flattened"
+    assert preview.find("strong") is not None, "bold must render in preview"
+    assert preview.find(class_="arithmatex") is not None, "math must render in preview"
     assert (out / ".nojekyll").exists()
-    print("  [PASS] hidden posts excluded; feature hero + card cover + .nojekyll present")
+    print("  [PASS] hidden excluded; hero + cover + nojekyll + markdown preview present")
 
 
 def main() -> None:
