@@ -160,26 +160,44 @@ def _extract_block_math(text: str) -> tuple[str, list]:
 
 def _normalize_lists(text: str) -> str:
     """python-markdown only starts a list after a blank line; note-style
-    content often puts `- item` right after a paragraph. Insert the missing
-    blank line before a list that directly follows a non-list line."""
+    content often puts `- item` right after a paragraph, or `> - item`
+    inside a blockquote. Insert the missing blank separators so lists
+    (including lists inside blockquotes) render as such."""
+    lines = text.splitlines(keepends=True)
     out: list = []
     in_code = False
     fence = ""
-    prev_blank = True
-    prev_marker = False
-    for line in text.splitlines(keepends=True):
+
+    def info(s: str) -> tuple:
+        quote = s.startswith(">")
+        content = re.sub(r"^>\s?", "", s) if quote else s
+        return (
+            quote,
+            bool(LIST_MARKER_RE.match(content)),
+            not content.strip(),
+        )
+
+    for i, line in enumerate(lines):
         stripped = line.strip()
         if not in_code and stripped.startswith(("```", "~~~")):
             in_code = True
             fence = stripped[:3]
         elif in_code and stripped.startswith(fence):
             in_code = False
-        is_marker = not in_code and bool(LIST_MARKER_RE.match(line))
-        if is_marker and not prev_blank and not prev_marker:
-            out.append("\n")
+        quote = is_list = False
+        if not in_code:
+            quote, is_list, _ = info(line)
+            if is_list and out:
+                # before: previous line is a non-blank, non-list line
+                _, plist, pblank = info(out[-1])
+                if not pblank and not plist:
+                    out.append(">\n" if quote else "\n")
         out.append(line)
-        prev_blank = not line.strip()
-        prev_marker = is_marker
+        if quote and is_list and i + 1 < len(lines):
+            # after: a blockquote list directly followed by quote text
+            nquote, nlist, nblank = info(lines[i + 1])
+            if nquote and not nblank and not nlist:
+                out.append(">\n")
     return "".join(out)
 
 
@@ -425,6 +443,31 @@ def render_markdown(text: str, src_file: Path, page_url: str,
         else:
             new_href = _rewrite_href(href, src_file, page_url, ctx, refs)
             a["href"] = new_href
+
+    # note-style content writes one `> line` per source line; python-markdown
+    # joins consecutive blockquote lines into one paragraph with soft breaks
+    # that collapse to spaces. Turn those into <br> so lines stay separate.
+    for bq in soup.find_all("blockquote"):
+        for p in bq.find_all("p"):
+            if not any(
+                isinstance(node, str) and "\n" in node
+                for node in p.children
+            ):
+                continue
+            rebuilt = []
+            for node in list(p.children):
+                if isinstance(node, str) and "\n" in node:
+                    parts = node.split("\n")
+                    for i, part in enumerate(parts):
+                        if part:
+                            rebuilt.append(part)
+                        if i < len(parts) - 1:
+                            rebuilt.append(soup.new_tag("br"))
+                else:
+                    rebuilt.append(node)
+            p.clear()
+            for node in rebuilt:
+                p.append(node)
 
     # restore `$$...$$` blocks as display math (KaTeX `\[...\]`), regardless
     # of whether they were written on their own lines

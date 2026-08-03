@@ -108,10 +108,7 @@
 网络流，回溯，在线算法，P/NP，近似算法</p>
 <!-- more -->
 <blockquote>
-<p>基于复旦大学2025-2026秋软件工程专业黄橙老师“算法设计与分析”课程内容，感谢老师的辛勤付出！
-相关配套书籍为《算法导论》，课程中选取了其中的大部分主干内容，不涉及过难的内容。
-本文是学习过程中的两篇笔记中的第二篇（算法篇），加入了个人的理解和一些辅助学习的脚手架。
-如有不妥当之处还望多指正，可以在下面评论区或者 https://github.com/Meredith2328/meredith2328.github.io 里提issues反馈。</p>
+<p>基于复旦大学2025-2026秋软件工程专业黄橙老师“算法设计与分析”课程内容，感谢老师的辛勤付出！<br/>相关配套书籍为《算法导论》，课程中选取了其中的大部分主干内容，不涉及过难的内容。<br/>本文是学习过程中的两篇笔记中的第二篇（算法篇），加入了个人的理解和一些辅助学习的脚手架。<br/>如有不妥当之处还望多指正，可以在下面评论区或者 https://github.com/Meredith2328/meredith2328.github.io 里提issues反馈。</p>
 </blockquote>
 <p>直觉+过程+伪代码：
 上下文、复杂度，
@@ -249,8 +246,7 @@ BSEARCH(A, l, r, x) {
 </ul>
 <h3 id="_4">快速排序</h3>
 <blockquote>
-<p>写着写着突然反应过来了这个直觉。好玩。开心。
-edit time: 2025-12-15 14:00:51</p>
+<p>写着写着突然反应过来了这个直觉。好玩。开心。<br/>edit time: 2025-12-15 14:00:51</p>
 </blockquote>
 <p>直觉：<strong>当每个元素的左侧都小于等于它、右侧都大于它时，则整个数组已有序。</strong> 即我们由长到短进行“划分”，当我们划分区间长度为1或0时，则整个数组已有序。</p>
 <ul>
@@ -319,8 +315,7 @@ edit time: 2025-12-15 14:00:51</p>
 之前的矩阵乘法的分块计算需要8次矩阵乘法。Strassen算法通过一些巧妙的方式，只需要7次矩阵乘法。<del>怎么直觉感觉是信息压缩和共享</del></p>
 <h3 id="_6">多项式乘法</h3>
 <blockquote>
-<p>包括朴素分治、Karatsuba算法、FFT。
-讲得并不仔细。</p>
+<p>包括朴素分治、Karatsuba算法、FFT。<br/>讲得并不仔细。</p>
 </blockquote>
 <p>直觉：利用多项式的<strong>点值表示法</strong>（一组<span class="arithmatex">\((x, y)\)</span>点）进行乘法比系数表示法（<span class="arithmatex">\(a_0 + a_1x + \dots\)</span>）更高效，因为点值乘法只需 <span class="arithmatex">\(O(n)\)</span> 时间（对应点 <span class="arithmatex">\(y\)</span> 值相乘）。
 而多项式<strong>在复数域上</strong>是一定可以<strong>分解</strong>为点值表示法的，进而我们先转换为点值表示法、利用点值表示法进行乘积、再转回原多项式形式。</p>
@@ -348,8 +343,7 @@ edit time: 2025-12-15 14:00:51</p>
 <h2 id="lec3">Lec3 比较算法与随机化</h2>
 <h3 id="_7">堆排序</h3>
 <blockquote>
-<p>非常易错：<strong>建立堆是 <span class="arithmatex">\(O(n)\)</span> 的。</strong>
-而每次更新是 <span class="arithmatex">\(O(\log n)\)</span> 的。</p>
+<p>非常易错：<strong>建立堆是 <span class="arithmatex">\(O(n)\)</span> 的。</strong><br/>而每次更新是 <span class="arithmatex">\(O(\log n)\)</span> 的。</p>
 </blockquote>
 <p>直觉：<strong>先建立大根堆，然后每次从堆中排出一个元素</strong>，这样形成的一个序列是升序的。</p>
 <ul>
@@ -513,18 +507,11 @@ SELECT函数过程：（<span class="arithmatex">\(T(n)\)</span>）</p>
 总之，最坏是 <span class="arithmatex">\(\Theta(n+i\lg i)\)</span> 。</p>
 <h2 id="lec6">Lec6 动态规划太能用这个结构讲了，来讲讲讲讲</h2>
 <blockquote>
-<p>动态规划是为了<strong>解决分治中的重叠子问题</strong>引入的，通过记录子问题的解、或者优先计算子问题，来解决分治问题。要求<strong>问题的最优解由子问题的最优解组成</strong>。
-可以从以下角度思考：
-(1) <strong>转移变量</strong>。某个变量是从少往多计算、能够产生转移关系的吗？（“重叠子问题”）
-(2) <strong>选择（变量）</strong>。在做出选择后，原问题拆分成一个或多个子问题。为了计算函数，往往需要遍历选择变量，并且只选择其中的某一个特定值。
-(3) <strong>函数定义</strong>。函数有哪些变量根据(1)决定，函数的定义方式和初值条件由问题决定，函数的递推由(2)确定。
-<del>哇我这3点总结得太精辟了</del>
-edit time: 2025-12-23 11:10:36</p>
+<p>动态规划是为了<strong>解决分治中的重叠子问题</strong>引入的，通过记录子问题的解、或者优先计算子问题，来解决分治问题。要求<strong>问题的最优解由子问题的最优解组成</strong>。<br/>可以从以下角度思考：<br/>(1) <strong>转移变量</strong>。某个变量是从少往多计算、能够产生转移关系的吗？（“重叠子问题”）<br/>(2) <strong>选择（变量）</strong>。在做出选择后，原问题拆分成一个或多个子问题。为了计算函数，往往需要遍历选择变量，并且只选择其中的某一个特定值。<br/>(3) <strong>函数定义</strong>。函数有哪些变量根据(1)决定，函数的定义方式和初值条件由问题决定，函数的递推由(2)确定。<br/><del>哇我这3点总结得太精辟了</del><br/>edit time: 2025-12-23 11:10:36</p>
 </blockquote>
 <h3 id="_12">最优二分查找树</h3>
 <blockquote>
-<p>“做的选择”是以某个节点为根节点，即选择变量为 <span class="arithmatex">\(k\)</span> 。
-设区间 <span class="arithmatex">\([i,j]\)</span> 的最优平均比较次数为 <span class="arithmatex">\(m[i,j]\)</span> 。</p>
+<p>“做的选择”是以某个节点为根节点，即选择变量为 <span class="arithmatex">\(k\)</span> 。<br/>设区间 <span class="arithmatex">\([i,j]\)</span> 的最优平均比较次数为 <span class="arithmatex">\(m[i,j]\)</span> 。</p>
 </blockquote>
 <ol>
 <li><strong>直觉</strong>：最优二分查找树由最优二分查找子树组成。</li>
@@ -547,8 +534,7 @@ n个端点（概率记为 <span class="arithmatex">\(b_i\)</span> ，从1到n）
 <p><img alt="" src="../../migrated/post-images/20251222213623.png"/></p>
 <h3 id="lcs">最长公共子序列 LCS</h3>
 <blockquote>
-<p>要求两个可能不等长的序列的最长公共子序列，注意不一定是最长连续元素。
-设第一个序列到元素 <span class="arithmatex">\(i\)</span> ，第二个序列到元素 <span class="arithmatex">\(j\)</span> 的最长公共子序列长度为 <span class="arithmatex">\(C[i,j]\)</span> 。</p>
+<p>要求两个可能不等长的序列的最长公共子序列，注意不一定是最长连续元素。<br/>设第一个序列到元素 <span class="arithmatex">\(i\)</span> ，第二个序列到元素 <span class="arithmatex">\(j\)</span> 的最长公共子序列长度为 <span class="arithmatex">\(C[i,j]\)</span> 。</p>
 </blockquote>
 <ol>
 <li>
@@ -576,9 +562,7 @@ n个端点（概率记为 <span class="arithmatex">\(b_i\)</span> ，从1到n）
 <img alt="" src="../../migrated/post-images/20251222215301.png"/></p>
 <h3 id="_13">背包问题</h3>
 <blockquote>
-<p>原始背包问题没有每种物品的个数要求。
-做的“选择”是拿或不拿。
-记<strong>拿了前 <span class="arithmatex">\(k\)</span> 个物品（反映遍历顺序是从前往后），总重量不超过 <span class="arithmatex">\(y\)</span> （反映重量填表顺序是从轻到重）的<em>最大价值</em>是 <span class="arithmatex">\(F[k][y]\)</span> 。</strong></p>
+<p>原始背包问题没有每种物品的个数要求。<br/>做的“选择”是拿或不拿。<br/>记<strong>拿了前 <span class="arithmatex">\(k\)</span> 个物品（反映遍历顺序是从前往后），总重量不超过 <span class="arithmatex">\(y\)</span> （反映重量填表顺序是从轻到重）的<em>最大价值</em>是 <span class="arithmatex">\(F[k][y]\)</span> 。</strong></p>
 </blockquote>
 <ol>
 <li>直觉</li>
@@ -597,10 +581,7 @@ n个端点（概率记为 <span class="arithmatex">\(b_i\)</span> ，从1到n）
 <p><img alt="" src="../../migrated/post-images/20251223000028.png"/></p>
 <h3 id="_14">投资问题</h3>
 <blockquote>
-<p>需要区分选择变量和转移变量。
-在投资问题中，<strong>投资前 <span class="arithmatex">\(k\)</span> 项、投入资金不超过 <span class="arithmatex">\(x\)</span> 是转移变量</strong>，前后具有转移性，
-但是在第k个投入 <strong><span class="arithmatex">\(x_k\)</span> 是选择变量</strong>，<span class="arithmatex">\(x_k\)</span> 之间互相没有依赖和转移，我们只能选择其中的某一个特定值。
-定义 <span class="arithmatex">\(f(k, x_k)\)</span> 或者 <strong><span class="arithmatex">\(f_k(x)\)</span> 是将𝑥元投入第i个项目的收益，最大收益为 <span class="arithmatex">\(F_k(x)\)</span>。</strong></p>
+<p>需要区分选择变量和转移变量。<br/>在投资问题中，<strong>投资前 <span class="arithmatex">\(k\)</span> 项、投入资金不超过 <span class="arithmatex">\(x\)</span> 是转移变量</strong>，前后具有转移性，<br/>但是在第k个投入 <strong><span class="arithmatex">\(x_k\)</span> 是选择变量</strong>，<span class="arithmatex">\(x_k\)</span> 之间互相没有依赖和转移，我们只能选择其中的某一个特定值。<br/>定义 <span class="arithmatex">\(f(k, x_k)\)</span> 或者 <strong><span class="arithmatex">\(f_k(x)\)</span> 是将𝑥元投入第i个项目的收益，最大收益为 <span class="arithmatex">\(F_k(x)\)</span>。</strong></p>
 </blockquote>
 <p>直觉：对k做转移，对 <span class="arithmatex">\(x_k\)</span> 做选择，总钱数不超过 <span class="arithmatex">\(x\)</span> 。 <span class="arithmatex">\(O(nm^2)\)</span> ，<span class="arithmatex">\(m\)</span> 行 <span class="arithmatex">\(n\)</span> 列。
 <span class="arithmatex">\(F_k(x)=\max_{0 \le x_k \le x} (f_k(x_k) + F_k(x-x_k))\)</span>
@@ -612,11 +593,8 @@ n个端点（概率记为 <span class="arithmatex">\(b_i\)</span> ，从1到n）
 <img alt="" src="../../migrated/post-images/20251223002217.png"/></p>
 <h3 id="_15">带权重的区间调度</h3>
 <blockquote>
-<p><strong>新的任务是在已有的最大区间调度基础上添加的。</strong>
-则如果能够添加新的任务，已有的最大区间调度结尾一定在新的任务前或正好相连。</p>
-<p>转移变量：<strong>检查的区间序号 <span class="arithmatex">\(i\)</span></strong> ，先排序，然后从前往后检查。
-选择：添加新的任务或不添加。
-函数：当前最大区间调度的区间总权重 <span class="arithmatex">\(OPT[i]\)</span> 。</p>
+<p><strong>新的任务是在已有的最大区间调度基础上添加的。</strong><br/>则如果能够添加新的任务，已有的最大区间调度结尾一定在新的任务前或正好相连。</p>
+<p>转移变量：<strong>检查的区间序号 <span class="arithmatex">\(i\)</span></strong> ，先排序，然后从前往后检查。<br/>选择：添加新的任务或不添加。<br/>函数：当前最大区间调度的区间总权重 <span class="arithmatex">\(OPT[i]\)</span> 。</p>
 </blockquote>
 <p>直觉：<span class="arithmatex">\(O(n \log n)\)</span> ，因为这个递推是 <span class="arithmatex">\(O(n)\)</span> 的，找 <span class="arithmatex">\(p(i)\)</span> 需要先 <span class="arithmatex">\(O(n \log n)\)</span> 排序。</p>
 <p><span class="arithmatex">\(OPT(i) = max(OPT(i-1)，OPT(p(i)) + w_i)\)</span>
@@ -631,13 +609,8 @@ n个端点（概率记为 <span class="arithmatex">\(b_i\)</span> ，从1到n）
 <img alt="" src="../../migrated/post-images/20251223102959.png"/></p>
 <h3 id="_16">连写分数</h3>
 <blockquote>
-<p>这个题目约束设置有点绕，需要稍微读读题。
-放在一群算法导论的经典问题里还是稍微有点难了。</p>
-<p><strong>转移变量</strong>：数字串处理完前 <span class="arithmatex">\(i\)</span> 个字符，特殊题目处理完 <span class="arithmatex">\(mask\)</span> 。
-ps. 转移变量只要“多“的能从”少“的得到即可。 <span class="arithmatex">\(mask\)</span> 是第一次用，这个设置是因为我们可能跳着挑选特殊题目，我们挑选哪些特殊题目最少也得用一个二进制01串进行记录。但是前 <span class="arithmatex">\(i\)</span> 个字符我们就只需要记录一个边界 <span class="arithmatex">\(i\)</span> 即可。
-<strong>选择和选择变量</strong>：
-切分边界 <span class="arithmatex">\(j\)</span> ，<span class="arithmatex">\(s[j:i-1]\)</span> 为整个数字，<span class="arithmatex">\(j\)</span> 之前的作为子问题。
-普通题不改 <span class="arithmatex">\(mask\)</span> ，特殊题要改 <span class="arithmatex">\(mask\)</span> 。</p>
+<p>这个题目约束设置有点绕，需要稍微读读题。<br/>放在一群算法导论的经典问题里还是稍微有点难了。</p>
+<p><strong>转移变量</strong>：数字串处理完前 <span class="arithmatex">\(i\)</span> 个字符，特殊题目处理完 <span class="arithmatex">\(mask\)</span> 。<br/>ps. 转移变量只要“多“的能从”少“的得到即可。 <span class="arithmatex">\(mask\)</span> 是第一次用，这个设置是因为我们可能跳着挑选特殊题目，我们挑选哪些特殊题目最少也得用一个二进制01串进行记录。但是前 <span class="arithmatex">\(i\)</span> 个字符我们就只需要记录一个边界 <span class="arithmatex">\(i\)</span> 即可。<br/><strong>选择和选择变量</strong>：<br/>切分边界 <span class="arithmatex">\(j\)</span> ，<span class="arithmatex">\(s[j:i-1]\)</span> 为整个数字，<span class="arithmatex">\(j\)</span> 之前的作为子问题。<br/>普通题不改 <span class="arithmatex">\(mask\)</span> ，特殊题要改 <span class="arithmatex">\(mask\)</span> 。</p>
 </blockquote>
 <p>直觉：</p>
 <p><img alt="" src="../../migrated/post-images/20251223103516.png"/>
@@ -648,10 +621,7 @@ ps. 转移变量只要“多“的能从”少“的得到即可。 <span class=
 <img alt="" src="../../migrated/post-images/20251223104617.png"/></p>
 <h3 id="_17">矩阵链乘法</h3>
 <blockquote>
-<p>要求 <span class="arithmatex">\(A_1 \dots A_n\)</span> 的矩阵链乘法。我们把问题建模成要求 <span class="arithmatex">\(A_i \dots A_j\)</span> 的矩阵乘法，并且记录矩阵维度是 <span class="arithmatex">\(P_0 \dots P_n\)</span> ，<strong>矩阵 <span class="arithmatex">\(A_i\)</span> 的维度是 <span class="arithmatex">\(P_{i-1} \times P_i\)</span> 。</strong> （注意左边小一个！）
-转移变量：边界 <span class="arithmatex">\(i\)</span> 和 <span class="arithmatex">\(j\)</span> 。
-选择变量：切分点 <span class="arithmatex">\(k\)</span> ，使得 <span class="arithmatex">\(A_i \dots A_j\)</span> 拆分为 <span class="arithmatex">\(A_i \dots A_k\)</span> 和 <span class="arithmatex">\(A_{k+1} \dots A_j\)</span> 两个子问题。即是最后一次矩阵相乘的发生位置。
-函数定义：<span class="arithmatex">\(A_i \dots A_j\)</span> 的最少乘法次数。</p>
+<p>要求 <span class="arithmatex">\(A_1 \dots A_n\)</span> 的矩阵链乘法。我们把问题建模成要求 <span class="arithmatex">\(A_i \dots A_j\)</span> 的矩阵乘法，并且记录矩阵维度是 <span class="arithmatex">\(P_0 \dots P_n\)</span> ，<strong>矩阵 <span class="arithmatex">\(A_i\)</span> 的维度是 <span class="arithmatex">\(P_{i-1} \times P_i\)</span> 。</strong> （注意左边小一个！）<br/>转移变量：边界 <span class="arithmatex">\(i\)</span> 和 <span class="arithmatex">\(j\)</span> 。<br/>选择变量：切分点 <span class="arithmatex">\(k\)</span> ，使得 <span class="arithmatex">\(A_i \dots A_j\)</span> 拆分为 <span class="arithmatex">\(A_i \dots A_k\)</span> 和 <span class="arithmatex">\(A_{k+1} \dots A_j\)</span> 两个子问题。即是最后一次矩阵相乘的发生位置。<br/>函数定义：<span class="arithmatex">\(A_i \dots A_j\)</span> 的最少乘法次数。</p>
 </blockquote>
 <ol>
 <li>直觉（递推）</li>
@@ -676,8 +646,7 @@ ps. 转移变量只要“多“的能从”少“的得到即可。 <span class=
 <img alt="" src="../../migrated/post-images/20251223110651.png"/></p>
 <h3 id="_18">活动选择问题</h3>
 <blockquote>
-<p><span class="arithmatex">\(O(n^3)\)</span> 。更好的贪心算法（见Lec7 贪心及其证明）是 <span class="arithmatex">\(O(n \log n)\)</span> 的。
-想法很简单，<strong>转移变量</strong>是左右边界，然后<strong>选择变量</strong>是中间的切分点，<strong>dp变量</strong>设这一段区间最多的活动数，然后追踪一下解就得到了。很容易看出来是 <span class="arithmatex">\(O(n^3)\)</span> 的。</p>
+<p><span class="arithmatex">\(O(n^3)\)</span> 。更好的贪心算法（见Lec7 贪心及其证明）是 <span class="arithmatex">\(O(n \log n)\)</span> 的。<br/>想法很简单，<strong>转移变量</strong>是左右边界，然后<strong>选择变量</strong>是中间的切分点，<strong>dp变量</strong>设这一段区间最多的活动数，然后追踪一下解就得到了。很容易看出来是 <span class="arithmatex">\(O(n^3)\)</span> 的。</p>
 </blockquote>
 <p><img alt="" src="../../migrated/post-images/20251223112646.png"/></p>
 <p><img alt="" src="../../migrated/post-images/20251223112757.png"/>
@@ -685,15 +654,11 @@ ps. 转移变量只要“多“的能从”少“的得到即可。 <span class=
 <img alt="" src="../../migrated/post-images/20251223112815.png"/></p>
 <h2 id="lec7">Lec7 贪心及其证明</h2>
 <blockquote>
-<p>证明：
-思路(1) 归纳。<strong>把 贪心得到的解 与 最优解 用剪切-粘贴方法进行比较</strong>。
-思路(2) 交换。<strong>分析最优解“逆序”的地方</strong>。因为贪心得到的解一定是根据贪心策略从小到大排序的。</p>
+<p>证明：<br/>思路(1) 归纳。<strong>把 贪心得到的解 与 最优解 用剪切-粘贴方法进行比较</strong>。<br/>思路(2) 交换。<strong>分析最优解“逆序”的地方</strong>。因为贪心得到的解一定是根据贪心策略从小到大排序的。</p>
 </blockquote>
 <h3 id="_19">活动选择问题</h3>
 <blockquote>
-<p>贪心策略：选择结束最早且相容的活动。
-直觉：最大化所选活动结束后剩余的时间，供其他活动使用。
-证明：<strong>如果<em>最优解<em>选了别的</em>*，可以把它替换成结束最早且相容的活动，</em></strong>不会减少****可选的后续活动数，重复替换即可得到相同大小的解。所以贪心最优。</p>
+<p>贪心策略：选择结束最早且相容的活动。<br/>直觉：最大化所选活动结束后剩余的时间，供其他活动使用。<br/>证明：<strong>如果<em>最优解<em>选了别的</em>*，可以把它替换成结束最早且相容的活动，</em></strong>不会减少****可选的后续活动数，重复替换即可得到相同大小的解。所以贪心最优。</p>
 </blockquote>
 <ol>
 <li>上下文</li>
@@ -712,12 +677,7 @@ ps. 转移变量只要“多“的能从”少“的得到即可。 <span class=
 <img alt="" src="../../migrated/post-images/20251223112826.png"/></p>
 <h3 id="_20">最优装载问题</h3>
 <blockquote>
-<p>很容易想到，
-贪心策略：取最轻的集装箱。
-证明：
-(1) 基础，如果只有一个集装箱， <span class="arithmatex">\(w_1 \le C\)</span> ，显然贪心最优。
-(2) 归纳，设 <span class="arithmatex">\(k\)</span> 个装箱<strong>贪心最优</strong>。对于 <span class="arithmatex">\(k+1\)</span> 个装箱，设贪心得到的序列是 <span class="arithmatex">\(w_1 \le w_2 \le \dots \le w_{n+1}\)</span> ，另设最优解得到的装箱集合是 <span class="arithmatex">\(O_{n+1}\)</span> 。
-取 <span class="arithmatex">\(w_1\)</span> 对应的箱子，若 <span class="arithmatex">\(w_1 \in O_{n+1}\)</span> ，<span class="arithmatex">\(O_{n+1} - \{w_1\}\)</span> 贪心最优，则整体最优。</p>
+<p>很容易想到，<br/>贪心策略：取最轻的集装箱。<br/>证明：<br/>(1) 基础，如果只有一个集装箱， <span class="arithmatex">\(w_1 \le C\)</span> ，显然贪心最优。<br/>(2) 归纳，设 <span class="arithmatex">\(k\)</span> 个装箱<strong>贪心最优</strong>。对于 <span class="arithmatex">\(k+1\)</span> 个装箱，设贪心得到的序列是 <span class="arithmatex">\(w_1 \le w_2 \le \dots \le w_{n+1}\)</span> ，另设最优解得到的装箱集合是 <span class="arithmatex">\(O_{n+1}\)</span> 。<br/>取 <span class="arithmatex">\(w_1\)</span> 对应的箱子，若 <span class="arithmatex">\(w_1 \in O_{n+1}\)</span> ，<span class="arithmatex">\(O_{n+1} - \{w_1\}\)</span> 贪心最优，则整体最优。</p>
 </blockquote>
 <p>对于归纳，可以打个比方：
 贪心装了 {1,2,3,5} （下标，不是重量），最优解是 {1,2,3,4}
@@ -731,11 +691,8 @@ ps. 转移变量只要“多“的能从”少“的得到即可。 <span class=
 <img alt="" src="../../migrated/post-images/20251223114334.png"/></p>
 <h3 id="_21">最小延迟调度问题</h3>
 <blockquote>
-<p>注意问题要求不是总延迟最小，
-而是所有的延迟中<strong>最大的延迟最小</strong>。</p>
-<p>贪心策略：先做ddl最早的问题。
-证明：
-<em>假设最优解中有两个问题逆序。将它们交换过来，它们之中延迟最大的那个问题是交换前后四个延迟中最大的。即交换后仍为最优解。</em></p>
+<p>注意问题要求不是总延迟最小，<br/>而是所有的延迟中<strong>最大的延迟最小</strong>。</p>
+<p>贪心策略：先做ddl最早的问题。<br/>证明：<br/><em>假设最优解中有两个问题逆序。将它们交换过来，它们之中延迟最大的那个问题是交换前后四个延迟中最大的。即交换后仍为最优解。</em></p>
 </blockquote>
 <p>符号：
 <strong>设 <span class="arithmatex">\(f(i)\)</span> 是我们所求的要调度的任务 <span class="arithmatex">\(i\)</span> 的开始时间，问题就是求最优的 <span class="arithmatex">\(f\)</span> 。</strong>
@@ -744,14 +701,9 @@ ps. 转移变量只要“多“的能从”少“的得到即可。 <span class=
 <p><img alt="" src="../../migrated/post-images/20251223120148.png"/>
 <img alt="" src="../../migrated/post-images/20251223120328.png"/></p>
 <blockquote>
-<p>说人话：
-假设i的ddl更迟但是先做了，即 <span class="arithmatex">\(d_i &gt; d_j\)</span> 且 <span class="arithmatex">\(f(i) &lt; f(j)\)</span> 。（<strong>延迟是实际完成时间减去要求完成时间</strong>）</p>
-<p>交换前：
-设 <span class="arithmatex">\(i\)</span> 的开始时间 <span class="arithmatex">\(f(i)=s\)</span> ，则此时 <span class="arithmatex">\(i\)</span> 的实际完成时间为 <span class="arithmatex">\(s+t_i\)</span> ， <span class="arithmatex">\(j\)</span> 的开始时间 <span class="arithmatex">\(f(j)\)</span> 也为 <span class="arithmatex">\(s+t_i\)</span> ， <span class="arithmatex">\(j\)</span> 的实际完成时间为 <span class="arithmatex">\(s+t_i+t_j\)</span> 。
-此时，<span class="arithmatex">\(i\)</span> 的延迟是 <span class="arithmatex">\(s+t_i-d_i\)</span> ，<span class="arithmatex">\(j\)</span> 的延迟是 <span class="arithmatex">\(L_{max} = s+t_i+t_j-d_j\)</span> 。（容易由 <span class="arithmatex">\(d_i&gt;d_j\)</span> 得到 <span class="arithmatex">\(j\)</span> 的延迟更大）</p>
-<p>交换后：
-<span class="arithmatex">\(i\)</span> 的延迟是 <span class="arithmatex">\(s+t_j+t_i-d_i\)</span> ， <span class="arithmatex">\(j\)</span> 的延迟是 <span class="arithmatex">\(s + t_j - d_j\)</span> ，我们可以证明这两个延迟都小于 <span class="arithmatex">\(L_{max}\)</span> 。
-故经过上述交换，<strong>所有的延迟中最大的延迟没有变得更大</strong>，原来的最优解仍为最优解。</p>
+<p>说人话：<br/>假设i的ddl更迟但是先做了，即 <span class="arithmatex">\(d_i &gt; d_j\)</span> 且 <span class="arithmatex">\(f(i) &lt; f(j)\)</span> 。（<strong>延迟是实际完成时间减去要求完成时间</strong>）</p>
+<p>交换前：<br/>设 <span class="arithmatex">\(i\)</span> 的开始时间 <span class="arithmatex">\(f(i)=s\)</span> ，则此时 <span class="arithmatex">\(i\)</span> 的实际完成时间为 <span class="arithmatex">\(s+t_i\)</span> ， <span class="arithmatex">\(j\)</span> 的开始时间 <span class="arithmatex">\(f(j)\)</span> 也为 <span class="arithmatex">\(s+t_i\)</span> ， <span class="arithmatex">\(j\)</span> 的实际完成时间为 <span class="arithmatex">\(s+t_i+t_j\)</span> 。<br/>此时，<span class="arithmatex">\(i\)</span> 的延迟是 <span class="arithmatex">\(s+t_i-d_i\)</span> ，<span class="arithmatex">\(j\)</span> 的延迟是 <span class="arithmatex">\(L_{max} = s+t_i+t_j-d_j\)</span> 。（容易由 <span class="arithmatex">\(d_i&gt;d_j\)</span> 得到 <span class="arithmatex">\(j\)</span> 的延迟更大）</p>
+<p>交换后：<br/><span class="arithmatex">\(i\)</span> 的延迟是 <span class="arithmatex">\(s+t_j+t_i-d_i\)</span> ， <span class="arithmatex">\(j\)</span> 的延迟是 <span class="arithmatex">\(s + t_j - d_j\)</span> ，我们可以证明这两个延迟都小于 <span class="arithmatex">\(L_{max}\)</span> 。<br/>故经过上述交换，<strong>所有的延迟中最大的延迟没有变得更大</strong>，原来的最优解仍为最优解。</p>
 </blockquote>
 <p><img alt="" src="../../migrated/post-images/20251223120337.png"/>
 <img alt="" src="../../migrated/post-images/20251223120343.png"/>
@@ -760,13 +712,9 @@ ps. 转移变量只要“多“的能从”少“的得到即可。 <span class=
 <h3 id="_22">哈夫曼编码</h3>
 <blockquote>
 <p>贪心策略：每次取两个权值最小的节点进行合并。</p>
-<p>证明：这里几个引理比较漂亮且并不平凡。
-(引理1) 对于两个频率最小的节点，它们一定位于树最深的位置，且它们恰好是两个兄弟叶子节点。
-(引理2) 将两个兄弟叶子节点的频率 <span class="arithmatex">\(f(x)\)</span> 和 <span class="arithmatex">\(f(y)\)</span> 加到一起、作为它们的父节点的频率（称为合并操作）。则总的权值<span class="arithmatex">\(B\)</span>（频率*深度的求和）减少 <span class="arithmatex">\(f(x)+f(y)\)</span> 。</p>
-<p>(证明) 先对k个元素进行归纳。
-当k+1时，如果 <span class="arithmatex">\(T_贪\)</span> 不是最优的，反设存在更优的树 <span class="arithmatex">\(T_优\)</span> ，即有 <span class="arithmatex">\(B(T_贪) &lt; B(T_优)\)</span>。</p>
-<p>把 <span class="arithmatex">\(T_贪\)</span> 两个频率最小的节点（记为 <span class="arithmatex">\(x\)</span> 和 <span class="arithmatex">\(y\)</span>）进行合并，得到的树 <span class="arithmatex">\(T_贪'\)</span> 满足 <span class="arithmatex">\(B(T_贪')=B(T_贪)-f(x)-f(y)\)</span> ，且根据归纳假设，  <span class="arithmatex">\(T_贪'\)</span> 是最优的。
-把 <span class="arithmatex">\(T_优\)</span> 的 <span class="arithmatex">\(x\)</span> 和 <span class="arithmatex">\(y\)</span> 两个节点进行合并，得到的树 <span class="arithmatex">\(T_优'\)</span> 满足 <span class="arithmatex">\(B(T_优')=B(T_优)-f(x)-f(y)\)</span> ，且根据归纳假设， <span class="arithmatex">\(T_优'\)</span> 是最优的。</p>
+<p>证明：这里几个引理比较漂亮且并不平凡。<br/>(引理1) 对于两个频率最小的节点，它们一定位于树最深的位置，且它们恰好是两个兄弟叶子节点。<br/>(引理2) 将两个兄弟叶子节点的频率 <span class="arithmatex">\(f(x)\)</span> 和 <span class="arithmatex">\(f(y)\)</span> 加到一起、作为它们的父节点的频率（称为合并操作）。则总的权值<span class="arithmatex">\(B\)</span>（频率*深度的求和）减少 <span class="arithmatex">\(f(x)+f(y)\)</span> 。</p>
+<p>(证明) 先对k个元素进行归纳。<br/>当k+1时，如果 <span class="arithmatex">\(T_贪\)</span> 不是最优的，反设存在更优的树 <span class="arithmatex">\(T_优\)</span> ，即有 <span class="arithmatex">\(B(T_贪) &lt; B(T_优)\)</span>。</p>
+<p>把 <span class="arithmatex">\(T_贪\)</span> 两个频率最小的节点（记为 <span class="arithmatex">\(x\)</span> 和 <span class="arithmatex">\(y\)</span>）进行合并，得到的树 <span class="arithmatex">\(T_贪'\)</span> 满足 <span class="arithmatex">\(B(T_贪')=B(T_贪)-f(x)-f(y)\)</span> ，且根据归纳假设，  <span class="arithmatex">\(T_贪'\)</span> 是最优的。<br/>把 <span class="arithmatex">\(T_优\)</span> 的 <span class="arithmatex">\(x\)</span> 和 <span class="arithmatex">\(y\)</span> 两个节点进行合并，得到的树 <span class="arithmatex">\(T_优'\)</span> 满足 <span class="arithmatex">\(B(T_优')=B(T_优)-f(x)-f(y)\)</span> ，且根据归纳假设， <span class="arithmatex">\(T_优'\)</span> 是最优的。</p>
 <p>但是，<span class="arithmatex">\(T_贪'\)</span> 是最优的且<span class="arithmatex">\(T_优'\)</span> 是最优的可得 <span class="arithmatex">\(B(T_贪')=B(T_优')\)</span> ，则有 <span class="arithmatex">\(B(T_贪)=B(T_优)\)</span> ，与我们的反设矛盾。</p>
 </blockquote>
 <p><img alt="" src="../../migrated/post-images/20251223135757.png"/>
@@ -782,9 +730,7 @@ ps. 转移变量只要“多“的能从”少“的得到即可。 <span class=
 <p><img alt="" src="../../migrated/post-images/20251223135827.png"/></p>
 <h3 id="mst">最小生成树 MST</h3>
 <blockquote>
-<p>Prim算法：从已选集合 <span class="arithmatex">\(S\)</span> 开始，选择连接 <span class="arithmatex">\(S\)</span> 与 <span class="arithmatex">\(V-S\)</span> 的最短边。<span class="arithmatex">\(O(n^2)\)</span>
-Kruskal算法：如果加入最短边后不构成回路，则加入。<span class="arithmatex">\(O(m\log m)\)</span>
-Prim证明：对最优解copy-and-paste。</p>
+<p>Prim算法：从已选集合 <span class="arithmatex">\(S\)</span> 开始，选择连接 <span class="arithmatex">\(S\)</span> 与 <span class="arithmatex">\(V-S\)</span> 的最短边。<span class="arithmatex">\(O(n^2)\)</span><br/>Kruskal算法：如果加入最短边后不构成回路，则加入。<span class="arithmatex">\(O(m\log m)\)</span><br/>Prim证明：对最优解copy-and-paste。</p>
 </blockquote>
 <h4 id="kruskal">Kruskal</h4>
 <p>这个麻烦一点，看看图上怎么归纳的（设G是顶点数为n+1的图）。
@@ -807,15 +753,18 @@ Prim证明：对最优解copy-and-paste。</p>
 <img alt="" src="../../migrated/post-images/20251223140621.png"/></p>
 <h2 id="lec9">Lec9 最短路径</h2>
 <blockquote>
-<p>关键是松弛操作。
-当 <span class="arithmatex">\(d[j] &gt; d[i] + w(i,j)\)</span> 时，执行松弛 <span class="arithmatex">\(d[j] \leftarrow d[i] + w(i,j)\)</span> 。</p>
-<p>单源最短路径：
-- 无负权：Dijkstra <span class="arithmatex">\(|V|*ExtractMin+|E|*Relax\)</span>，数组是 <span class="arithmatex">\(|V|^2\)</span>，堆是 <span class="arithmatex">\((|V|+|E|)\log|V|\)</span>
-- 无权：BFS，<span class="arithmatex">\(O(|V|+|E|)\)</span>
-- 有负权：Bellman-Ford <span class="arithmatex">\(O(|V||E|)\)</span> 对一个源
-多到多最短路径：
-- 无负权：Floyd-Warshall <span class="arithmatex">\(O(|V|^3)\)</span>
-- 有负权：Johnson <span class="arithmatex">\(O(|V||E|\log |V|)\)</span></p>
+<p>关键是松弛操作。<br/>当 <span class="arithmatex">\(d[j] &gt; d[i] + w(i,j)\)</span> 时，执行松弛 <span class="arithmatex">\(d[j] \leftarrow d[i] + w(i,j)\)</span> 。</p>
+<p>单源最短路径：</p>
+<ul>
+<li>无负权：Dijkstra <span class="arithmatex">\(|V|*ExtractMin+|E|*Relax\)</span>，数组是 <span class="arithmatex">\(|V|^2\)</span>，堆是 <span class="arithmatex">\((|V|+|E|)\log|V|\)</span></li>
+<li>无权：BFS，<span class="arithmatex">\(O(|V|+|E|)\)</span></li>
+<li>有负权：Bellman-Ford <span class="arithmatex">\(O(|V||E|)\)</span> 对一个源</li>
+</ul>
+<p>多到多最短路径：</p>
+<ul>
+<li>无负权：Floyd-Warshall <span class="arithmatex">\(O(|V|^3)\)</span></li>
+<li>有负权：Johnson <span class="arithmatex">\(O(|V||E|\log |V|)\)</span></li>
+</ul>
 </blockquote>
 <h3 id="dijkstra">Dijkstra算法</h3>
 <blockquote>
@@ -828,10 +777,7 @@ Prim证明：对最优解copy-and-paste。</p>
 <p><img alt="" src="../../migrated/post-images/20251224204219.png"/></p>
 <h3 id="bellman-ford">Bellman-Ford算法</h3>
 <blockquote>
-<p>对所有边执行n-1次松弛操作，n是点数 <span class="arithmatex">\(|V|\)</span> ，得到全部最短距离。
-再执行第n次松弛操作，如果最短距离仍能更新，则存在负权环。
-（正确性分析原理：图中最长的简单路径长度为 <span class="arithmatex">\(|V|-1\)</span> 。）
-解决负权环的问题， <span class="arithmatex">\(O(|V||E|)\)</span>。</p>
+<p>对所有边执行n-1次松弛操作，n是点数 <span class="arithmatex">\(|V|\)</span> ，得到全部最短距离。<br/>再执行第n次松弛操作，如果最短距离仍能更新，则存在负权环。<br/>（正确性分析原理：图中最长的简单路径长度为 <span class="arithmatex">\(|V|-1\)</span> 。）<br/>解决负权环的问题， <span class="arithmatex">\(O(|V||E|)\)</span>。</p>
 </blockquote>
 <p>下图起点为A，希望得到最终到所有点的最短距离，并且存在负权边。
 <img alt="" src="../../migrated/post-images/20251224203920.png"/></p>
@@ -842,12 +788,7 @@ Prim证明：对最优解copy-and-paste。</p>
 <img alt="" src="../../migrated/post-images/20251224210211.png"/></p>
 <h3 id="johnson">Johnson算法</h3>
 <blockquote>
-<p>解决Floyd-Warshall算法的负权问题。
-思路：
-<strong>1. 添加源点，到所有边连一条，使用Bellman-Ford算法求得<span class="arithmatex">\(h\)</span></strong>
-<em>类比重力势能：取一个势能零点</em>
-<strong>2. 得到新的边权，在所有顶点使用Dijkstra算法求得最短距离 <span class="arithmatex">\(\delta_h\)</span></strong>
-<strong>2. 将新的最短距离转化为原来的最短距离 <span class="arithmatex">\(\delta\)</span></strong></p>
+<p>解决Floyd-Warshall算法的负权问题。<br/>思路：<br/><strong>1. 添加源点，到所有边连一条，使用Bellman-Ford算法求得<span class="arithmatex">\(h\)</span></strong><br/><em>类比重力势能：取一个势能零点</em><br/><strong>2. 得到新的边权，在所有顶点使用Dijkstra算法求得最短距离 <span class="arithmatex">\(\delta_h\)</span></strong><br/><strong>2. 将新的最短距离转化为原来的最短距离 <span class="arithmatex">\(\delta\)</span></strong></p>
 </blockquote>
 <p>原来的边权是 <span class="arithmatex">\(w(u,v)\)</span> 
 新的边权是 <span class="arithmatex">\(w'(u,v)=w(u,v)+h(u)+h(v)\)</span></p>
@@ -855,9 +796,7 @@ Prim证明：对最优解copy-and-paste。</p>
 <p><img alt="" src="../../migrated/post-images/20251224210946.png"/></p>
 <h3 id="_23">差分约束系统</h3>
 <blockquote>
-<p>Bellman-Ford在满足 <span class="arithmatex">\(d[j] &gt; d[i] + w(i,j)\)</span> 时会执行松弛（<span class="arithmatex">\(d[j] \leftarrow d[i] + w(i,j)\)</span>），
-因此最终得到的全部<strong>最短距离一定满足 <span class="arithmatex">\(d[j] \le d[i] + w(i,j)\)</span> ，</strong>
-<strong>这恰好与我们要求解的 <span class="arithmatex">\(x_i-x_j \le b\)</span> 形式相同。</strong></p>
+<p>Bellman-Ford在满足 <span class="arithmatex">\(d[j] &gt; d[i] + w(i,j)\)</span> 时会执行松弛（<span class="arithmatex">\(d[j] \leftarrow d[i] + w(i,j)\)</span>），<br/>因此最终得到的全部<strong>最短距离一定满足 <span class="arithmatex">\(d[j] \le d[i] + w(i,j)\)</span> ，</strong><br/><strong>这恰好与我们要求解的 <span class="arithmatex">\(x_i-x_j \le b\)</span> 形式相同。</strong></p>
 </blockquote>
 <p><img alt="" src="../../migrated/post-images/20251224200201.png"/></p>
 <p><img alt="" src="../../migrated/post-images/20251224200237.png"/>
@@ -866,11 +805,8 @@ Prim证明：对最优解copy-and-paste。</p>
 <p>TODO</p>
 <h2 id="lec10">Lec10 网络流</h2>
 <blockquote>
-<p><strong>把多个子分配（及其约束）给汇总起来，</strong>
-<strong>让汇总最大，</strong>
-<strong>从而得到分开的子分配的方案。</strong></p>
-<p>Edmonds-Karp：BFS建分层图（<span class="arithmatex">\(O(|E|)\)</span>），完成所有增广（<span class="arithmatex">\(O(|V||E|)\)</span>）。 <span class="arithmatex">\(O(|V||E|^2)\)</span>
-Dinic：BFS建分层图（<span class="arithmatex">\(O(|E|)\)</span>）、DFS找阻塞流（<span class="arithmatex">\(O(|V||E|)\)</span>），循环 <span class="arithmatex">\(|V|\)</span> 次。<span class="arithmatex">\(O(|V|^2|E|)\)</span></p>
+<p><strong>把多个子分配（及其约束）给汇总起来，</strong><br/><strong>让汇总最大，</strong><br/><strong>从而得到分开的子分配的方案。</strong></p>
+<p>Edmonds-Karp：BFS建分层图（<span class="arithmatex">\(O(|E|)\)</span>），完成所有增广（<span class="arithmatex">\(O(|V||E|)\)</span>）。 <span class="arithmatex">\(O(|V||E|^2)\)</span><br/>Dinic：BFS建分层图（<span class="arithmatex">\(O(|E|)\)</span>）、DFS找阻塞流（<span class="arithmatex">\(O(|V||E|)\)</span>），循环 <span class="arithmatex">\(|V|\)</span> 次。<span class="arithmatex">\(O(|V|^2|E|)\)</span></p>
 </blockquote>
 <p>这一章只讲了几个用来解网络流的算法，没有讲怎么把问题建模成网络流问题。
 所以自己补了点例题。
@@ -957,12 +893,13 @@ Dinic：BFS建分层图（<span class="arithmatex">\(O(|E|)\)</span>）、DFS找
 <blockquote>
 <p><strong><em>可能因为过程中没有可选的选项而回溯，</em>*
 </strong>也可能因为完成了整个解的构造而回溯。***</p>
-<p><strong>从前往后依次做选择。如果做某个选择之后无法满足约束条件，则回退该选择。</strong>
-做了选择之后需要记录当前状态，回退即是将当前状态改回到前一个状态、然后在选择集合中取另一个选择。</p>
-<p>思路及伪代码：
-- 构造当前解，直到到达叶子处。
-- 在过程中，只在能够满足约束条件的选择集合中进行选择，<strong>如果选择集合为空但仍未到达叶子处，则回溯</strong>，尝试构造其他解。
-- 如果成功到达叶子处，则当前解为一个可行解，计入可行解集合、或者比较最优解。<strong>然后回溯</strong>，尝试构造其他解。</p>
+<p><strong>从前往后依次做选择。如果做某个选择之后无法满足约束条件，则回退该选择。</strong><br/>做了选择之后需要记录当前状态，回退即是将当前状态改回到前一个状态、然后在选择集合中取另一个选择。</p>
+<p>思路及伪代码：</p>
+<ul>
+<li>构造当前解，直到到达叶子处。</li>
+<li>在过程中，只在能够满足约束条件的选择集合中进行选择，<strong>如果选择集合为空但仍未到达叶子处，则回溯</strong>，尝试构造其他解。</li>
+<li>如果成功到达叶子处，则当前解为一个可行解，计入可行解集合、或者比较最优解。<strong>然后回溯</strong>，尝试构造其他解。</li>
+</ul>
 </blockquote>
 <h3 id="_24">多米诺性质</h3>
 <p>正确性是通过多米诺性质满足的：如果更深的满足某个性质，则比它浅的也满足。
@@ -974,12 +911,12 @@ Dinic：BFS建分层图（<span class="arithmatex">\(O(|E|)\)</span>）、DFS找
 <img alt="" src="../../migrated/post-images/20251223145728.png"/></p>
 <h3 id="_25">装载问题</h3>
 <blockquote>
-<p>思路：
-尽可能往轮船1装最多重量的集装箱。如果其余的集装箱能够装入轮船2，则该解存在，否则不是有效解。
-在直接暴力搜索（<span class="arithmatex">\(O(2^n)\)</span>）的基础上，
-1. <strong>通过约束条件、把一些无法满足条件的解提前结束掉，回溯尝试构造其他解</strong>。
-2. <strong>每个到达最深处的解都是有效解，构造出有效解后通过回溯尝试构造其他解。在本题目中我们要求有效解中的最优解。</strong>
-每次做2个选择中的一个，共要做n次选择，仍然为 <span class="arithmatex">\(O(2^n)\)</span> 。</p>
+<p>思路：<br/>尽可能往轮船1装最多重量的集装箱。如果其余的集装箱能够装入轮船2，则该解存在，否则不是有效解。<br/>在直接暴力搜索（<span class="arithmatex">\(O(2^n)\)</span>）的基础上，</p>
+<ol>
+<li><strong>通过约束条件、把一些无法满足条件的解提前结束掉，回溯尝试构造其他解</strong>。</li>
+<li><strong>每个到达最深处的解都是有效解，构造出有效解后通过回溯尝试构造其他解。在本题目中我们要求有效解中的最优解。</strong></li>
+</ol>
+<p>每次做2个选择中的一个，共要做n次选择，仍然为 <span class="arithmatex">\(O(2^n)\)</span> 。</p>
 </blockquote>
 <p><img alt="" src="../../migrated/post-images/20251223150235.png"/></p>
 <p>首先从大到小排序。
@@ -992,8 +929,7 @@ Dinic：BFS建分层图（<span class="arithmatex">\(O(|E|)\)</span>）、DFS找
 例如上图找到了第一个解 <span class="arithmatex">\((1,0,1,0,1,0,0)\)</span> ，回溯即是找到最后一个 <span class="arithmatex">\(1\)</span> 的位置，然后把它改为 <span class="arithmatex">\(0\)</span> ，向下延伸，找到另一个解 <span class="arithmatex">\((1,0,1,0,0,1,1)\)</span> 。</p>
 <h3 id="_26">图的着色问题</h3>
 <blockquote>
-<p>先为图上所有顶点从1到n编号。
-对于每个顶点，它可用的颜色为 <span class="arithmatex">\(m\)</span> 个，即有 <span class="arithmatex">\(m\)</span> 个子节点。但是该顶点的相邻顶点已经使用过的颜色不能再使用。</p>
+<p>先为图上所有顶点从1到n编号。<br/>对于每个顶点，它可用的颜色为 <span class="arithmatex">\(m\)</span> 个，即有 <span class="arithmatex">\(m\)</span> 个子节点。但是该顶点的相邻顶点已经使用过的颜色不能再使用。</p>
 </blockquote>
 <p>举例：<span class="arithmatex">\(n=7,m=3\)</span>
 三种颜色分别为1红、2蓝、3灰。
@@ -1014,8 +950,7 @@ Dinic：BFS建分层图（<span class="arithmatex">\(O(|E|)\)</span>）、DFS找
 <img alt="" src="../../migrated/post-images/20251223224514.png"/></p>
 <h3 id="_27">分支限界法</h3>
 <blockquote>
-<p>“<strong>记录已有的最大值、估算未选择的上界</strong>，
-如果未选择的上界不超过已有的最大值，则剪枝。”</p>
+<p>“<strong>记录已有的最大值、估算未选择的上界</strong>，<br/>如果未选择的上界不超过已有的最大值，则剪枝。”</p>
 </blockquote>
 <table>
 <thead>
@@ -1047,8 +982,7 @@ Dinic：BFS建分层图（<span class="arithmatex">\(O(|E|)\)</span>）、DFS找
 每个物品的单位价值是 价值/重量 ，例如 9/7 。
 （<em>节点中间不是分数线！！只是分割了一下！！</em>）</p>
 <blockquote>
-<p>我们先直观感受一下：<strong>黄色的节点是被分支限界剪掉的</strong>，蓝色的节点是被约束剪掉的，橙色的是最优解，绿色的是待扩展节点。
-我们完全没有考虑过 <span class="arithmatex">\(x_4\)</span> ，而是直接在考虑完 <span class="arithmatex">\(x_3\)</span> 甚至 <span class="arithmatex">\(x_2\)</span> 就完成剪枝了。不像回溯要么得靠约束，要么一直得判断到叶子节点。</p>
+<p>我们先直观感受一下：<strong>黄色的节点是被分支限界剪掉的</strong>，蓝色的节点是被约束剪掉的，橙色的是最优解，绿色的是待扩展节点。<br/>我们完全没有考虑过 <span class="arithmatex">\(x_4\)</span> ，而是直接在考虑完 <span class="arithmatex">\(x_3\)</span> 甚至 <span class="arithmatex">\(x_2\)</span> 就完成剪枝了。不像回溯要么得靠约束，要么一直得判断到叶子节点。</p>
 <ul>
 <li>如果某个节点的<strong>界函数值 ≤ 当前界</strong>（即它最好也超不过已知最佳值），就<strong>剪枝</strong>（不再搜索它的子树）。</li>
 <li>否则继续搜索。</li>
@@ -1071,9 +1005,7 @@ Dinic：BFS建分层图（<span class="arithmatex">\(O(|E|)\)</span>）、DFS找
 <h3 id="_29">旅行商问题</h3>
 <blockquote>
 <p>分支限界。</p>
-<p>在找最短推销路线的过程中，我们一边走一边算：“哪怕后面全都选最近的路，总长度至少是多少？”<br/>
-如果这个“至少”已经比已知最短路线还长，就放弃当前路线，回头试别的。<br/>
-这样避免傻傻地走完所有可能路线才比较。</p>
+<p>在找最短推销路线的过程中，我们一边走一边算：“哪怕后面全都选最近的路，总长度至少是多少？”<br/><br/>如果这个“至少”已经比已知最短路线还长，就放弃当前路线，回头试别的。<br/><br/>这样避免傻傻地走完所有可能路线才比较。</p>
 </blockquote>
 <p>这个好玩。
 首先扫一遍所有节点，记录从该节点出发的边的最小长度。
@@ -1088,9 +1020,7 @@ Dinic：BFS建分层图（<span class="arithmatex">\(O(|E|)\)</span>）、DFS找
 <h3 id="_30">连续邮资问题</h3>
 <p>注意问题是“如何设计面值”，使得连续邮资的区间达到最大。</p>
 <blockquote>
-<p>直觉：“不能断档”：分支限界的界。
-<strong>当你已经确定了前 i-1 种面值，且它们能连续贴到 <span class="arithmatex">\(r_{i−1}\)</span>​ 元时，</strong><br/>
-<strong>第 i 种面值 <span class="arithmatex">\(x_i​\)</span> 不能超过 <span class="arithmatex">\(r_{i−1}+1\)</span></strong>。</p>
+<p>直觉：“不能断档”：分支限界的界。<br/><strong>当你已经确定了前 i-1 种面值，且它们能连续贴到 <span class="arithmatex">\(r_{i−1}\)</span>​ 元时，</strong><br/><br/><strong>第 i 种面值 <span class="arithmatex">\(x_i​\)</span> 不能超过 <span class="arithmatex">\(r_{i−1}+1\)</span></strong>。</p>
 </blockquote>
 <p><img alt="" src="../../migrated/post-images/20251224175111.png"/>
 <img alt="" src="../../migrated/post-images/20251224175117.png"/></p>
@@ -1103,18 +1033,12 @@ Dinic：BFS建分层图（<span class="arithmatex">\(O(|E|)\)</span>）、DFS找
 <blockquote>
 <p>一定要注意输入是<em>一系列事件的序列</em>。</p>
 <p><strong>竞争分析：分类讨论，和“最优解”比较。这里“最优解”甚至可以看到未来。
-要求最坏情况：对抗构造。</strong>
-<span class="arithmatex">\(C_{opt}(s)\)</span> ：最优算法的最小成本
-<span class="arithmatex">\(C_A(s)\)</span> ：算法的成本
-如果对于所有输入 <span class="arithmatex">\(s\)</span> 都有：
-<span class="arithmatex">\(C_A(s) \le k \cdot C_{opt}(s) + O(1)\)</span> ，则称竞争比为 <span class="arithmatex">\(k\)</span> ，即 <span class="arithmatex">\(k-\)</span>竞争。</p>
+要求最坏情况：对抗构造。</strong><br/><span class="arithmatex">\(C_{opt}(s)\)</span> ：最优算法的最小成本<br/><span class="arithmatex">\(C_A(s)\)</span> ：算法的成本<br/>如果对于所有输入 <span class="arithmatex">\(s\)</span> 都有：<br/><span class="arithmatex">\(C_A(s) \le k \cdot C_{opt}(s) + O(1)\)</span> ，则称竞争比为 <span class="arithmatex">\(k\)</span> ，即 <span class="arithmatex">\(k-\)</span>竞争。</p>
 </blockquote>
 <p><img alt="" src="../../migrated/post-images/20251225221820.png"/></p>
 <h3 id="bltn">滑雪问题（BLTN算法）</h3>
 <blockquote>
-<p>better late than never
-<em>注意输入是一个序列。</em>
-<strong>对于输入小的情况、一直选便宜的选择；
+<p>better late than never<br/><em>注意输入是一个序列。</em><br/><strong>对于输入小的情况、一直选便宜的选择；
 直到对于给定的输入、这个选择反倒比另一个选择贵时，立刻换用另一个选择。</strong></p>
 <p>虽然看起来很神奇，但是莫名地居然在上述竞争比指标下是最优解。</p>
 </blockquote>
@@ -1328,11 +1252,7 @@ y&gt;S-E时，最优解是一开始就爬楼梯即时间成本为S，BLTN时间�
 所以 最终 I 的大小 ≤ 1。</li>
 </ul>
 <blockquote>
-<p>总之，上述的对抗构造，<strong>让任何的在线算法都只能剩1个点</strong>。
-但是假如我们可以预知未来，一开始就知道对抗构造最终得到的树的所有边，树一定是二分图，所以可以只删二分图中点比较少的那部分。<strong>剩下的点数至少为n/2</strong>。
-因此：
-<span class="arithmatex">\({OPT \over ALG} \ge {n/2 \over 1}={n \over 2}\)</span> 。
-即没有任何确定性算法能保证竞争比小于n/2得证。</p>
+<p>总之，上述的对抗构造，<strong>让任何的在线算法都只能剩1个点</strong>。<br/>但是假如我们可以预知未来，一开始就知道对抗构造最终得到的树的所有边，树一定是二分图，所以可以只删二分图中点比较少的那部分。<strong>剩下的点数至少为n/2</strong>。<br/>因此：<br/><span class="arithmatex">\({OPT \over ALG} \ge {n/2 \over 1}={n \over 2}\)</span> 。<br/>即没有任何确定性算法能保证竞争比小于n/2得证。</p>
 </blockquote>
 <h2 id="lec16-pnp">Lec16 P和NP未完成</h2>
 <p>P是可以快速求解，
@@ -1388,10 +1308,12 @@ NP-hard是所有NP问题可规约到的问题，
 </tbody>
 </table>
 <blockquote>
-<p>说人话：<strong>一个问题的实例可以通过构造过程转换成另一个问题的实例，且这两个实例有解是等价的。</strong>
-- 将实例转换到另一个实例
-- 左有解等价于右有解
-- 右有解等价于左有解</p>
+<p>说人话：<strong>一个问题的实例可以通过构造过程转换成另一个问题的实例，且这两个实例有解是等价的。</strong></p>
+<ul>
+<li>将实例转换到另一个实例</li>
+<li>左有解等价于右有解</li>
+<li>右有解等价于左有解</li>
+</ul>
 </blockquote>
 <p><img alt="" src="../../migrated/post-images/20251209115342.png"/></p>
 <p>规约当然是传递的。
@@ -1418,12 +1340,13 @@ ps. 这里“否则”只要取任意大于1的数即可，保证TSP的解一定
 <h4 id="k">从k着色问题规约到课程安排问题</h4>
 <blockquote>
 <ol>
-<li>NP
-课程安排问题很显然是NP的，对每门课程 <span class="arithmatex">\(C_i\)</span> ，收集其所选方案的所有时间段，可以在多项式时间内验证时间段是否有重合。</li>
-<li>规约
-<strong>同样的边e 和 同样的颜色c =&gt; 同样的时间段，所以时间段设为 <span class="arithmatex">\(B_{e,c}\)</span> 。</strong>
-这样就可以将k着色问题的实例转化为课程安排问题的实例。</li>
+<li>NP</li>
 </ol>
+<p>课程安排问题很显然是NP的，对每门课程 <span class="arithmatex">\(C_i\)</span> ，收集其所选方案的所有时间段，可以在多项式时间内验证时间段是否有重合。</p>
+<ol start="2">
+<li>规约</li>
+</ol>
+<p><strong>同样的边e 和 同样的颜色c =&gt; 同样的时间段，所以时间段设为 <span class="arithmatex">\(B_{e,c}\)</span> 。</strong><br/>这样就可以将k着色问题的实例转化为课程安排问题的实例。</p>
 </blockquote>
 <p>问题即是否存在这样的函数 <span class="arithmatex">\(col: V -&gt; \{1, \dots, k\}\)</span> ，
 使得对任意边 <span class="arithmatex">\((u,v) \in E\)</span> ，都有 <span class="arithmatex">\(col(u) \ne col(v)\)</span> 。</p>
@@ -1466,13 +1389,7 @@ Circuit-SAT可以规约到3-SAT，因为可以把二元逻辑蕴含改成三元�
 <p>最小顶点覆盖√，多机调度，最小集合覆盖，旅行商，0-1背包</p>
 <h3 id="_38">最小顶点覆盖</h3>
 <blockquote>
-<p>最优解用到的顶点很少。
-近似解是找匹配（差不多是匹配），删顶点。
-通过这个近似算法，给出的解的顶点数至多是最优解的2倍。
-<strong>近似比证明</strong>：假设它删了<span class="arithmatex">\(k\)</span>条边，即MVC(I)=2k个顶点；
-覆盖k条互不关联的边至少需要k个顶点，OPT(I)&gt;=k；
-从而有 MVC(I)/OPT(I) &lt;= 2k/k = 2。
-<strong>紧实例</strong>：当图G由k条互不关联的边构成时，近似比=2。故MVC是2-近似算法。</p>
+<p>最优解用到的顶点很少。<br/>近似解是找匹配（差不多是匹配），删顶点。<br/>通过这个近似算法，给出的解的顶点数至多是最优解的2倍。<br/><strong>近似比证明</strong>：假设它删了<span class="arithmatex">\(k\)</span>条边，即MVC(I)=2k个顶点；<br/>覆盖k条互不关联的边至少需要k个顶点，OPT(I)&gt;=k；<br/>从而有 MVC(I)/OPT(I) &lt;= 2k/k = 2。<br/><strong>紧实例</strong>：当图G由k条互不关联的边构成时，近似比=2。故MVC是2-近似算法。</p>
 </blockquote>
 <p><img alt="" src="../../migrated/post-images/20251223230805.png"/>
 <img alt="" src="../../migrated/post-images/20251223230654.png"/></p>

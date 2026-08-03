@@ -188,8 +188,7 @@ PyTorch的基本数据结构，概念上是一个树的节点，节点值包括 
 <li>
 <p>类型标识</p>
 <blockquote>
-<p>modern python语法: <code>Callable[[inputs], output]</code>
-所有输入参数传为第一个列表参数 <code>[type]</code> ，输出为 <code>type</code> ，表示一个以<code>[type]</code>为输入参数、<code>type</code>为返回值的函数</p>
+<p>modern python语法: <code>Callable[[inputs], output]</code><br/>所有输入参数传为第一个列表参数 <code>[type]</code> ，输出为 <code>type</code> ，表示一个以<code>[type]</code>为输入参数、<code>type</code>为返回值的函数</p>
 </blockquote>
 </li>
 </ol>
@@ -229,16 +228,14 @@ PyTorch的基本数据结构，概念上是一个树的节点，节点值包括 
 <img alt="" src="../../migrated/post-images/20250702171057.png"/>
 <img alt="" src="../../migrated/post-images/20250702171143.png"/></p>
 <blockquote>
-<p>ps. 这里有一个实现细节踩坑：
-operators.py里的函数不能相互依赖，比如sigmoid不能用同模块下的exp，但是可以用math.exp等，这是为了Efficiency一章numba能够识别相关函数。</p>
+<p>ps. 这里有一个实现细节踩坑：<br/>operators.py里的函数不能相互依赖，比如sigmoid不能用同模块下的exp，但是可以用math.exp等，这是为了Efficiency一章numba能够识别相关函数。</p>
 </blockquote>
 <h2 id="ml-primer">ML Primer</h2>
 <p>ML Primer：讲了一点机器学习基础，以二分类为例，无代码作业。</p>
 <p>文中对ReLU的理解例子十分有趣，看一看：</p>
 <blockquote>
 <p>Neural networks are compound model classes that divide classification into two or more <strong>stages</strong>. Each stage uses a linear model to seperate the data. And then an <em>activation</em> function to reshape it.</p>
-<p>We would like <strong>only</strong> points in the green or yellow sections to be classified as X's.
-To do this, we employ an activation function that <strong>filters</strong> out only these points. This function is known as a <strong>ReLU</strong> function, which is a fancy way of saying "threshold".</p>
+<p>We would like <strong>only</strong> points in the green or yellow sections to be classified as X's.<br/>To do this, we employ an activation function that <strong>filters</strong> out only these points. This function is known as a <strong>ReLU</strong> function, which is a fancy way of saying "threshold".</p>
 </blockquote>
 <p><img alt="" src="../../migrated/post-images/20250702173828.png"/>
 <img alt="" src="../../migrated/post-images/20250702173835.png"/>
@@ -254,9 +251,7 @@ To do this, we employ an activation function that <strong>filters</strong> out o
 <p>再升维回去，直接考虑整个图像的效果就得到了一个非线性的分类边界：
 <img alt="" src="../../migrated/post-images/20250702174129.png"/></p>
 <blockquote>
-<p>Mathematically we can think of the transformed data as values h1,h2 which we get from applying separators with different parameters to the original data. 
-The final prediction then applies a separator to h1,h2.
-<img alt="" src="../../migrated/post-images/20250702174343.png"/></p>
+<p>Mathematically we can think of the transformed data as values h1,h2 which we get from applying separators with different parameters to the original data. <br/>The final prediction then applies a separator to h1,h2.<br/><img alt="" src="../../migrated/post-images/20250702174343.png"/></p>
 </blockquote>
 <h2 id="autodiff">AutoDiff</h2>
 <h3 id="_6">整体概念</h3>
@@ -285,12 +280,8 @@ The final prediction then applies a separator to h1,h2.
 <h3 id="numerical-derivatives">Numerical Derivatives</h3>
 <blockquote>
 <p>modern python语法：<strong>打包与解包</strong></p>
-<p>打包：函数内使用参数
-<code>def central_difference(f: Any, *vals: Any, arg: int = 0, epsilon: float = 1e-6) -&gt; Any:</code> 
-（这里会把中间的参数全部打包成一整个元组vals）</p>
-<p>解包：函数外传入参数
-<code>return (f(*valsAdd) - f(*valsSub)) / (2 * epsilon)</code>
-（这里需要在元组前加入解包的*符号才能传入n个参数）</p>
+<p>打包：函数内使用参数<br/><code>def central_difference(f: Any, *vals: Any, arg: int = 0, epsilon: float = 1e-6) -&gt; Any:</code> <br/>（这里会把中间的参数全部打包成一整个元组vals）</p>
+<p>解包：函数外传入参数<br/><code>return (f(*valsAdd) - f(*valsSub)) / (2 * epsilon)</code><br/>（这里需要在元组前加入解包的*符号才能传入n个参数）</p>
 </blockquote>
 <p>注意使用中心差分，所以是 <code>(f(x + h) - f(x - h)) / 2h</code> 而不是我们习惯的单<code>h</code>求导方式
 <del>查完wiki发现MiniTorch的页面有写知识点hhhhhh</del></p>
@@ -788,8 +779,7 @@ ctx: forward时记录的变量，现在直接传进去用就行，后面应该�
 和Autodiff部分相似，略。</p>
 <h3 id="tensor-data">Tensor Data</h3>
 <blockquote>
-<p>彻底地重新读并整理了一遍tensor_data.py。
-edit time: 2026-03-04 16:37:57</p>
+<p>彻底地重新读并整理了一遍tensor_data.py。<br/>edit time: 2026-03-04 16:37:57</p>
 </blockquote>
 <p>TensorData是这样定义的：</p>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">TensorData</span><span class="p">:</span>
@@ -860,8 +850,7 @@ torch.Size([2, 3])
     <span class="k">return</span> <span class="n">pos</span>
 </code></pre></div>
 <blockquote>
-<p>应该写循环而不是 <code>np.dot</code> ，不然后面写numba会报不支持。
-唉，debug。</p>
+<p>应该写循环而不是 <code>np.dot</code> ，不然后面写numba会报不支持。<br/>唉，debug。</p>
 </blockquote>
 <p>感觉stride是一个非常有用的思考方式，把多维的index映射到了一维的position，而且更大的步长总是位于index左边。
 一开始没看知识讲解，看了之后感觉醍醐灌顶。</p>
@@ -919,8 +908,7 @@ torch.Size([2, 4, 3])
 torch.Size([4, 3, 2])
 </code></pre></div>
 <blockquote>
-<p>在学习了CS336 Assignment 1之后，加入了einops包的可读性例子。
-edit time: 2026-03-04 14:46:37</p>
+<p>在学习了CS336 Assignment 1之后，加入了einops包的可读性例子。<br/>edit time: 2026-03-04 14:46:37</p>
 </blockquote>
 <p><code>x.permute(0, 2, 1)</code> 效果相当于 <code>einops.rearrange</code> 的：</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">einops</span><span class="w"> </span><span class="kn">import</span> <span class="n">rearrange</span>
@@ -943,9 +931,7 @@ edit time: 2026-03-04 14:46:37</p>
 <h3 id="broadcasting">broadcasting</h3>
 <p>过了一下TensorData，发现除了broadcast之外的其他部分都比较有数了。把一个一个函数收起来的感觉还挺爽的。再接再厉。</p>
 <blockquote>
-<p>广播的规则：
-（Rule 1）<strong>对于某个维度位置</strong>，维度值为1时，可以广播到值为n。
-（Rule 2/3）<strong>对于维度数量不同时</strong>，可以在数量较小的维度左侧添加维度值“1”。</p>
+<p>广播的规则：<br/>（Rule 1）<strong>对于某个维度位置</strong>，维度值为1时，可以广播到值为n。<br/>（Rule 2/3）<strong>对于维度数量不同时</strong>，可以在数量较小的维度左侧添加维度值“1”。</p>
 </blockquote>
 <p><strong>Rule 1</strong>: Any dimension of size 1 can be zipped with dimensions of size n &gt; 1 by assuming the dimension is copied n times.</p>
 <div class="highlight"><pre><span></span><code>(3,) + (1,) = (3,)
@@ -1550,12 +1536,7 @@ W = \begin{bmatrix} 1 &amp; 0 \\ 2 &amp; 1 \end{bmatrix}\]</div>
 （得到偏导数是为了优化器可以采用梯度下降等方式更新模型参数）</p>
 <p>在这样观察了之后，对PyTorch的训练与推理的函数过程就了解得比较完整了。</p>
 <blockquote>
-<p>edit time: 2025-07-02 17:07:11 （Fundamentals√）
-edit time: 2025-07-02 17:54:05 （ML Primer√）
-edit time: 2025-07-07 23:33:57 （AutoDiff√）
-edit time: 2025-07-15 17:18:18 （Tensors√）
-edit time: 2025-07-23 22:29:56‎ （Efficiency√）
-edit time: 2025-08-03 22:09:45 （附: 基于Pytorch代码，讲讲反向传播和计算图√）</p>
+<p>edit time: 2025-07-02 17:07:11 （Fundamentals√）<br/>edit time: 2025-07-02 17:54:05 （ML Primer√）<br/>edit time: 2025-07-07 23:33:57 （AutoDiff√）<br/>edit time: 2025-07-15 17:18:18 （Tensors√）<br/>edit time: 2025-07-23 22:29:56‎ （Efficiency√）<br/>edit time: 2025-08-03 22:09:45 （附: 基于Pytorch代码，讲讲反向传播和计算图√）</p>
 </blockquote>
   </div>
 

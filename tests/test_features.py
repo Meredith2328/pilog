@@ -58,6 +58,22 @@ def test_markdown_del_and_math() -> None:
     ).html
     assert "<ul>" in list_html and "<li>第一项</li>" in list_html, list_html
     assert "- 第一项" not in list_html.replace("<ul>", ""), list_html
+    # consecutive blockquote lines keep their line breaks
+    bq_html = render_markdown(
+        "> 第一行文字。\n> edit time: 2026-03-05\n",
+        src,
+        "index.html",
+        ctx,
+    ).html
+    assert "<br/>" in bq_html and "第一行文字" in bq_html, bq_html
+    # lists inside blockquotes render as lists
+    bq_list_html = render_markdown(
+        "> 题型：\n> - 加减关系\n> - 乘除关系\n> 归纳一下。\n",
+        src,
+        "index.html",
+        ctx,
+    ).html
+    assert "<ul>" in bq_list_html and "<li>加减关系</li>" in bq_list_html, bq_list_html
     print("  [PASS] ~~strikethrough~~ and $...$ / $$...$$ render")
 
 

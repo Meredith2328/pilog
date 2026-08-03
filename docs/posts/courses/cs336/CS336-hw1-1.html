@@ -104,17 +104,7 @@
     <p>从分词开始，搭建起Transformer架构。</p>
 <!-- more -->
 <blockquote>
-<p>edit time: 2026-02-03 17:35:29 开始配置环境√
-edit time: 2026-02-03 17:56:45 下数据集，读文档√
-edit time: 2026-02-03 18:47:24 BPE先到2.4停一下
-edit time: 2026-02-09 18:30:51 BPE过3/3的demo√ 没优化居然就能过
-edit time: 2026-02-09 21:37:52 想把3 Transformer结构做掉
-edit time: 2026-02-09 22:36:31 3.1-3.3介绍√ 后面3.4-3.6就是纯代码了，基本上是自己写一遍，再让ai写一遍，补一些细节
-edit time: 2026-02-11 22:54:59 读test_model，照猫画虎Linear, Embedding, RMSNorm, SwiGLU√
-edit time: 2026-02-12 23:26:05 完成整个3 Transformer结构部分√
-edit time: 2026-02-13 21:36:29 完成4 Utils部分√
-edit time: 2026-02-13 22:25:45 粗略地过了5 Training Loop部分，最后合在一起因为没有做tokenizer所以先搁置
-edit time: 2026-03-10 09:03:18 补完训练部分√ 不管干什么，都先在PyTorch里面干一下，就知道了。</p>
+<p>edit time: 2026-02-03 17:35:29 开始配置环境√<br/>edit time: 2026-02-03 17:56:45 下数据集，读文档√<br/>edit time: 2026-02-03 18:47:24 BPE先到2.4停一下<br/>edit time: 2026-02-09 18:30:51 BPE过3/3的demo√ 没优化居然就能过<br/>edit time: 2026-02-09 21:37:52 想把3 Transformer结构做掉<br/>edit time: 2026-02-09 22:36:31 3.1-3.3介绍√ 后面3.4-3.6就是纯代码了，基本上是自己写一遍，再让ai写一遍，补一些细节<br/>edit time: 2026-02-11 22:54:59 读test_model，照猫画虎Linear, Embedding, RMSNorm, SwiGLU√<br/>edit time: 2026-02-12 23:26:05 完成整个3 Transformer结构部分√<br/>edit time: 2026-02-13 21:36:29 完成4 Utils部分√<br/>edit time: 2026-02-13 22:25:45 粗略地过了5 Training Loop部分，最后合在一起因为没有做tokenizer所以先搁置<br/>edit time: 2026-03-10 09:03:18 补完训练部分√ 不管干什么，都先在PyTorch里面干一下，就知道了。</p>
 </blockquote>
 <p>作业目录：</p>
 <ol>
@@ -361,8 +351,7 @@ edit time: 2026-03-10 09:03:18 补完训练部分√ 不管干什么，都先在
     <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">AdamW</span>
 </code></pre></div>
 <blockquote>
-<p>以下是GPT对问题的回答（未检验，很可能有问题）。
-之后会专门写一篇blog替换掉这里对激活值等的计算。</p>
+<p>以下是GPT对问题的回答（未检验，很可能有问题）。<br/>之后会专门写一篇blog替换掉这里对激活值等的计算。</p>
 </blockquote>
 <hr/>
 <p>(a) AdamW 训练的内存占用分析</p>
@@ -605,11 +594,8 @@ F_adamw ≈ 12 × 2.046B = 24.55B FLOPs
 <p><del>连接主义！</del></p>
 <h3 id="resource-accounting">知识：Resource accounting</h3>
 <blockquote>
-<p>这一部分本来在3 Training a Transformer LM最后，挪到了最前面方便查阅。
-编写了一篇博客 <a href="https://meredith2328.github.io/post/LLMestimate/">怎么估算LLM的参数量和FLOPs？推一推、测一测 | 十派的玩具箱</a> ，详细整理了相关的内容，并且利用实际的包做了验证。</p>
-<p>直觉：
-<strong>随着模型变大，FFN和Attention占最主导（90%），其中FFN可能更多。</strong>
-<strong>但是随着长上下文变长，到一定阈值后，Attention反超FFN成为绝对主导（起码超过50%）。</strong></p>
+<p>这一部分本来在3 Training a Transformer LM最后，挪到了最前面方便查阅。<br/>编写了一篇博客 <a href="https://meredith2328.github.io/post/LLMestimate/">怎么估算LLM的参数量和FLOPs？推一推、测一测 | 十派的玩具箱</a> ，详细整理了相关的内容，并且利用实际的包做了验证。</p>
+<p>直觉：<br/><strong>随着模型变大，FFN和Attention占最主导（90%），其中FFN可能更多。</strong><br/><strong>但是随着长上下文变长，到一定阈值后，Attention反超FFN成为绝对主导（起码超过50%）。</strong></p>
 </blockquote>
 <p><img alt="" src="../../migrated/post-images/20260212231548.png"/>
 <img alt="" src="../../migrated/post-images/20260212231557.png"/></p>
@@ -1607,8 +1593,7 @@ Continuing this, the sequence of merges we get in the end will be <code>['s t', 
 </ol>
 <p>首先搞懂一下字节级别BPE。<a href="https://fancyerii.github.io/2025/09/07/bpe-trainer-1/">动手实现和优化BPE Tokenizer的训练——第1部分：最简单实现 - 李理的博客</a></p>
 <blockquote>
-<p>沉下心来，别着急，慢慢来。
-仔细读test，把自己的函数行为和test搞成完全一致。</p>
+<p>沉下心来，别着急，慢慢来。<br/>仔细读test，把自己的函数行为和test搞成完全一致。</p>
 </blockquote>
 <p>之后仔细读了一下，发现一是byte没有存对，二是split应该先按照特殊token，再使用GPT-2的分词。两个问题都解决掉就ok了。</p>
 <h3 id="27-experiments">2.7 Experiments的回答</h3>
@@ -1691,8 +1676,7 @@ Saved tokenizer artifacts:
 <h2 id="1">1 环境配置</h2>
 <p><a href="https://docs.astral.sh/uv/guides/projects/#viewing-your-version">Working on projects | uv</a></p>
 <blockquote>
-<p>整个作业做完后感慨一下，uv真的是非常好用的工具。
-我前后需要切换环境版本，uv帮我省去了相当多的环境配置的麻烦。</p>
+<p>整个作业做完后感慨一下，uv真的是非常好用的工具。<br/>我前后需要切换环境版本，uv帮我省去了相当多的环境配置的麻烦。</p>
 </blockquote>
 <p>环境为 <code>cs336</code> ，Python=3.12，在WSL中。</p>
 <div class="highlight"><pre><span></span><code>uv run -- flask run -p 3000

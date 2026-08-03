@@ -107,10 +107,7 @@
 时间复杂度，求和公式，分治，哈希，摊还分析，在线算法与竞争分析，线性规划与单纯形法</p>
 <!-- more -->
 <blockquote>
-<p>基于复旦大学2025-2026秋软件工程专业黄橙老师“算法设计与分析”课程内容，感谢老师的辛勤付出！
-相关配套书籍为《算法导论》，课程中选取了其中的大部分主干内容，不涉及过难的内容。
-本文是学习过程中的两篇笔记中的第一篇（数学篇），加入了个人的理解和一些辅助学习的脚手架。
-如有不妥当之处还望多指正，可以在下面评论区或者 https://github.com/Meredith2328/meredith2328.github.io 里提issues反馈。</p>
+<p>基于复旦大学2025-2026秋软件工程专业黄橙老师“算法设计与分析”课程内容，感谢老师的辛勤付出！<br/>相关配套书籍为《算法导论》，课程中选取了其中的大部分主干内容，不涉及过难的内容。<br/>本文是学习过程中的两篇笔记中的第一篇（数学篇），加入了个人的理解和一些辅助学习的脚手架。<br/>如有不妥当之处还望多指正，可以在下面评论区或者 https://github.com/Meredith2328/meredith2328.github.io 里提issues反馈。</p>
 </blockquote>
 <ol>
 <li>Lec1 复杂度的严格证明√</li>
@@ -126,10 +123,12 @@
 <h2 id="lec1">Lec1 渐进复杂度</h2>
 <blockquote>
 <p>这一节大部分内容来自笔记 Lec1 算法基础 。</p>
-<p>直觉：<span class="arithmatex">\(f(n)=O(g(n))\)</span> 
-1. 在n很大时，f(n)的一个上界是g(n)。
-2. f(n)是g(n)的小量。
-3. （如果n的次数相同，大O符号允许相差常数加法和乘法）</p>
+<p>直觉：<span class="arithmatex">\(f(n)=O(g(n))\)</span> </p>
+<ol>
+<li>在n很大时，f(n)的一个上界是g(n)。</li>
+<li>f(n)是g(n)的小量。</li>
+<li>（如果n的次数相同，大O符号允许相差常数加法和乘法）</li>
+</ol>
 </blockquote>
 <h3 id="_1">定义</h3>
 <ol>
@@ -142,8 +141,7 @@
 </li>
 </ol>
 <blockquote>
-<p><strong><em>当n很大时的上界或下界。</em></strong>
-<em>注意这里的等于是属于的意思，而不是等价的意思。</em></p>
+<p><strong><em>当n很大时的上界或下界。</em></strong><br/><em>注意这里的等于是属于的意思，而不是等价的意思。</em></p>
 </blockquote>
 <p><span class="arithmatex">\(\Theta (n)\)</span>：<strong>渐进确界</strong>。 c1g(n)&lt;=f(n)&lt;=c2g(n)
 <span class="arithmatex">\(O(n)\)</span>：<span class="arithmatex">\(f(n)=O(g(n))\)</span>表示 <span class="arithmatex">\(f(n)\)</span><strong>的渐进上界是</strong><span class="arithmatex">\(g(n)\)</span> ，比如最坏时间。 f(n)&lt;=cg(n)
@@ -160,9 +158,7 @@ eg. <span class="arithmatex">\(n = O(n^2)\)</span>，但<span class="arithmatex"
 <p><img alt="" src="../../migrated/post-images/20250911144849.png"/></p>
 <p>证明：<span class="arithmatex">\(6n^3 \ne \Theta(n^2)\)</span>。</p>
 <blockquote>
-<p>直觉：<strong>当n很大时</strong>，<span class="arithmatex">\(6n^3\)</span> 一定比 <span class="arithmatex">\(c_2n^2\)</span> 大。
-为了证明，反设存在 <span class="arithmatex">\(c_2,n_0\)</span> 使得 <span class="arithmatex">\(\forall n \ge n_0, 6n^3 \le c_2n^2\)</span> 。
-一定能推出矛盾：这个式子只对不那么大的 <span class="arithmatex">\(n\)</span> 成立，从而对任意大不成立，推出矛盾。</p>
+<p>直觉：<strong>当n很大时</strong>，<span class="arithmatex">\(6n^3\)</span> 一定比 <span class="arithmatex">\(c_2n^2\)</span> 大。<br/>为了证明，反设存在 <span class="arithmatex">\(c_2,n_0\)</span> 使得 <span class="arithmatex">\(\forall n \ge n_0, 6n^3 \le c_2n^2\)</span> 。<br/>一定能推出矛盾：这个式子只对不那么大的 <span class="arithmatex">\(n\)</span> 成立，从而对任意大不成立，推出矛盾。</p>
 </blockquote>
 <p><img alt="" src="../../migrated/post-images/20250911145009.png"/></p>
 <p><img alt="" src="../../migrated/post-images/20250911145031.png"/></p>
@@ -207,9 +203,7 @@ b. <strong>不正确</strong>。如 <span class="arithmatex">\(f(n)=n, g(n)=n^2\
 d. <strong>不正确。</strong>
 如<span class="arithmatex">\(f(n)=2n,g(n)=n\)</span>，有<span class="arithmatex">\(f(n)=O(g(n))\)</span>，但不满足<span class="arithmatex">\(2^{2n}=(2^n)^2=O(2^n)\)</span>。</p>
 <blockquote>
-<p>和c是特别好的对照。
-对数把f(n)和g(n)常数乘法的差距缩小到了常数加减的差距，仍然保留大O性质。
-但是指数会把常数加减的差距放大到常数乘法的差距、或者把常数乘法的差距放大到指数的差距，后者不再保留大O性质。</p>
+<p>和c是特别好的对照。<br/>对数把f(n)和g(n)常数乘法的差距缩小到了常数加减的差距，仍然保留大O性质。<br/>但是指数会把常数加减的差距放大到常数乘法的差距、或者把常数乘法的差距放大到指数的差距，后者不再保留大O性质。</p>
 </blockquote>
 <p>e. 不正确。
 如<span class="arithmatex">\(f(n)=n^{-1}\)</span>，不满足<span class="arithmatex">\(n^{-1}=O(n^{-2})\)</span>。证明如下：
@@ -278,21 +272,13 @@ f(n)=n，g(n)=2n，
 <img alt="" src="../../migrated/post-images/20251225153054.png"/></p>
 <h3 id="1n-ln-n">1/n 和 ln n的关系：用积分近似求和</h3>
 <blockquote>
-<p>总结：1/x积分一下是 <span class="arithmatex">\(\ln x\)</span> ，所以1/n求和和 <span class="arithmatex">\(\Theta(\ln n)\)</span> 同阶。
-详细证明可以通过积分上限多取一个、积分下限多取一个得到。</p>
+<p>总结：1/x积分一下是 <span class="arithmatex">\(\ln x\)</span> ，所以1/n求和和 <span class="arithmatex">\(\Theta(\ln n)\)</span> 同阶。<br/>详细证明可以通过积分上限多取一个、积分下限多取一个得到。</p>
 </blockquote>
 <p><img alt="" src="../../migrated/post-images/20251225145728.png"/>
 ps. 以上这个也可以作为一种调和级数发散的证明。虽然ln n发散得慢，但它也是发散的。</p>
 <p>具体而言，有：</p>
 <blockquote>
-<p>直觉：（<strong>积分和求和的关系</strong>）（微元法）
-对于减函数 <span class="arithmatex">\(f(x)= {1 \over x}\)</span> 的求和式和积分式，
-<strong>求和式 &gt;= 积分上限多取一个</strong>（积分多取一个小的），
-即 <span class="arithmatex">\(\sum^{n}_{k=1} {1 \over k} \ge \int^{n+1}_{1} {1 \over x}dx=\ln(n+1)\)</span> 。
-<img alt="" src="../../migrated/post-images/20251225150606.png"/>
-<strong>求和式 &lt;= 积分下限多取一个</strong>（积分多取一个大的）。
-即 <span class="arithmatex">\(\sum^{n}_{k=2} {1 \over k} \le \int^{n}_{1} {1 \over x}dx=\ln n+1\)</span> 。
-<img alt="" src="../../migrated/post-images/20251225150536.png"/></p>
+<p>直觉：（<strong>积分和求和的关系</strong>）（微元法）<br/>对于减函数 <span class="arithmatex">\(f(x)= {1 \over x}\)</span> 的求和式和积分式，<br/><strong>求和式 &gt;= 积分上限多取一个</strong>（积分多取一个小的），<br/>即 <span class="arithmatex">\(\sum^{n}_{k=1} {1 \over k} \ge \int^{n+1}_{1} {1 \over x}dx=\ln(n+1)\)</span> 。<br/><img alt="" src="../../migrated/post-images/20251225150606.png"/><br/><strong>求和式 &lt;= 积分下限多取一个</strong>（积分多取一个大的）。<br/>即 <span class="arithmatex">\(\sum^{n}_{k=2} {1 \over k} \le \int^{n}_{1} {1 \over x}dx=\ln n+1\)</span> 。<br/><img alt="" src="../../migrated/post-images/20251225150536.png"/></p>
 </blockquote>
 <p>从而有以下上下界证明过程：</p>
 <p><img alt="" src="../../migrated/post-images/20251225150100.png"/>
@@ -310,8 +296,7 @@ ps. 以上这个也可以作为一种调和级数发散的证明。虽然ln n发
 <img alt="" src="../../migrated/post-images/20251229221106.png"/></p>
 <h4 id="ln-nn-ln-n">再练一下 ln n和n ln n的关系</h4>
 <blockquote>
-<p>总结：<span class="arithmatex">\(\ln x\)</span>积分一下差不多是 <span class="arithmatex">\(x \ln x\)</span> ，所以<span class="arithmatex">\(\ln n\)</span>求和和 <span class="arithmatex">\(\Theta(n \ln n)\)</span> 同阶。
-详细证明可以通过积分上限多取一个、积分下限多取一个得到。</p>
+<p>总结：<span class="arithmatex">\(\ln x\)</span>积分一下差不多是 <span class="arithmatex">\(x \ln x\)</span> ，所以<span class="arithmatex">\(\ln n\)</span>求和和 <span class="arithmatex">\(\Theta(n \ln n)\)</span> 同阶。<br/>详细证明可以通过积分上限多取一个、积分下限多取一个得到。</p>
 </blockquote>
 <p><img alt="" src="../../migrated/post-images/20251225144900.png"/></p>
 <h3 id="_8">递归方程的和式</h3>
@@ -326,15 +311,16 @@ ps. 以上这个也可以作为一种调和级数发散的证明。虽然ln n发
 比如设 <span class="arithmatex">\(G(n) = {T(n) \over {n+1}}\)</span> 然后代入法解出来之类的。</p>
 <h2 id="lec2_1">Lec2 递归方程求解</h2>
 <blockquote>
-<p>四种方法：<strong>代入法、递归树、尝试法、主定理。</strong>
-全部掌握。</p>
+<p>四种方法：<strong>代入法、递归树、尝试法、主定理。</strong><br/>全部掌握。</p>
 </blockquote>
 <h3 id="_9">代入法</h3>
 <blockquote>
-<p>题型：
-- 两个函数参数有加减关系 （及含求和式的递归方程）
-- 两个函数参数有乘除关系
-也可以用数学归纳法严格证明。</p>
+<p>题型：</p>
+<ul>
+<li>两个函数参数有加减关系 （及含求和式的递归方程）</li>
+<li>两个函数参数有乘除关系</li>
+</ul>
+<p>也可以用数学归纳法严格证明。</p>
 </blockquote>
 <hr/>
 <p>例1：加减
@@ -371,10 +357,11 @@ ps. 以上这个也可以作为一种调和级数发散的证明。虽然ln n发
 <img alt="" src="../../migrated/post-images/20251225162649.png"/></p>
 <h3 id="_10">递归树</h3>
 <blockquote>
-<p>题型：比值关系
-解法：
-1. 求每个节点的复杂度，得到<strong>每一层的复杂度</strong>
-2. 求<strong>树的深度</strong>，具体而言求“降低得最慢”的比值什么时候把<span class="arithmatex">\(n\)</span>降低到<span class="arithmatex">\(1\)</span></p>
+<p>题型：比值关系<br/>解法：</p>
+<ol>
+<li>求每个节点的复杂度，得到<strong>每一层的复杂度</strong></li>
+<li>求<strong>树的深度</strong>，具体而言求“降低得最慢”的比值什么时候把<span class="arithmatex">\(n\)</span>降低到<span class="arithmatex">\(1\)</span></li>
+</ol>
 </blockquote>
 <p>除了代入法，也可以通过递归树求解具有比值关系的递归方程。
 具体而言，
@@ -436,12 +423,7 @@ ps. 对于ilogi求和的说明，参见前述“求和符号”一章的“用�
 <hr/>
 <h3 id="_12">主定理</h3>
 <blockquote>
-<p>含比值关系的递归方程。比递归树做得快，毕竟相当于直接背结论。
-主要步骤是把 <span class="arithmatex">\(f(n)\)</span> 和 <span class="arithmatex">\(n^{\log _ba}\)</span> 进行比较。
-如果 <span class="arithmatex">\(f(n)\)</span> 比 <span class="arithmatex">\(n^{\log _ba}\)</span> 增长快，而且 <span class="arithmatex">\(f(n)\)</span> <em>满足子问题总工作量比原问题小一点</em> （<span class="arithmatex">\(af(n/b) \le cf(n), c \le 1\)</span>）<del>，不然主导的不是根层 <span class="arithmatex">\(f(n)\)</span> 了</del>，则 <span class="arithmatex">\(T(n)\)</span> 是 <span class="arithmatex">\(\Theta(f(n))\)</span> 。
-如果 <span class="arithmatex">\(f(n)\)</span> 比 <span class="arithmatex">\(n^{\log _ba}\)</span> 增长慢，<span class="arithmatex">\(T(n)\)</span> 是 <span class="arithmatex">\(\Theta(n^{\log _ba})\)</span> 。
-如果 <span class="arithmatex">\(f(n)\)</span> 和 <span class="arithmatex">\(n^{\log _ba}\)</span> 增长一样快，<span class="arithmatex">\(T(n) = \Theta(n^{\log _ba}) \lg n\)</span> 。
-<img alt="" src="../../migrated/post-images/20251225191202.png"/></p>
+<p>含比值关系的递归方程。比递归树做得快，毕竟相当于直接背结论。<br/>主要步骤是把 <span class="arithmatex">\(f(n)\)</span> 和 <span class="arithmatex">\(n^{\log _ba}\)</span> 进行比较。<br/>如果 <span class="arithmatex">\(f(n)\)</span> 比 <span class="arithmatex">\(n^{\log _ba}\)</span> 增长快，而且 <span class="arithmatex">\(f(n)\)</span> <em>满足子问题总工作量比原问题小一点</em> （<span class="arithmatex">\(af(n/b) \le cf(n), c \le 1\)</span>）<del>，不然主导的不是根层 <span class="arithmatex">\(f(n)\)</span> 了</del>，则 <span class="arithmatex">\(T(n)\)</span> 是 <span class="arithmatex">\(\Theta(f(n))\)</span> 。<br/>如果 <span class="arithmatex">\(f(n)\)</span> 比 <span class="arithmatex">\(n^{\log _ba}\)</span> 增长慢，<span class="arithmatex">\(T(n)\)</span> 是 <span class="arithmatex">\(\Theta(n^{\log _ba})\)</span> 。<br/>如果 <span class="arithmatex">\(f(n)\)</span> 和 <span class="arithmatex">\(n^{\log _ba}\)</span> 增长一样快，<span class="arithmatex">\(T(n) = \Theta(n^{\log _ba}) \lg n\)</span> 。<br/><img alt="" src="../../migrated/post-images/20251225191202.png"/></p>
 </blockquote>
 <p><del>主定理证明直觉：
 <span class="arithmatex">\(T(n)\)</span> 变 <span class="arithmatex">\(T(n/b)\)</span> ，说明递归树深度为 <span class="arithmatex">\(log_bn\)</span> ，最多进行了 <span class="arithmatex">\(log_bn\)</span> 次分裂。
@@ -521,10 +503,7 @@ g. <span class="arithmatex">\(n^2 + (n-2)^2 + ... + 2^2 = \sum_{i=0}^{n-1} (n-2i
 再把 <span class="arithmatex">\(2^x\)</span> 换回 <span class="arithmatex">\(n\)</span> 有 <span class="arithmatex">\(T(n)=G(x)=\Theta(n \lg \lg n)\)</span> 。</p>
 <h3 id="_14">一类考试常见题型的说明</h3>
 <blockquote>
-<p>在整理往年题时，发现这类子问题划分不均等的递归式求解比较常见。
-关键是，“<strong>递归树每层子问题复杂度加起来是否与原问题相等</strong>”。
-如果相等，意味着最终得到的复杂度<strong>可能</strong>阶数比 <span class="arithmatex">\(f(n)\)</span> 更高。
-如果小于，最终得到的复杂度<strong>可能</strong>与 <span class="arithmatex">\(f(n)\)</span> 同阶。</p>
+<p>在整理往年题时，发现这类子问题划分不均等的递归式求解比较常见。<br/>关键是，“<strong>递归树每层子问题复杂度加起来是否与原问题相等</strong>”。<br/>如果相等，意味着最终得到的复杂度<strong>可能</strong>阶数比 <span class="arithmatex">\(f(n)\)</span> 更高。<br/>如果小于，最终得到的复杂度<strong>可能</strong>与 <span class="arithmatex">\(f(n)\)</span> 同阶。</p>
 </blockquote>
 <p>具体而言，以以下例题为例。</p>
 <hr/>
@@ -564,8 +543,7 @@ ps. 求和上界含义是 &lt;= log n的最大整数，也即 <span class="arith
 <img alt="" src="../../migrated/post-images/20251228175659.png"/></p>
 <h2 id="lec3">Lec3 指示器随机变量</h2>
 <blockquote>
-<p>关键是要引出新工具：指示器随机变量，对随机算法进行分析。
-用于<strong>把原来的求和式转换成对随机变量的求和</strong>，从而便于求解期望。</p>
+<p>关键是要引出新工具：指示器随机变量，对随机算法进行分析。<br/>用于<strong>把原来的求和式转换成对随机变量的求和</strong>，从而便于求解期望。</p>
 </blockquote>
 <h3 id="_15">指示器随机变量</h3>
 <p>我们首先定义指示器随机变量，用于表示“划分 <span class="arithmatex">\(k:n-k-1\)</span> ”。
@@ -604,10 +582,7 @@ ps. 求和上界含义是 &lt;= log n的最大整数，也即 <span class="arith
 <h2 id="lec4">Lec4 哈希</h2>
 <h3 id="_18">全域哈希</h3>
 <blockquote>
-<p>直觉很简单：
-对于确定的哈希函数，可以构造很坏的输入，使得这个哈希函数冲突严重。
-因此选取一个哈希函数族，<strong>随机从其中选择某个哈希函数，消除最坏情况</strong>。
-其余都是对这个的证明。</p>
+<p>直觉很简单：<br/>对于确定的哈希函数，可以构造很坏的输入，使得这个哈希函数冲突严重。<br/>因此选取一个哈希函数族，<strong>随机从其中选择某个哈希函数，消除最坏情况</strong>。<br/>其余都是对这个的证明。</p>
 </blockquote>
 <p><img alt="" src="../../migrated/post-images/20251226232533.png"/>
 <img alt="" src="../../migrated/post-images/20251226232539.png"/>
@@ -624,9 +599,7 @@ ps. 求和上界含义是 &lt;= log n的最大整数，也即 <span class="arith
 <img alt="" src="../../migrated/post-images/20251226232716.png"/></p>
 <h3 id="_19">完全哈希</h3>
 <blockquote>
-<p>在<strong>全部键已知且不变</strong>的情况下，
-这里的<strong>两级哈希</strong>是一种完全哈希的实现方式，
-能保证 <span class="arithmatex">\(\Theta(1)\)</span> 查找、无冲突、使用的空间为 <span class="arithmatex">\(O(n)\)</span> 。</p>
+<p>在<strong>全部键已知且不变</strong>的情况下，<br/>这里的<strong>两级哈希</strong>是一种完全哈希的实现方式，<br/>能保证 <span class="arithmatex">\(\Theta(1)\)</span> 查找、无冲突、使用的空间为 <span class="arithmatex">\(O(n)\)</span> 。</p>
 </blockquote>
 <p>思路是，首先用一个哈希把 <span class="arithmatex">\(n\)</span> 个键映射到 <span class="arithmatex">\(m\)</span> 个桶中，
 然后对每个桶使用一个从全域哈希族中选出的哈希函数，再次进行哈希。
@@ -699,9 +672,7 @@ ps. 求和上界含义是 &lt;= log n的最大整数，也即 <span class="arith
 势能法：不绑定在每个操作上，而是绑定在整体能否做功上</p>
 <h3 id="_21">栈操作序列</h3>
 <blockquote>
-<p>设push和pop都是O(1)的，
-Multipop(S, k)即pop k次的代价为 min(|S|, k) 。
-请分析<strong>n个栈操作序列的平摊代价</strong>。</p>
+<p>设push和pop都是O(1)的，<br/>Multipop(S, k)即pop k次的代价为 min(|S|, k) 。<br/>请分析<strong>n个栈操作序列的平摊代价</strong>。</p>
 </blockquote>
 <p>（粗略分析：假设n个操作序列每个操作都是代价最大的操作的最坏情况；
 精细分析：代价最大的操作可能只出现少数次）</p>
@@ -710,9 +681,7 @@ Multipop(S, k)即pop k次的代价为 min(|S|, k) 。
 对于长度为n的序列，最多有n次push（其实n-1也差不多，我们这里看阶数即可），从而最多有n次pop。因此，n个栈操作序列的代价 <span class="arithmatex">\(T(n) \le 2n = O(n)\)</span> 。则平摊代价 <span class="arithmatex">\(T(n)/n = O(1)\)</span> 。</p>
 <h3 id="_22">二进制计数器</h3>
 <blockquote>
-<p>对于<strong>n个二进制计数递增（increment）操作的序列，请分析序列的平摊代价。</strong>
-设二进制计数器总位数为k。
-<strong>每次操作的代价</strong>即“需要翻转的比特数”，例如从11到100需要翻转3个二进制位。</p>
+<p>对于<strong>n个二进制计数递增（increment）操作的序列，请分析序列的平摊代价。</strong><br/>设二进制计数器总位数为k。<br/><strong>每次操作的代价</strong>即“需要翻转的比特数”，例如从11到100需要翻转3个二进制位。</p>
 </blockquote>
 <p>粗略分析：
 代价最大的操作是 <span class="arithmatex">\(O(k)\)</span> 的，假设n个操作序列每个操作都是代价最大的操作的最坏情况，从而 <span class="arithmatex">\(T(n)=O(kn)\)</span> ，<span class="arithmatex">\(T(n)/n=O(k)\)</span> 。</p>
@@ -730,9 +699,7 @@ n次递增从0加到了n，需要使用<span class="arithmatex">\(\log_2 n+1\)</
 则每个递增操作的平摊代价是 <span class="arithmatex">\(T(n)/n=O(1)\)</span> 。</p>
 <h3 id="_23">核算法</h3>
 <blockquote>
-<p>平摊代价总和 比 实际代价总和 大。
-核算法分析平摊代价：“提前付一下” “已经付过了”
-你这个操作以后还会有代价，所以你多付一下</p>
+<p>平摊代价总和 比 实际代价总和 大。<br/>核算法分析平摊代价：“提前付一下” “已经付过了”<br/>你这个操作以后还会有代价，所以你多付一下</p>
 </blockquote>
 <p><img alt="" src="../../migrated/post-images/20251226170426.png"/></p>
 <p>例1 栈操作序列</p>
@@ -747,14 +714,9 @@ cost(multipop)=0</p>
 而不是将信用与数据结构中单个对象关联分开储存。
 “势能”：“能够做功”</p>
 <blockquote>
-<p><strong>势能法定义每个操作的摊还代价是实际代价加上势差。</strong>
-<img alt="" src="../../migrated/post-images/20251226174833.png"/></p>
-<p>直觉上，如果第t个操作的<strong>势差</strong> <span class="arithmatex">\(\Phi(D_i)-\Phi(D_{i-1})\)</span> <strong>是正的</strong>，则摊还代价<span class="arithmatex">\(c_i\)</span>表示第i个操作多付费了，数据结构的<strong>势增加</strong>，”以后能做的功就增加“。
-如果势差为负，则摊还代价表示第i个操作少付费了，势减少用于支付操作的实际代价。</p>
-<p>总实际代价是 <span class="arithmatex">\(\sum_i c_i\)</span> ，
-势能法定义的总摊还代价是 <span class="arithmatex">\(\sum_i \hat{c_i} = \sum_i c_i + \Phi(D_n)-\Phi(D_0)\)</span> 。
-<strong>由于我们要求 <span class="arithmatex">\(\Phi(D_i) \ge \Phi(D_0) = 0\)</span> ，</strong>
-所以有 <span class="arithmatex">\(\sum_i c_i \le \sum_i \hat{c_i}\)</span> ，即<strong>我们定义的总平摊代价是总实际代价的一个上界</strong>，进而完成了平摊分析。</p>
+<p><strong>势能法定义每个操作的摊还代价是实际代价加上势差。</strong><br/><img alt="" src="../../migrated/post-images/20251226174833.png"/></p>
+<p>直觉上，如果第t个操作的<strong>势差</strong> <span class="arithmatex">\(\Phi(D_i)-\Phi(D_{i-1})\)</span> <strong>是正的</strong>，则摊还代价<span class="arithmatex">\(c_i\)</span>表示第i个操作多付费了，数据结构的<strong>势增加</strong>，”以后能做的功就增加“。<br/>如果势差为负，则摊还代价表示第i个操作少付费了，势减少用于支付操作的实际代价。</p>
+<p>总实际代价是 <span class="arithmatex">\(\sum_i c_i\)</span> ，<br/>势能法定义的总摊还代价是 <span class="arithmatex">\(\sum_i \hat{c_i} = \sum_i c_i + \Phi(D_n)-\Phi(D_0)\)</span> 。<br/><strong>由于我们要求 <span class="arithmatex">\(\Phi(D_i) \ge \Phi(D_0) = 0\)</span> ，</strong><br/>所以有 <span class="arithmatex">\(\sum_i c_i \le \sum_i \hat{c_i}\)</span> ，即<strong>我们定义的总平摊代价是总实际代价的一个上界</strong>，进而完成了平摊分析。</p>
 </blockquote>
 <hr/>
 <p>eg1 <strong>栈操作序列</strong> </p>
@@ -846,17 +808,19 @@ c.
 <h3 id="_28"><del>对偶单纯形法</del></h3>
 <blockquote>
 <p>建议只做熟两阶段法，不然条件可能会混。</p>
-<p>步骤：
-- 看 <span class="arithmatex">\(C\)</span> 和 <span class="arithmatex">\(C_B\)</span>。
-- 看 <span class="arithmatex">\(b\)</span> ，确定换出变量。
-- 算 <span class="arithmatex">\(\lambda\)</span> ，确定换入变量。
-- 根据换入换出，变基，即把新基变量系数变成单位矩阵。</p>
-<p>换出变量是<strong>b最小的变量</strong>（是哪个变量？看哪个列只有一个系数为1、其他全0！），换入变量是 <strong><span class="arithmatex">\(\lambda_j / \alpha_j\)</span> 比值绝对值最小的变量</strong>，
- <span class="arithmatex">\(\lambda\)</span> 是 <span class="arithmatex">\(c_i-C_B^T \cdot \alpha\)</span> 的值。
- （其中 <span class="arithmatex">\(C_B\)</span> 和 <span class="arithmatex">\(\alpha\)</span> 是两个向量，而我们提到的所有其他符号都是常量。）</p>
-<p>停止换入换出的两条条件要同时满足：
-1. b不包含负值
-2. 基变量包含目标函数中尽可能多的变量</p>
+<p>步骤：</p>
+<ul>
+<li>看 <span class="arithmatex">\(C\)</span> 和 <span class="arithmatex">\(C_B\)</span>。</li>
+<li>看 <span class="arithmatex">\(b\)</span> ，确定换出变量。</li>
+<li>算 <span class="arithmatex">\(\lambda\)</span> ，确定换入变量。</li>
+<li>根据换入换出，变基，即把新基变量系数变成单位矩阵。</li>
+</ul>
+<p>换出变量是<strong>b最小的变量</strong>（是哪个变量？看哪个列只有一个系数为1、其他全0！），换入变量是 <strong><span class="arithmatex">\(\lambda_j / \alpha_j\)</span> 比值绝对值最小的变量</strong>，<br/> <span class="arithmatex">\(\lambda\)</span> 是 <span class="arithmatex">\(c_i-C_B^T \cdot \alpha\)</span> 的值。<br/> （其中 <span class="arithmatex">\(C_B\)</span> 和 <span class="arithmatex">\(\alpha\)</span> 是两个向量，而我们提到的所有其他符号都是常量。）</p>
+<p>停止换入换出的两条条件要同时满足：</p>
+<ol>
+<li>b不包含负值</li>
+<li>基变量包含目标函数中尽可能多的变量</li>
+</ol>
 </blockquote>
 <h4 id="eg1">eg1</h4>
 <hr/>
@@ -907,11 +871,7 @@ c.
 </tbody>
 </table>
 <blockquote>
-<p>特意记录“行对应基变量”，是为了预防一个易错点。
-选 <span class="arithmatex">\(b\)</span> 最小的变量，这里每行的 <span class="arithmatex">\(b\)</span> 对应的是哪个变量呢？
-pivot column。比如b=1对应x4（x4所在的列的主元1位于它这一行，列其余部分全0）。
-而b=3/2对应x1。
-而<span class="arithmatex">\(C_B\)</span>的顺序也是这样对应的。<span class="arithmatex">\(x_4\)</span>和<span class="arithmatex">\(x_5\)</span>对应的<span class="arithmatex">\(C_B=(0,0)\)</span>。</p>
+<p>特意记录“行对应基变量”，是为了预防一个易错点。<br/>选 <span class="arithmatex">\(b\)</span> 最小的变量，这里每行的 <span class="arithmatex">\(b\)</span> 对应的是哪个变量呢？<br/>pivot column。比如b=1对应x4（x4所在的列的主元1位于它这一行，列其余部分全0）。<br/>而b=3/2对应x1。<br/>而<span class="arithmatex">\(C_B\)</span>的顺序也是这样对应的。<span class="arithmatex">\(x_4\)</span>和<span class="arithmatex">\(x_5\)</span>对应的<span class="arithmatex">\(C_B=(0,0)\)</span>。</p>
 </blockquote>
 <p>换出x_5，换入x_3（<strong>第二行</strong>直接除以-5，然后拿pivot搞一下单位矩阵）变成</p>
 <table>
@@ -1410,19 +1370,9 @@ pivot column。比如b=1对应x4（x4所在的列的主元1位于它这一行，
 恭喜你浪费了很多时间去看对偶单纯形法，，</p>
 <h3 id="_29">两阶段法</h3>
 <blockquote>
-<p>分两阶段：
-第一阶段 设松弛变量和人工变量
-优化人工变量，人工变量是每个&gt;=和=式子需要添加的变量（&lt;=不添加）。
-要求优化结果是所有人工变量全取0。
-第二阶段 设松弛变量
-优化目标函数。</p>
-<p>第一/二阶段每一步做的事情：
-先利用 <span class="arithmatex">\(\lambda\)</span> 最小确定换入变量，后利用<span class="arithmatex">\(\theta=b/\alpha\)</span>正值最小确定换出变量。</p>
-<p>停止条件：
-（第一阶段） <span class="arithmatex">\(\lambda\)</span> 全部非负 且 人工变量全部换出 时停止。
-（第二阶段） <span class="arithmatex">\(\lambda\)</span> 全部非负 时停止。
-<strong>注意两个阶段都只能选择非负最小的 <span class="arithmatex">\(\theta\)</span> ，不能选择负值 <span class="arithmatex">\(\theta\)</span> 。</strong>
-两个阶段只有目标函数，即 <span class="arithmatex">\(C\)</span> 和 <span class="arithmatex">\(C_B\)</span> 不同，其余的 <span class="arithmatex">\(\alpha\)</span> 和 <span class="arithmatex">\(b\)</span> 全部共享。</p>
+<p>分两阶段：<br/>第一阶段 设松弛变量和人工变量<br/>优化人工变量，人工变量是每个&gt;=和=式子需要添加的变量（&lt;=不添加）。<br/>要求优化结果是所有人工变量全取0。<br/>第二阶段 设松弛变量<br/>优化目标函数。</p>
+<p>第一/二阶段每一步做的事情：<br/>先利用 <span class="arithmatex">\(\lambda\)</span> 最小确定换入变量，后利用<span class="arithmatex">\(\theta=b/\alpha\)</span>正值最小确定换出变量。</p>
+<p>停止条件：<br/>（第一阶段） <span class="arithmatex">\(\lambda\)</span> 全部非负 且 人工变量全部换出 时停止。<br/>（第二阶段） <span class="arithmatex">\(\lambda\)</span> 全部非负 时停止。<br/><strong>注意两个阶段都只能选择非负最小的 <span class="arithmatex">\(\theta\)</span> ，不能选择负值 <span class="arithmatex">\(\theta\)</span> 。</strong><br/>两个阶段只有目标函数，即 <span class="arithmatex">\(C\)</span> 和 <span class="arithmatex">\(C_B\)</span> 不同，其余的 <span class="arithmatex">\(\alpha\)</span> 和 <span class="arithmatex">\(b\)</span> 全部共享。</p>
 </blockquote>
 <p><del>浪费了好多时间看对偶单纯形法，气死我了</del></p>
 <h4 id="eg1_1">eg1</h4>
@@ -2528,11 +2478,7 @@ C=(1,1,1,-1)</p>
 取 <span class="arithmatex">\(x_1=1,x_2=0,x_3=0,x_4=2\)</span>
 此时 <span class="arithmatex">\(x_1+x_2+x_3-x_4=-1\)</span></p>
 <blockquote>
-<p>超级无敌总结！两阶段法！
-第一阶段： <span class="arithmatex">\(\lambda\)</span> 全部非负 且 人工变量全部换出 时停止。
-第二阶段： <span class="arithmatex">\(\lambda\)</span> 全部非负 时停止。
-两个阶段只有目标函数，即 <span class="arithmatex">\(C\)</span> 和 <span class="arithmatex">\(C_B\)</span> 不同，其余的 <span class="arithmatex">\(\alpha\)</span> 和 <span class="arithmatex">\(b\)</span> 全部共享。
-edit time: 2025-12-30 11:49:07</p>
+<p>超级无敌总结！两阶段法！<br/>第一阶段： <span class="arithmatex">\(\lambda\)</span> 全部非负 且 人工变量全部换出 时停止。<br/>第二阶段： <span class="arithmatex">\(\lambda\)</span> 全部非负 时停止。<br/>两个阶段只有目标函数，即 <span class="arithmatex">\(C\)</span> 和 <span class="arithmatex">\(C_B\)</span> 不同，其余的 <span class="arithmatex">\(\alpha\)</span> 和 <span class="arithmatex">\(b\)</span> 全部共享。<br/>edit time: 2025-12-30 11:49:07</p>
 </blockquote>
   </div>
 

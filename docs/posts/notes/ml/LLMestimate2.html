@@ -107,12 +107,7 @@ A_{per_layer} ≈ 9BLd + 2BhL^2
 C ≈ 6 × P × D</p>
 <!-- more -->
 <blockquote>
-<p>上接前文： <a href="https://meredith2328.github.io/post/LLMestimate/">怎么估算LLM的参数量和FLOPs？推一推、测一测 | 十派的玩具箱</a>
-本部分推导与验证的公式基于<strong>激活值不会提前释放、而是全部保留</strong>的假设，得到了 <span class="arithmatex">\(A_{per\_layer} \approx 16BLd+2BhL^2\)</span> 的结论，后续实测也是基于这个结论。另外引言中的 <span class="arithmatex">\(C \approx 6 × P × D\)</span> 指计算量约等于六倍的参数量乘以训练token数。
-事实上，许多中间值通常在后续层进行计算时就已经释放了，相关讨论在 (a) 的“如果会提前释放，不同时保存所有激活值？”部分，结论应为 <span class="arithmatex">\(A_{per\_layer}=9BLd+2BhL^2\)</span> 。
-撰写过程中借助了DeepSeek v3.2生成相关代码、以及处理一部分计算工作。
-另外，本篇只是个人基于现在已知的知识做的具有阶段性、一定合理性的推测，不代表真正的事实：不代表PyTorch、CUDA的实际工程实现。后者还需要更多的调查研究才能得出更好的结论。
-edit time: 2026-03-13 11:12:50</p>
+<p>上接前文： <a href="https://meredith2328.github.io/post/LLMestimate/">怎么估算LLM的参数量和FLOPs？推一推、测一测 | 十派的玩具箱</a><br/>本部分推导与验证的公式基于<strong>激活值不会提前释放、而是全部保留</strong>的假设，得到了 <span class="arithmatex">\(A_{per\_layer} \approx 16BLd+2BhL^2\)</span> 的结论，后续实测也是基于这个结论。另外引言中的 <span class="arithmatex">\(C \approx 6 × P × D\)</span> 指计算量约等于六倍的参数量乘以训练token数。<br/>事实上，许多中间值通常在后续层进行计算时就已经释放了，相关讨论在 (a) 的“如果会提前释放，不同时保存所有激活值？”部分，结论应为 <span class="arithmatex">\(A_{per\_layer}=9BLd+2BhL^2\)</span> 。<br/>撰写过程中借助了DeepSeek v3.2生成相关代码、以及处理一部分计算工作。<br/>另外，本篇只是个人基于现在已知的知识做的具有阶段性、一定合理性的推测，不代表真正的事实：不代表PyTorch、CUDA的实际工程实现。后者还需要更多的调查研究才能得出更好的结论。<br/>edit time: 2026-03-13 11:12:50</p>
 </blockquote>
 <h2 id="_1">原始问题整理</h2>
 <blockquote>

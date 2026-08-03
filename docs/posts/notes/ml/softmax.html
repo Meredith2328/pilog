@@ -221,10 +221,7 @@ m_i^{(j+1)}
 <p>重新对旧块和新块做统一归一化，再更新 <span class="arithmatex">\(\ell_i\)</span> 与 <span class="arithmatex">\(\tilde{o}_i\)</span>，最后得到输出 <span class="arithmatex">\(o_i\)</span>。</p>
 <h2 id="flashattentiongpt">我怀疑FlashAttention网上/GPT的常见讲解有一处推错的地方</h2>
 <blockquote>
-<p>省流：结论 <span class="arithmatex">\(B \approx M/4d\)</span> 没问题，
-但是我怀疑有些讲解为了推这个结论用到的 <span class="arithmatex">\(B_r=B_c=B\)</span> 这个假设出发点有问题。
-只是个人看法，我也不确定自己这么想对不对，
-欢迎大家在评论区或者Github的 <a href="https://github.com/Meredith2328/meredith2328.github.io/issues">Issues</a> 页讨论~</p>
+<p>省流：结论 <span class="arithmatex">\(B \approx M/4d\)</span> 没问题，<br/>但是我怀疑有些讲解为了推这个结论用到的 <span class="arithmatex">\(B_r=B_c=B\)</span> 这个假设出发点有问题。<br/>只是个人看法，我也不确定自己这么想对不对，<br/>欢迎大家在评论区或者Github的 <a href="https://github.com/Meredith2328/meredith2328.github.io/issues">Issues</a> 页讨论~</p>
 </blockquote>
 <h3 id="_1">原始推导的问题</h3>
 <p>在网上，有些讲解对 <span class="arithmatex">\(B \approx M/4d\)</span> 这个近似结论的推导是出发自 <span class="arithmatex">\(B_r=B_c=B\)</span> 的：</p>
