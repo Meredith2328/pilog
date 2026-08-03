@@ -73,6 +73,7 @@ def main() -> None:
         pre = page.locator(".card-preview").first.inner_text()
         ok &= check("manual preview shown", "个人自制" in pre and "博客框架" in pre, pre[:40])
         ok &= check("tag chips on cards", page.locator(".card .tag-chip").count() >= 4)
+        ok &= check("no nested links in previews", page.locator(".card-preview a").count() == 0)
 
         # filter bar: top 3 tags + expandable "more tags" panel
         ok &= check("top tags = 3", page.locator(".filter-tags .tag-chip").count() == 3)
@@ -248,6 +249,8 @@ def main() -> None:
         page.wait_for_timeout(1200)
         iframe = page.frame_locator(".dino-frame")
         ok &= check("dino iframe loaded", iframe.locator("canvas").count() >= 1)
+        ok &= check("dino loading hidden after load",
+                    page.locator("#dino-loading").evaluate("el => el.hidden"))
 
         # pilog-blog rich markdown: strikethrough + LaTeX math
         page.goto(base + "/posts/toy/pilog-blog.html", wait_until="networkidle")

@@ -587,6 +587,8 @@
     var panel = widget.querySelector(".dino-panel");
     var close = widget.querySelector(".dino-close");
     var frame = widget.querySelector(".dino-frame");
+    var loading = widget.querySelector(".dino-loading");
+    var frameLoaded = false;
 
     function open(force) {
       var show = force === undefined ? panel.hidden : !!force;
@@ -599,12 +601,23 @@
       if (show && frame && frame.dataset.src) {
         frame.src = frame.dataset.src;
       }
+      // if the game finished loading before we attached the listener, mark it
+      if (show && frame && frame.complete && frame.contentWindow) {
+        frameLoaded = true;
+      }
+      if (loading) loading.hidden = !(!panel.hidden && !frameLoaded);
     }
 
     toggle.addEventListener("click", function () {
       open();
     });
     if (close) close.addEventListener("click", function () { open(false); });
+    if (frame) {
+      frame.addEventListener("load", function () {
+        frameLoaded = true;
+        if (loading) loading.hidden = true;
+      });
+    }
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape") open(false);
     });

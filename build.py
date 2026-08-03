@@ -11,12 +11,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import shutil
 import sys
 import time
 from pathlib import Path
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Comment
 from jinja2 import Environment, FileSystemLoader
 from markupsafe import Markup
 from PIL import Image
@@ -206,11 +207,40 @@ def render_nav(page_url: str, ctx: MarkdownContext) -> str:
     return str(soup)
 
 
-def _flatten_preview_headings(html: str) -> str:
-    """Card previews render full markdown, but headings become body-size text."""
+def _sanitize_preview_html(html: str) -> str:
+    """Card previews render full markdown but must stay inline flow.
+
+    Headings become body-size text, and every block-level element (paragraphs,
+    lists, block math, hr, table) is flattened/inline so the card preview's
+    line-clamp keeps working and card layout is not distorted.
+    """
     soup = BeautifulSoup(html, "html.parser")
+    for comment in soup.find_all(string=lambda s: isinstance(s, Comment)):
+        comment.extract()
     for h in soup.find_all(["h1", "h2", "h3", "h4", "h5", "h6"]):
         h.name = "p"
+    # the whole card is already one link: nested anchors would make the
+    # browser split the card markup, so preview links become plain text
+    for a in soup.find_all("a"):
+        a.unwrap()
+    for el in soup.find_all(class_="arithmatex"):
+        if el.name == "div":
+            el.name = "span"
+            if el.string:
+                el.string = el.string.replace("\\[", "\\(").replace("\\]", "\\)")
+    for table in soup.find_all("table"):
+        table.decompose()
+    for hr in soup.find_all("hr"):
+        hr.decompose()
+    for li in soup.find_all("li"):
+        li.append(soup.new_string("；"))
+        li.unwrap()
+    for block in soup.find_all(["p", "div", "ul", "ol", "blockquote", "pre"]):
+        block.unwrap()
+    # collapse leftover newlines/whitespace so the preview flows as one text
+    for node in soup.find_all(string=True):
+        if node.parent and node.parent.name not in ("pre", "code"):
+            node.replace_with(re.sub(r"\s+", " ", node))
     return str(soup)
 
 
@@ -279,7 +309,7 @@ def build_site(
             )
             post.preview_plain = auto_preview(body, 260)
         post.preview_html = (
-            _flatten_preview_headings(preview_html) if preview_html else ""
+            _sanitize_preview_html(preview_html) if preview_html else ""
         )
 
     # 2. thumbnails
@@ -431,7 +461,7 @@ def build_site(
             "page_title": (
                 cfg.site["title"]
                 if page_num == 1
-                else f"{cfg.site['title']} · 第 {page_num} 页"
+                else f"第 {page_num} 页"
             ),
             "description": cfg.site.get("subtitle", ""),
             "canonical": (

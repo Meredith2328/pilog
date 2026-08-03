@@ -800,6 +800,7 @@ a:hover {
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  max-height: 6.4em; /* hard cap: 4 lines even inside flex layouts */
 }
 
 .card-preview p {
@@ -1696,6 +1697,29 @@ a:hover {
   height: 240px;
   border: none;
   background: var(--paper);
+}
+
+.dino-stage {
+  position: relative;
+}
+
+.dino-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--paper);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--mute);
+  letter-spacing: 0.1em;
+}
+
+.dino-loading[hidden] {
+  display: none;
 }
 
 /* ---------- 404 ---------- */
