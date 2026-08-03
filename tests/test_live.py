@@ -37,7 +37,7 @@ with sync_playwright() as p:
     # home
     resp = goto_retry(pg, BASE + "/")
     check("home 200", resp.status == 200)
-    check("home title", "MEREDITH" in pg.title())
+    check("home title", "10PI" in pg.title() and "玩具箱" in pg.title())
     check("cards render", pg.locator(".card").count() >= 5)
     check("banner svg loads", pg.locator(".header-banner").evaluate(
         "el => getComputedStyle(el).backgroundImage.includes('banner-default.svg')"))

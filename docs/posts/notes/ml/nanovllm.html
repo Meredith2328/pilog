@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="generator" content="pilog">
-  <title>结合nanovllm的FlashAttention和PagedAttention主要原理概述 · MEREDITH&#39;S LOG</title>
+  <title>结合nanovllm的FlashAttention和PagedAttention主要原理概述 · 10PI&#39;S BLOG丨十派的玩具箱</title>
   <meta name="description" content="总结：FlashAttention用于降低Attention计算阶段预存的显存消耗（内部计算范畴）， PagedAttention用于高效管理推理的KV Cache（外部推理范畴）。 FlashAttention： 问题：标准 Attention 需要存储 N×N 的中间矩阵，显存 O(N²) 解决：分块 + 在线 s">
   <meta property="og:type" content="article">
-  <meta property="og:site_name" content="MEREDITH&#39;S LOG">
+  <meta property="og:site_name" content="10PI&#39;S BLOG丨十派的玩具箱">
   <meta property="og:title" content="结合nanovllm的FlashAttention和PagedAttention主要原理概述">
   <meta property="og:description" content="总结：FlashAttention用于降低Attention计算阶段预存的显存消耗（内部计算范畴）， PagedAttention用于高效管理推理的KV Cache（外部推理范畴）。 FlashAttention： 问题：标准 Attention 需要存储 N×N 的中间矩阵，显存 O(N²) 解决：分块 + 在线 s">
   <link rel="canonical" href="https://meredith2328.github.io/posts/notes/ml/nanovllm.html">
@@ -17,7 +17,7 @@
 
   <link rel="icon" href="../../../favicon.png">
   <link rel="apple-touch-icon" href="../../../favicon.png">
-  <link rel="alternate" type="application/rss+xml" title="MEREDITH&#39;S LOG · RSS" href="../../../rss.xml">
+  <link rel="alternate" type="application/rss+xml" title="10PI&#39;S BLOG丨十派的玩具箱 · RSS" href="../../../rss.xml">
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -36,8 +36,8 @@
     <div class="header-row">
       <a class="brand" href="../../../index.html">
         <img class="brand-icon" src="../../../img/dino-icon.png" alt="dino" width="28" height="30">
-        <span class="brand-name">MEREDITH&#39;S LOG</span>
-        <span class="brand-sub">pixel · minimal · notes</span>
+        <span class="brand-name">10PI&#39;S BLOG丨十派的玩具箱</span>
+        
       </a>
 
       <div class="view-switch" role="tablist" aria-label="视图切换">
@@ -465,7 +465,7 @@ PagedAttention：block size = 4 tokens，按需动态分配
 
   <footer class="site-footer">
     <div class="footer-inner">
-      <span>© 2026 Meredith — built with pilog</span>
+      <span>© 2026 10pi (Meredith2328) — built with pilog</span>
       <span class="footer-sep">::</span>
       <a href="../../../rss.xml">RSS</a>
       <span class="footer-sep">::</span>

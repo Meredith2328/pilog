@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>MEREDITH'S LOG</title>
+    <title>10PI'S BLOG丨十派的玩具箱</title>
     <link>https://meredith2328.github.io/</link>
-    <description>pixel · minimal · notes</description>
+    <description></description>
     <atom:link href="https://meredith2328.github.io/rss.xml" rel="self" type="application/rss+xml"/>
     <language>zh-CN</language>
     <generator>pilog</generator>
