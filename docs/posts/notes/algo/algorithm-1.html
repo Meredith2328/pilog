@@ -383,16 +383,20 @@ ps. 以上这个也可以作为一种调和级数发散的证明。虽然ln n发
 <hr/>
 <p>例1
 <img alt="" src="../../migrated/post-images/20251225155513.png"/></p>
-<p>例1解：
-1. 求每个节点 <span class="arithmatex">\(kn\)</span> 的复杂度，即 <span class="arithmatex">\(ckn\)</span> 。从而求和得到<strong>每一层的复杂度</strong>，即 <span class="arithmatex">\(cn\)</span> 。
-2. <strong>求树的深度</strong>，只有一个比值 <span class="arithmatex">\(1/2\)</span> ，令 <span class="arithmatex">\(n(1/2)^h=1\)</span> 得到 <span class="arithmatex">\(h \approx \lg n\)</span> ，从而有 <span class="arithmatex">\(\Theta (n \lg n)\)</span> 。
-<img alt="" src="../../migrated/post-images/20251225144649.png"/></p>
+<p>例1解：</p>
+<ol>
+<li>求每个节点 <span class="arithmatex">\(kn\)</span> 的复杂度，即 <span class="arithmatex">\(ckn\)</span> 。从而求和得到<strong>每一层的复杂度</strong>，即 <span class="arithmatex">\(cn\)</span> 。</li>
+<li><strong>求树的深度</strong>，只有一个比值 <span class="arithmatex">\(1/2\)</span> ，令 <span class="arithmatex">\(n(1/2)^h=1\)</span> 得到 <span class="arithmatex">\(h \approx \lg n\)</span> ，从而有 <span class="arithmatex">\(\Theta (n \lg n)\)</span> 。
+<img alt="" src="../../migrated/post-images/20251225144649.png"/></li>
+</ol>
 <hr/>
 <p>例2
 <img alt="" src="../../migrated/post-images/20251225155528.png"/>
-例2解：
-1. 求每个节点的复杂度，即 <span class="arithmatex">\(n\)</span> ，<span class="arithmatex">\(n/3\)</span> 和 <span class="arithmatex">\(2n/3\)</span> 之类的。求和得到每层复杂度是 <span class="arithmatex">\(\Theta(n)\)</span> 。
-2. 求树的深度。两个比值中把 <span class="arithmatex">\(n\)</span> 更慢弄到 <span class="arithmatex">\(1\)</span> 的是 <span class="arithmatex">\(2/3\)</span> ，所以 <span class="arithmatex">\(n (2/3)^h=1\)</span> ，得到 <span class="arithmatex">\(h \approx \lg n\)</span> 。</p>
+例2解：</p>
+<ol>
+<li>求每个节点的复杂度，即 <span class="arithmatex">\(n\)</span> ，<span class="arithmatex">\(n/3\)</span> 和 <span class="arithmatex">\(2n/3\)</span> 之类的。求和得到每层复杂度是 <span class="arithmatex">\(\Theta(n)\)</span> 。</li>
+<li>求树的深度。两个比值中把 <span class="arithmatex">\(n\)</span> 更慢弄到 <span class="arithmatex">\(1\)</span> 的是 <span class="arithmatex">\(2/3\)</span> ，所以 <span class="arithmatex">\(n (2/3)^h=1\)</span> ，得到 <span class="arithmatex">\(h \approx \lg n\)</span> 。</li>
+</ol>
 <p><img alt="" src="../../migrated/post-images/20251225155543.png"/></p>
 <hr/>
 <p>例3
@@ -645,26 +649,42 @@ ps. 求和上界含义是 &lt;= log n的最大整数，也即 <span class="arith
 </ol>
 <p>举例：<strong>为每个桶建二级哈希表</strong></p>
 <p>二级表大小 mj 取 nj2 或更大，这里为了无冲突，取 mj=nj2​。
-<strong>桶 0 (n0=1)</strong>：
-- 大小 m0=1，随便一个哈希函数即可。<br/>
+<strong>桶 0 (n0=1)</strong>：</p>
+<ul>
+<li>
+<p>大小 m0=1，随便一个哈希函数即可。<br/>
     比如 h2,0(k)=0，键 60 放位置 0。
-<strong>桶 1 (n1=2)</strong>：
-- m1=4，需要选 h2,1​ 使得 10 和 52 不冲突。<br/>
-    尝试 h2,1(k)=(k  mod 5)  mod 4：
-    - 10mod5=0 → 0
-    - 52mod5=2 → 2<br/>
-    不冲突，可以。于是表大小 4，位置 0 放 10，位置 2 放 52。
-<strong>桶 2 (n2=1)</strong>：
-- m2=1，任意。
-<strong>桶 3 (n3=1)</strong>：
-- m3=1。
-<strong>桶 4 (n4=2)</strong>：
-- m4=4，键 72 和 89。<br/>
-    尝试 h2,4​(k)=(kmod7)mod4：
-    - 72mod7=2 → 2
-    - 89mod7=5 → 1<br/>
-        不冲突，可以。
-<strong>桶 5、6 类似</strong>。</p>
+<strong>桶 1 (n1=2)</strong>：</p>
+</li>
+<li>
+<p>m1=4，需要选 h2,1​ 使得 10 和 52 不冲突。<br/>
+    尝试 h2,1(k)=(k  mod 5)  mod 4：</p>
+<ul>
+<li>10mod5=0 → 0</li>
+<li>52mod5=2 → 2<br/>
+不冲突，可以。于是表大小 4，位置 0 放 10，位置 2 放 52。
+<strong>桶 2 (n2=1)</strong>：</li>
+</ul>
+</li>
+<li>
+<p>m2=1，任意。
+<strong>桶 3 (n3=1)</strong>：</p>
+</li>
+<li>
+<p>m3=1。
+<strong>桶 4 (n4=2)</strong>：</p>
+</li>
+<li>
+<p>m4=4，键 72 和 89。<br/>
+    尝试 h2,4​(k)=(kmod7)mod4：</p>
+<ul>
+<li>72mod7=2 → 2</li>
+<li>89mod7=5 → 1<br/>
+    不冲突，可以。
+<strong>桶 5、6 类似</strong>。</li>
+</ul>
+</li>
+</ul>
 <h3 id="_20">习题</h3>
 <p><img alt="" src="../../migrated/post-images/20251226234503.png"/>
 <img alt="" src="../../migrated/post-images/20251226234524.png"/>
@@ -803,10 +823,12 @@ c.
 最坏情况需要检查所有 <span class="arithmatex">\(k=\lg n\)</span> 个数组，
 故总开销为 <span class="arithmatex">\(\sum_{i=0}^{k-1} O(i)=O(k^2)=O(\lg^2n)\)</span> 。
 2.
-元素个数为n。
-- 数组个数为lg n，
-- 对于数组i，大约 <span class="arithmatex">\(2^{i+1}\)</span> 次插入发生一次合并，则n次插入对该数组的合并发生频率是 <span class="arithmatex">\(n/{2^{i+1}}\)</span> ，每次合并开销是 <span class="arithmatex">\(2^{i+1}\)</span> ，故对数组i的开销是 <span class="arithmatex">\(O(n)\)</span> 。
-- 综上，聚合法求得的总开销是 <span class="arithmatex">\(O(n \lg n)\)</span> ，平摊代价是 <span class="arithmatex">\(O(\lg n)\)</span> 。</p>
+元素个数为n。</p>
+<ul>
+<li>数组个数为lg n，</li>
+<li>对于数组i，大约 <span class="arithmatex">\(2^{i+1}\)</span> 次插入发生一次合并，则n次插入对该数组的合并发生频率是 <span class="arithmatex">\(n/{2^{i+1}}\)</span> ，每次合并开销是 <span class="arithmatex">\(2^{i+1}\)</span> ，故对数组i的开销是 <span class="arithmatex">\(O(n)\)</span> 。</li>
+<li>综上，聚合法求得的总开销是 <span class="arithmatex">\(O(n \lg n)\)</span> ，平摊代价是 <span class="arithmatex">\(O(\lg n)\)</span> 。</li>
+</ul>
 <p><img alt="" src="../../migrated/post-images/20251226161510.png"/>
 <img alt="" src="../../migrated/post-images/20251226161517.png"/>
 <img alt="" src="../../migrated/post-images/20251226161525.png"/></p>
@@ -842,10 +864,12 @@ c.
 <img alt="" src="../../migrated/post-images/20251201160519.png"/>
 <span class="arithmatex">\(C=(12,16,15,0,0)\)</span> 。</p>
 <hr/>
-<p>基变量： <span class="arithmatex">\(x_4\)</span> 和 <span class="arithmatex">\(x_5\)</span>（单位矩阵I所在的变量），此时的 <span class="arithmatex">\(C_B=(0,0)\)</span>
-1. 换出变量是 <span class="arithmatex">\(x_5\)</span> 。因为它的 <span class="arithmatex">\(b\)</span> 是-3更小一点。<strong>我们只计算第二行的比值。</strong>
-2. 算算，lambda 1 = 12-(-2, 2)bia ji(0, 0) =12，则lambda 1/a1 = -6；lambda 2 = 16-(-4, 0)bia ji(0, 0) = 16，则lambda 2/a2 = 超大；lambda 3 = 15 - (0, -5)bia ji(0, 0) = 15，则lambda 3/a3 = -3。那 <span class="arithmatex">\(\lambda_3\)</span> 很小了，换入 <span class="arithmatex">\(x_3\)</span>。
-进行一个矩阵初等变换。</p>
+<p>基变量： <span class="arithmatex">\(x_4\)</span> 和 <span class="arithmatex">\(x_5\)</span>（单位矩阵I所在的变量），此时的 <span class="arithmatex">\(C_B=(0,0)\)</span></p>
+<ol>
+<li>换出变量是 <span class="arithmatex">\(x_5\)</span> 。因为它的 <span class="arithmatex">\(b\)</span> 是-3更小一点。<strong>我们只计算第二行的比值。</strong></li>
+<li>算算，lambda 1 = 12-(-2, 2)bia ji(0, 0) =12，则lambda 1/a1 = -6；lambda 2 = 16-(-4, 0)bia ji(0, 0) = 16，则lambda 2/a2 = 超大；lambda 3 = 15 - (0, -5)bia ji(0, 0) = 15，则lambda 3/a3 = -3。那 <span class="arithmatex">\(\lambda_3\)</span> 很小了，换入 <span class="arithmatex">\(x_3\)</span>。
+进行一个矩阵初等变换。</li>
+</ol>
 <table>
 <thead>
 <tr>

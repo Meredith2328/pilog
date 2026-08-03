@@ -116,11 +116,13 @@ edit time: 2026-02-13 21:36:29 完成4 Utils部分√
 edit time: 2026-02-13 22:25:45 粗略地过了5 Training Loop部分，最后合在一起因为没有做tokenizer所以先搁置
 edit time: 2026-03-10 09:03:18 补完训练部分√ 不管干什么，都先在PyTorch里面干一下，就知道了。</p>
 </blockquote>
-<p>作业目录：
-1. BPE tokenizer
-2. Transformer LM
-3. The cross-entropy loss function and the AdamW optimizer
-4. The training loop (support: serilizing, loading model, optimizer state)</p>
+<p>作业目录：</p>
+<ol>
+<li>BPE tokenizer</li>
+<li>Transformer LM</li>
+<li>The cross-entropy loss function and the AdamW optimizer</li>
+<li>The training loop (support: serilizing, loading model, optimizer state)</li>
+</ol>
 <p>提到的工具：</p>
 <table>
 <thead>
@@ -288,11 +290,13 @@ edit time: 2026-03-10 09:03:18 补完训练部分√ 不管干什么，都先在
 27.495254516601562 9925.787109375 1714339.5 190701984.0 15446859776.0
 </code></pre></div>
 <p>我觉得ai给了一个特别直观的解释。
-想象你在一个碗状的山谷（最小值在谷底）：
-- lr太小：像老太太挪步，半天走不到谷底
-- lr合适：正常步伐，稳步下降
-- lr偏大：大步流星，很快接近谷底
-- lr过大：一步跨到对面山坡，再一步跨回来，每一步都跳到更高的地方，最终飞出碗外</p>
+想象你在一个碗状的山谷（最小值在谷底）：</p>
+<ul>
+<li>lr太小：像老太太挪步，半天走不到谷底</li>
+<li>lr合适：正常步伐，稳步下降</li>
+<li>lr偏大：大步流星，很快接近谷底</li>
+<li>lr过大：一步跨到对面山坡，再一步跨回来，每一步都跳到更高的地方，最终飞出碗外</li>
+</ul>
 <h3 id="adamw">AdamW</h3>
 <p><img alt="" src="../../migrated/post-images/20260213211756.png"/></p>
 <p>这个看起来像是在SGD的基础上加了一些数学原理的估计，使得它有很好的效果。
@@ -439,25 +443,31 @@ edit time: 2026-03-10 09:03:18 补完训练部分√ 不管干什么，都先在
 <ol start="3">
 <li>优化器状态内存</li>
 </ol>
-<p>AdamW为每个参数存储：
-- 一阶矩 m（float32）
-- 二阶矩 v（float32）</p>
+<p>AdamW为每个参数存储：</p>
+<ul>
+<li>一阶矩 m（float32）</li>
+<li>二阶矩 v（float32）</li>
+</ul>
 <p>因此：</p>
 <div class="highlight"><pre><span></span><code>M_optim = 2 × M_params
 </code></pre></div>
 <ol start="4">
 <li>激活值内存（单层）</li>
 </ol>
-<p><strong>Attention子层</strong>：
-- Q/K/V投影输出：3 × B × L × d_model → 12BLd_model
-- QK^T 分数矩阵：B × num_heads × L × L → 4BHL²
-- Softmax输出（与分数矩阵同形状）：4BHL²
-- 加权和输出：B × L × d_model → 4BLd_model
-- O投影输出：B × L × d_model → 4BLd_model</p>
-<p><strong>FFN子层</strong>：
-- w1/w3投影输出：2 × B × L × 4d_model → 32BLd_model
-- SiLU输出（与w1同形状）：16BLd_model
-- w2投影输出：B × L × d_model → 4BLd_model</p>
+<p><strong>Attention子层</strong>：</p>
+<ul>
+<li>Q/K/V投影输出：3 × B × L × d_model → 12BLd_model</li>
+<li>QK^T 分数矩阵：B × num_heads × L × L → 4BHL²</li>
+<li>Softmax输出（与分数矩阵同形状）：4BHL²</li>
+<li>加权和输出：B × L × d_model → 4BLd_model</li>
+<li>O投影输出：B × L × d_model → 4BLd_model</li>
+</ul>
+<p><strong>FFN子层</strong>：</p>
+<ul>
+<li>w1/w3投影输出：2 × B × L × 4d_model → 32BLd_model</li>
+<li>SiLU输出（与w1同形状）：16BLd_model</li>
+<li>w2投影输出：B × L × d_model → 4BLd_model</li>
+</ul>
 <p><strong>RMSNorm</strong>（两个）：2 × B × L × d_model → 8BLd_model</p>
 <p><strong>单层激活值总量</strong>：</p>
 <div class="highlight"><pre><span></span><code>M_act_layer = (12+4+4+4+32+16+4+8)BLd_model + 8BHL²
@@ -488,14 +498,16 @@ edit time: 2026-03-10 09:03:18 补完训练部分√ 不管干什么，都先在
 </code></pre></div>
 <hr/>
 <p>(b) GPT-2 XL 数值实例</p>
-<p>GPT-2 XL配置：
-- V = 50,257
-- L = 1,024
-- N = 48
-- d_model = 1,600
-- num_heads = 25
-- H = 25
-- d_ff = 6,400 = 4 × 1,600</p>
+<p>GPT-2 XL配置：</p>
+<ul>
+<li>V = 50,257</li>
+<li>L = 1,024</li>
+<li>N = 48</li>
+<li>d_model = 1,600</li>
+<li>num_heads = 25</li>
+<li>H = 25</li>
+<li>d_ff = 6,400 = 4 × 1,600</li>
+</ul>
 <p>代入公式（单位：字节）：</p>
 <div class="highlight"><pre><span></span><code>M_params = 8×50257×1600 + 48×64×1600²
          = 643,289,600 + 48 × 163,840,000
@@ -528,12 +540,14 @@ B = 2.69 ≈ 2
 <p><strong>答案</strong>：<code>M_total = 34.028 + 17.061B GB</code>，最大batch size为 <strong>2</strong>。</p>
 <hr/>
 <p>(c) AdamW 一步的FLOPs</p>
-<p>AdamW的主要操作：
-1. <strong>更新一阶矩</strong>：<code>m = β1·m + (1-β1)·g</code> → 2次乘加/参数
-2. <strong>更新二阶矩</strong>：<code>v = β2·v + (1-β2)·g²</code> → 2次乘加 + 1次乘法/参数
-3. <strong>计算修正因子</strong>：<code>1-β1ᵗ</code>、<code>1-β2ᵗ</code> → 忽略（每步一次）
-4. <strong>参数更新</strong>：<code>θ -= α·m/(√v+ε)</code> → 1次除法 + 1次平方根 + 1次乘法/参数
-5. <strong>权重衰减</strong>：<code>θ -= α·λ·θ</code> → 1次乘加/参数</p>
+<p>AdamW的主要操作：</p>
+<ol>
+<li><strong>更新一阶矩</strong>：<code>m = β1·m + (1-β1)·g</code> → 2次乘加/参数</li>
+<li><strong>更新二阶矩</strong>：<code>v = β2·v + (1-β2)·g²</code> → 2次乘加 + 1次乘法/参数</li>
+<li><strong>计算修正因子</strong>：<code>1-β1ᵗ</code>、<code>1-β2ᵗ</code> → 忽略（每步一次）</li>
+<li><strong>参数更新</strong>：<code>θ -= α·m/(√v+ε)</code> → 1次除法 + 1次平方根 + 1次乘法/参数</li>
+<li><strong>权重衰减</strong>：<code>θ -= α·λ·θ</code> → 1次乘加/参数</li>
+</ol>
 <p>粗略估计，每个参数约 <strong>10-12 FLOPs</strong>。</p>
 <p><strong>总FLOPs</strong>：</p>
 <div class="highlight"><pre><span></span><code>F_adamw ≈ 12 × (参数量) = 12 × (8Vd_model + 64N d_model²)
@@ -796,10 +810,12 @@ F_adamw ≈ 12 × 2.046B = 24.55B FLOPs
 </code></pre></div>
 <h3 id="rope">RoPE</h3>
 <p>RoPE 将query向量 <span class="arithmatex">\(q=W_qx\)</span> 利用矩阵 <span class="arithmatex">\(R\)</span> 进行旋转，得到了新的向量 <span class="arithmatex">\(q'\)</span> 。
-矩阵 <span class="arithmatex">\(R_k^i\)</span> 是由角度 <span class="arithmatex">\(\theta_{i,k}\)</span> 构造得到的旋转矩阵。角度满足以下性质：
-- 当dim_position <span class="arithmatex">\(k\)</span> 相同时，角度 <span class="arithmatex">\(\theta_{i,k}=\frac{i}{\Theta^{(2k-2)/d}}\)</span> 随着位置 <span class="arithmatex">\(i\)</span> 线性变化。这保证了无论 token_position的绝对数值大还是小，得到的注意力分数都只依赖于相对位置的差值 <span class="arithmatex">\(i-j\)</span> 。
-- 当token_position <span class="arithmatex">\(i\)</span> 相同时，角度 <span class="arithmatex">\(\theta_{i,k}=\frac{i}{\Theta^{(2k-2)/d}}\)</span> 变化量随着 <span class="arithmatex">\(k\)</span> 的增加而减少，即 <span class="arithmatex">\(k\)</span> 比较小时，角度变化很快，频率很高； <span class="arithmatex">\(k\)</span> 比较大时，角度变化很慢，频率很低。
-（其中 <span class="arithmatex">\(\Theta\)</span> 是常数超参数， <span class="arithmatex">\(d\)</span> 是维度大小，即max_seq_len）</p>
+矩阵 <span class="arithmatex">\(R_k^i\)</span> 是由角度 <span class="arithmatex">\(\theta_{i,k}\)</span> 构造得到的旋转矩阵。角度满足以下性质：</p>
+<ul>
+<li>当dim_position <span class="arithmatex">\(k\)</span> 相同时，角度 <span class="arithmatex">\(\theta_{i,k}=\frac{i}{\Theta^{(2k-2)/d}}\)</span> 随着位置 <span class="arithmatex">\(i\)</span> 线性变化。这保证了无论 token_position的绝对数值大还是小，得到的注意力分数都只依赖于相对位置的差值 <span class="arithmatex">\(i-j\)</span> 。</li>
+<li>当token_position <span class="arithmatex">\(i\)</span> 相同时，角度 <span class="arithmatex">\(\theta_{i,k}=\frac{i}{\Theta^{(2k-2)/d}}\)</span> 变化量随着 <span class="arithmatex">\(k\)</span> 的增加而减少，即 <span class="arithmatex">\(k\)</span> 比较小时，角度变化很快，频率很高； <span class="arithmatex">\(k\)</span> 比较大时，角度变化很慢，频率很低。
+（其中 <span class="arithmatex">\(\Theta\)</span> 是常数超参数， <span class="arithmatex">\(d\)</span> 是维度大小，即max_seq_len）</li>
+</ul>
 <p>我们可以预先计算矩阵 <span class="arithmatex">\(R_k^i\)</span> ，在使用时再传入query向量和token_positions。</p>
 <p>第28行的 <code>rearrange</code> 是这样的作用：
 <img alt="" src="../../migrated/post-images/20260212175652.png"/></p>
@@ -1558,11 +1574,13 @@ For example, the word 'text' might be a pre-token that appears 10 times. In this
 &gt;&gt;&gt; re.findall(PAT, "some text that i'll pre-tokenize")
 ['some', ' text', ' that', ' i', "'ll", ' pre', '-', 'tokenize']
 </code></pre></div>
-<p>BPE包括三个步骤：
-- Vocabulary Initialization
-- Pre-tokenization
-- Compute BPE merges（使用频率最高且字典序最大的）
-频率：`dict[tuple[bytes], int]</p>
+<p>BPE包括三个步骤：</p>
+<ul>
+<li>Vocabulary Initialization</li>
+<li>Pre-tokenization</li>
+<li>Compute BPE merges（使用频率最高且字典序最大的）
+频率：`dict[tuple[bytes], int]</li>
+</ul>
 <p>eg. pre-token的依次合并：
 <code>{low: 5, lower: 2, widest: 3, newest: 6}</code>
 <code>{(l,o,w): 5, (l,o,w,e,r): 2, (w,i,d,e,st): 3, (n,e,w,e,st): 6}</code>
@@ -1580,11 +1598,13 @@ Continuing this, the sequence of merges we get in the end will be <code>['s t', 
 (3) 两个数据结构：词汇表和频率表。对这样一小片文本，遍历每个字符，添加更新频率表 <code>dict[tuple[bytes], int]</code> 。
 (4) 在频率表中取出频率最高的（通过 <code>max</code> ），合并 <code>tuple[bytes]</code> 为新的 <code>typle[bytes]</code> 。更新词汇表和频率表。</p>
 <p><img alt="" src="../../migrated/post-images/20260206235808.png"/>
-那么初始实现又慢又错，包括：
-1. <strong>字节级别 vs 字符串级别</strong>：你目前用字符串处理，但要求是字节级别的BPE
-2. <strong>GPT-2正则表达式</strong>：需要特殊处理文本分割
-3. <strong>数据结构</strong>：vocab应该是 <code>dict[int, bytes]</code> 而不是 <code>dict[int, str]</code>
-错在没有搞懂bytes和字符的区别，慢在没有做优化（1.5s）。</p>
+那么初始实现又慢又错，包括：</p>
+<ol>
+<li><strong>字节级别 vs 字符串级别</strong>：你目前用字符串处理，但要求是字节级别的BPE</li>
+<li><strong>GPT-2正则表达式</strong>：需要特殊处理文本分割</li>
+<li><strong>数据结构</strong>：vocab应该是 <code>dict[int, bytes]</code> 而不是 <code>dict[int, str]</code>
+错在没有搞懂bytes和字符的区别，慢在没有做优化（1.5s）。</li>
+</ol>
 <p>首先搞懂一下字节级别BPE。<a href="https://fancyerii.github.io/2025/09/07/bpe-trainer-1/">动手实现和优化BPE Tokenizer的训练——第1部分：最简单实现 - 李理的博客</a></p>
 <blockquote>
 <p>沉下心来，别着急，慢慢来。
@@ -1596,17 +1616,21 @@ Continuing this, the sequence of merges we get in the end will be <code>['s t', 
 <p>(a) 压缩比的含义</p>
 </blockquote>
 <p><strong>压缩比 = 原始文本字节数 / 产生的token数量</strong>
-不同tokenizer的压缩比差异：
-- <strong>TinyStories tokenizer (10K vocab)</strong>：针对儿童故事训练，对简单词汇压缩比较好
-- <strong>OpenWebText tokenizer (32K vocab)</strong>：更大词表，能识别更多复杂词汇和短语
-通常词表越大，压缩比越高（每个token代表更多字节），因为能匹配更长的常见词/子词单元。</p>
+不同tokenizer的压缩比差异：</p>
+<ul>
+<li><strong>TinyStories tokenizer (10K vocab)</strong>：针对儿童故事训练，对简单词汇压缩比较好</li>
+<li><strong>OpenWebText tokenizer (32K vocab)</strong>：更大词表，能识别更多复杂词汇和短语
+通常词表越大，压缩比越高（每个token代表更多字节），因为能匹配更长的常见词/子词单元。</li>
+</ul>
 <blockquote>
 <p>(b) 用TinyStories tokenizer处理OpenWebText</p>
 </blockquote>
-<p><strong>会发生什么？</strong>
-- <strong>压缩比下降</strong>：很多OpenWebText中的词汇（技术术语、复杂词汇、特殊符号）在TinyStories词表中不存在，会被切成更小的子词单元
-- <strong>定性描述</strong>：文本会被"过度切分"，例如"neural network"可能变成 <code>["neural", "▁network"]</code> 或者更碎，导致token序列变长
-- <strong>本质</strong>：这是<strong>领域不匹配</strong>问题——tokenizer没见过足够多的该领域词汇</p>
+<p><strong>会发生什么？</strong></p>
+<ul>
+<li><strong>压缩比下降</strong>：很多OpenWebText中的词汇（技术术语、复杂词汇、特殊符号）在TinyStories词表中不存在，会被切成更小的子词单元</li>
+<li><strong>定性描述</strong>：文本会被"过度切分"，例如"neural network"可能变成 <code>["neural", "▁network"]</code> 或者更碎，导致token序列变长</li>
+<li><strong>本质</strong>：这是<strong>领域不匹配</strong>问题——tokenizer没见过足够多的该领域词汇</li>
+</ul>
 <p>下面的内容来自我实际的训练日志：</p>
 <div class="highlight"><pre><span></span><code>Step 1/3: train BPE tokenizer
 BPE training configuration:
@@ -1632,28 +1656,38 @@ Saved tokenizer artifacts:
 <blockquote>
 <p>(c) tokenizer吞吐量估算</p>
 </blockquote>
-<p><strong>估算逻辑</strong>：
-1. 先测量tokenizer处理一定量文本的速度（bytes/sec）
-2. 用这个速率计算处理825GB所需时间
+<p><strong>估算逻辑</strong>：</p>
+<ol>
+<li>先测量tokenizer处理一定量文本的速度（bytes/sec）</li>
+<li>用这个速率计算处理825GB所需时间
 例如：如果tokenizer速度是50 MB/sec，则825GB需要：<br/>
 <code>825 × 1024 MB ÷ 50 MB/sec ≈ 16,896秒 ≈ 4.7小时</code>
-实际速度取决于：
-- tokenizer实现（BPE算法效率）
-- 并行化程度
-- 硬件（CPU/GPU）</p>
+实际速度取决于：</li>
+</ol>
+<ul>
+<li>tokenizer实现（BPE算法效率）</li>
+<li>并行化程度</li>
+<li>硬件（CPU/GPU）</li>
+</ul>
 <p>其实这个题是要我估算，我一开始没反应过来。 <del>感谢GPT，差点真去训了。</del> 
 825GB按我的3MB/s大约就是281600s，约为78小时。 <del>差点浪费78小时的算力。</del></p>
 <blockquote>
 <p>(d) 为什么用uint16？</p>
 </blockquote>
-<p>uint16 (无符号16位整数) 是合适选择因为：
-- 取值范围够用：<strong>uint16范围 0-65535</strong>，覆盖vocab_size (10K和32K都在这个范围内)
-- 存储效率高：每个token只占2字节，比int64 (8字节) 节省75%空间
-- 内存友好：处理大规模数据集时，内存占用更小，加载更快
-对比：
-- uint8 (0-255) 不够用（最大256 &lt; 32K）
-- uint32 浪费空间（能存40亿，但只需要3.2万）
-- uint16 刚刚好</p>
+<p>uint16 (无符号16位整数) 是合适选择因为：</p>
+<ul>
+<li>取值范围够用：<strong>uint16范围 0-65535</strong>，覆盖vocab_size (10K和32K都在这个范围内)</li>
+<li>存储效率高：每个token只占2字节，比int64 (8字节) 节省75%空间</li>
+<li>
+<p>内存友好：处理大规模数据集时，内存占用更小，加载更快
+对比：</p>
+</li>
+<li>
+<p>uint8 (0-255) 不够用（最大256 &lt; 32K）</p>
+</li>
+<li>uint32 浪费空间（能存40亿，但只需要3.2万）</li>
+<li>uint16 刚刚好</li>
+</ul>
 <h2 id="1">1 环境配置</h2>
 <p><a href="https://docs.astral.sh/uv/guides/projects/#viewing-your-version">Working on projects | uv</a></p>
 <blockquote>

@@ -15,6 +15,7 @@ from .utils import rel_output
 IMG_TOKEN = "__PILOG_IMG__:"
 LINK_TOKEN = "__PILOG_LINK__:"
 BLOCK_MATH_TOKEN = "PILOG-BLOCKMATH-"
+LIST_MARKER_RE = re.compile(r"^(?:[-*+]|\d+[.)])\s+\S")
 
 WIKI_IMAGE_RE = re.compile(r"!\[\[([^\]|]+?)(?:\|([^\]]*))?\]\]")
 WIKI_LINK_RE = re.compile(r"\[\[([^\]|]+?)(?:\|([^\]]*))?\]\]")
@@ -155,6 +156,31 @@ def _extract_block_math(text: str) -> tuple[str, list]:
     if pending is not None:
         out.append(restore("".join(pending)))
     return "".join(out), maths
+
+
+def _normalize_lists(text: str) -> str:
+    """python-markdown only starts a list after a blank line; note-style
+    content often puts `- item` right after a paragraph. Insert the missing
+    blank line before a list that directly follows a non-list line."""
+    out: list = []
+    in_code = False
+    fence = ""
+    prev_blank = True
+    prev_marker = False
+    for line in text.splitlines(keepends=True):
+        stripped = line.strip()
+        if not in_code and stripped.startswith(("```", "~~~")):
+            in_code = True
+            fence = stripped[:3]
+        elif in_code and stripped.startswith(fence):
+            in_code = False
+        is_marker = not in_code and bool(LIST_MARKER_RE.match(line))
+        if is_marker and not prev_blank and not prev_marker:
+            out.append("\n")
+        out.append(line)
+        prev_blank = not line.strip()
+        prev_marker = is_marker
+    return "".join(out)
 
 
 def _md_instance() -> md_lib.Markdown:
@@ -322,6 +348,7 @@ def render_markdown(text: str, src_file: Path, page_url: str,
     image_sources: list = []
     text = _parse_wiki(text)
     text, block_maths = _extract_block_math(text)
+    text = _normalize_lists(text)
 
     body = _md_instance()
     html = body.reset().convert(text)

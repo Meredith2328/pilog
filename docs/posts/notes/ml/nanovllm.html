@@ -107,14 +107,18 @@ edit time: 2026-05-16 19:04:38 做了PagedAttention部分好耶</p>
 </blockquote>
 <p>总结：FlashAttention用于降低Attention计算阶段预存的显存消耗（内部计算范畴），
 PagedAttention用于高效管理推理的KV Cache（外部推理范畴）。</p>
-<p><strong>FlashAttention</strong>：
-- 问题：标准 Attention 需要存储 N×N 的中间矩阵，显存 O(N²)
-- 解决：分块 + 在线 softmax，显存降到 O(N)
-- 关键：外循环 Q 块，内循环 K、V 块，在线更新 m、l、O</p>
-<p><strong>PagedAttention</strong>：
-- 问题：预分配连续显存导致大量浪费（内部碎片 + 外部碎片）
-- 解决：分块 + 页表映射 + 动态分配
-- 扩展：Prefix Cache + 引用计数，共享公共前缀</p>
+<p><strong>FlashAttention</strong>：</p>
+<ul>
+<li>问题：标准 Attention 需要存储 N×N 的中间矩阵，显存 O(N²)</li>
+<li>解决：分块 + 在线 softmax，显存降到 O(N)</li>
+<li>关键：外循环 Q 块，内循环 K、V 块，在线更新 m、l、O</li>
+</ul>
+<p><strong>PagedAttention</strong>：</p>
+<ul>
+<li>问题：预分配连续显存导致大量浪费（内部碎片 + 外部碎片）</li>
+<li>解决：分块 + 页表映射 + 动态分配</li>
+<li>扩展：Prefix Cache + 引用计数，共享公共前缀</li>
+</ul>
 <h2 id="1">题目1：中间矩阵的显存问题</h2>
 <p>在单头情况下（分头时把 <span class="arithmatex">\(d\_model\)</span> 换成 <span class="arithmatex">\(d\_model / num\_heads\)</span> ）有</p>
 <div class="arithmatex">\[Q,K,V \in \mathbb{R}^{seq\_len \times d\_model}\]</div>
@@ -137,8 +141,10 @@ PagedAttention用于高效管理推理的KV Cache（外部推理范畴）。</p>
 <div class="arithmatex">\[m_{new} \leftarrow \max\{m_{old}, x_{new}\}\]</div>
 <div class="arithmatex">\[l_{new} \leftarrow l_{old} \cdot e^{m_{old}-m_{new}} + e^{x_{new}-m_{new}}\]</div>
 <p>初始时 <span class="arithmatex">\([m,l]=[-\infty,0]\)</span> 。</p>
-<p>接下来用一个简单例子来练习上述的更新过程：计算 <span class="arithmatex">\(x=[2,1,4,3]\)</span> 的在线softmax。
-- 第一步：</p>
+<p>接下来用一个简单例子来练习上述的更新过程：计算 <span class="arithmatex">\(x=[2,1,4,3]\)</span> 的在线softmax。</p>
+<ul>
+<li>第一步：</li>
+</ul>
 <div class="arithmatex">\[m_{new} \leftarrow \max\{-\infty, 2\}=2\]</div>
 <div class="arithmatex">\[l_{new} \leftarrow e^{2-2}=1\]</div>
 <p>看到第一个元素时的 <span class="arithmatex">\([m,l]\)</span> 为 <span class="arithmatex">\([2,1]\)</span> 。</p>
@@ -170,10 +176,12 @@ Softmax可以在不存全部值的情况下在线计算这两个知识。
 实际上因为 <span class="arithmatex">\(K/V\)</span> 被多个 <span class="arithmatex">\(Q\)</span> 块共用，应该把 <span class="arithmatex">\(K\)</span> 放在外层、<span class="arithmatex">\(Q\)</span> 放在内层）
 注意它不存储完整的 <span class="arithmatex">\(S\)</span> ，只存当前小块（<span class="arithmatex">\(B_r \times B_c\)</span> ，其中 <span class="arithmatex">\(r\)</span> 和 <span class="arithmatex">\(c\)</span> 是row和column的意思）。
 <img alt="" src="../../migrated/post-images/20260516175339.png"/></p>
-<p>问题：对下述设置中的 <span class="arithmatex">\(Q_1\)</span> 尝试进行一次完整的迭代更新过程。
-- 序列长度 <span class="arithmatex">\(N = 4\)</span>
-- 分块大小 <span class="arithmatex">\(B_r = 2\)</span>，<span class="arithmatex">\(B_c = 2\)</span>
-- 特征维度 <span class="arithmatex">\(d = 2\)</span>，缩放因子 <span class="arithmatex">\(\sqrt{d} = \sqrt{2}\)</span></p>
+<p>问题：对下述设置中的 <span class="arithmatex">\(Q_1\)</span> 尝试进行一次完整的迭代更新过程。</p>
+<ul>
+<li>序列长度 <span class="arithmatex">\(N = 4\)</span></li>
+<li>分块大小 <span class="arithmatex">\(B_r = 2\)</span>，<span class="arithmatex">\(B_c = 2\)</span></li>
+<li>特征维度 <span class="arithmatex">\(d = 2\)</span>，缩放因子 <span class="arithmatex">\(\sqrt{d} = \sqrt{2}\)</span></li>
+</ul>
 <div class="arithmatex">\[
 Q = \begin{bmatrix}
 1 &amp; 0 \\
@@ -194,15 +202,21 @@ V = \begin{bmatrix}
 0 &amp; 0
 \end{bmatrix}
 \]</div>
-<p>分块（按行划分）：
-- <span class="arithmatex">\(Q_1 = Q[0:2] = \begin{bmatrix}1 &amp; 0 \\ 0 &amp; 1\end{bmatrix}\)</span>, <span class="arithmatex">\(\quad Q_2 = Q[2:4] = \begin{bmatrix}1 &amp; 1 \\ 0 &amp; 0\end{bmatrix}\)</span>
-- <span class="arithmatex">\(K_1 = K[0:2] = \begin{bmatrix}1 &amp; 1 \\ 0 &amp; 1\end{bmatrix}\)</span>, <span class="arithmatex">\(\quad K_2 = K[2:4] = \begin{bmatrix}1 &amp; 0 \\ 0 &amp; 0\end{bmatrix}\)</span>
-- <span class="arithmatex">\(V_1 = V[0:2] = \begin{bmatrix}1 &amp; 0 \\ 0 &amp; 1\end{bmatrix}\)</span>, <span class="arithmatex">\(\quad V_2 = V[2:4] = \begin{bmatrix}1 &amp; 1 \\ 0 &amp; 0\end{bmatrix}\)</span>
-算法状态（对每个 Q 块单独维护）：
-- <span class="arithmatex">\(O\)</span>：输出累加器（形状 <span class="arithmatex">\(B_r \times d_v\)</span>），初始为零矩阵
-- <span class="arithmatex">\(m\)</span>：当前看到的行最大值（形状 <span class="arithmatex">\(B_r\)</span> 的向量），初始为 <span class="arithmatex">\(-\infty\)</span>
-- <span class="arithmatex">\(l\)</span>：当前看到的分母和（形状 <span class="arithmatex">\(B_r\)</span> 的向量），初始为 <span class="arithmatex">\(0\)</span>
-外循环：遍历每个 <span class="arithmatex">\(Q_i\)</span> 块  </p>
+<p>分块（按行划分）：</p>
+<ul>
+<li><span class="arithmatex">\(Q_1 = Q[0:2] = \begin{bmatrix}1 &amp; 0 \\ 0 &amp; 1\end{bmatrix}\)</span>, <span class="arithmatex">\(\quad Q_2 = Q[2:4] = \begin{bmatrix}1 &amp; 1 \\ 0 &amp; 0\end{bmatrix}\)</span></li>
+<li><span class="arithmatex">\(K_1 = K[0:2] = \begin{bmatrix}1 &amp; 1 \\ 0 &amp; 1\end{bmatrix}\)</span>, <span class="arithmatex">\(\quad K_2 = K[2:4] = \begin{bmatrix}1 &amp; 0 \\ 0 &amp; 0\end{bmatrix}\)</span></li>
+<li>
+<p><span class="arithmatex">\(V_1 = V[0:2] = \begin{bmatrix}1 &amp; 0 \\ 0 &amp; 1\end{bmatrix}\)</span>, <span class="arithmatex">\(\quad V_2 = V[2:4] = \begin{bmatrix}1 &amp; 1 \\ 0 &amp; 0\end{bmatrix}\)</span>
+算法状态（对每个 Q 块单独维护）：</p>
+</li>
+<li>
+<p><span class="arithmatex">\(O\)</span>：输出累加器（形状 <span class="arithmatex">\(B_r \times d_v\)</span>），初始为零矩阵</p>
+</li>
+<li><span class="arithmatex">\(m\)</span>：当前看到的行最大值（形状 <span class="arithmatex">\(B_r\)</span> 的向量），初始为 <span class="arithmatex">\(-\infty\)</span></li>
+<li><span class="arithmatex">\(l\)</span>：当前看到的分母和（形状 <span class="arithmatex">\(B_r\)</span> 的向量），初始为 <span class="arithmatex">\(0\)</span>
+外循环：遍历每个 <span class="arithmatex">\(Q_i\)</span> 块  </li>
+</ul>
 <p>解决：我们需要处理 <span class="arithmatex">\(Q_1\)</span> （一次外层循环迭代），
 那么分别要计算 <span class="arithmatex">\(K_1\)</span> 和 <span class="arithmatex">\(K_2\)</span> 的两次内层循环迭代。</p>
 <hr/>
@@ -356,11 +370,13 @@ PagedAttention：block size = 4 tokens，按需动态分配
 <p>Block Table 实现了逻辑连续、物理不连续的映射，就像操作系统的虚拟内存。</p>
 <p>直接看题目。
 设定Block Size = 4，请求的 <span class="arithmatex">\(\text{Block Table} = [3,1,5]\)</span> 。
-（表示逻辑块0→物理块3，逻辑块1→物理块1，逻辑块2→物理块5）
-1. 画出这个请求的物理布局（哪个物理块存哪几个 token）
-2. 要访问 token 索引 9（第 10 个 token），应该去哪个物理块的哪个偏移位置？
-3. 如果这个请求共有 10 个 tokens（索引 0-9），最后一个 token（索引 9）在哪个物理
-块？这个块是否存满了？</p>
+（表示逻辑块0→物理块3，逻辑块1→物理块1，逻辑块2→物理块5）</p>
+<ol>
+<li>画出这个请求的物理布局（哪个物理块存哪几个 token）</li>
+<li>要访问 token 索引 9（第 10 个 token），应该去哪个物理块的哪个偏移位置？</li>
+<li>如果这个请求共有 10 个 tokens（索引 0-9），最后一个 token（索引 9）在哪个物理
+块？这个块是否存满了？</li>
+</ol>
 <p>1.按顺序排布各个物理块：
 物理块0（无请求）
 物理块1（token 4,5,6,7）
@@ -371,13 +387,15 @@ PagedAttention：block size = 4 tokens，按需动态分配
 2.访问token索引9时应该去逻辑块 <span class="arithmatex">\(9 // 4=2\)</span> ，查表对应物理块5，块内偏移为 <span class="arithmatex">\(9 \% 4=1\)</span> 。
 3.同2可知，最后一个token在物理块5，这个块只存了token 8,9，没有存满。</p>
 <h2 id="6prefix-cache">题目6：Prefix Cache（前缀共享）的引用计数实现</h2>
-<p>我们发现很多请求共享相同的前缀。例如：
-- 系统 prompt："你是一个 AI 助手"（5 tokens）
-- 请求 A："你是一个 AI 助手，今天天气怎么样"（11 tokens）
-- 请求 B："你是一个 AI 助手，推荐一部电影"（11 tokens）
+<p>我们发现很多请求共享相同的前缀。例如：</p>
+<ul>
+<li>系统 prompt："你是一个 AI 助手"（5 tokens）</li>
+<li>请求 A："你是一个 AI 助手，今天天气怎么样"（11 tokens）</li>
+<li>请求 B："你是一个 AI 助手，推荐一部电影"（11 tokens）
 两个请求的前 5 个 tokens 完全相同。
 传统方式是各自存一份 KV Cache，这会浪费 5 tokens × 2  = 10 tokens。
-而Prefix Cache则是只存一份共享的prefix，每个请求的Block Table指向共享blocks，用<strong>引用计数</strong>管理（多个请求共享时，<code>ref_count &gt; 1</code>；没有请求使用时才释放）。</p>
+而Prefix Cache则是只存一份共享的prefix，每个请求的Block Table指向共享blocks，用<strong>引用计数</strong>管理（多个请求共享时，<code>ref_count &gt; 1</code>；没有请求使用时才释放）。</li>
+</ul>
 <p>根据上述思想，参考自 <code>nanovllm/engine/block_manager.py</code> 的简化代码如下：
 （思想很简单，就是引用计数，共享的只存一份，每次要分配时先看看是不是已经存过了）</p>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Block</span><span class="p">:</span>
@@ -396,28 +414,34 @@ PagedAttention：block size = 4 tokens，按需动态分配
     <span class="c1"># 分配新 block</span>
     <span class="n">block</span> <span class="o">=</span> <span class="n">allocate_new_block</span><span class="p">()</span>
 </code></pre></div>
-<p>设定：
-- block_size = 2
-- 基础 prefix：tokens <code>[A, B, C, D]</code>（需要 2 个 blocks）
-- 请求 1：<code>[A, B, C, D, E, F]</code>（3 个 blocks）
-- 请求 2：<code>[A, B, C, D, G, H]</code>（3 个 blocks）
+<p>设定：</p>
+<ul>
+<li>block_size = 2</li>
+<li>基础 prefix：tokens <code>[A, B, C, D]</code>（需要 2 个 blocks）</li>
+<li>请求 1：<code>[A, B, C, D, E, F]</code>（3 个 blocks）</li>
+<li>请求 2：<code>[A, B, C, D, G, H]</code>（3 个 blocks）
 初始状态：空闲 blocks = <code>[0,1,2,3,4,5,...]</code> 无限多
-问题：
-1. 分配基础 prefix（假设还没有人用过），画出两个 block 的 ref_count
-2. 分配请求 1，哪些 blocks 是共享的？ref_count 变成多少？
-3. 分配请求 2，再次共享 prefix，更新 ref_count
-4. 请求 1 结束，deallocate 时，哪些 blocks 的 ref_count 减少？哪些被真正释放？
-5. 最终请求 2 的 Block Table 是什么？</p>
+问题：</li>
+</ul>
+<ol>
+<li>分配基础 prefix（假设还没有人用过），画出两个 block 的 ref_count</li>
+<li>分配请求 1，哪些 blocks 是共享的？ref_count 变成多少？</li>
+<li>分配请求 2，再次共享 prefix，更新 ref_count</li>
+<li>请求 1 结束，deallocate 时，哪些 blocks 的 ref_count 减少？哪些被真正释放？</li>
+<li>最终请求 2 的 Block Table 是什么？</li>
+</ol>
 <p><strong>1. 分配基础 prefix</strong></p>
 <ul>
 <li>Block0：存 <code>[A, B]</code>，hash=h_AB，ref_count=1</li>
 <li>Block1：存 <code>[C, D]</code>，hash=h_CD，ref_count=1</li>
 </ul>
 <p><strong>2. 分配请求 1（需要 <code>[A,B,C,D,E,F]</code>）</strong></p>
-<p>请求 1 的 blocks：
-- Block0：<code>[A,B]</code>，哈希匹配 → 共享，ref_count=2
-- Block1：<code>[C,D]</code>，哈希匹配 → 共享，ref_count=2
-- Block2：<code>[E,F]</code>，新 block，ref_count=1</p>
+<p>请求 1 的 blocks：</p>
+<ul>
+<li>Block0：<code>[A,B]</code>，哈希匹配 → 共享，ref_count=2</li>
+<li>Block1：<code>[C,D]</code>，哈希匹配 → 共享，ref_count=2</li>
+<li>Block2：<code>[E,F]</code>，新 block，ref_count=1</li>
+</ul>
 <p>hash_to_block_id 新增：h_EF → Block2</p>
 <p><strong>3. 分配请求 2（需要 <code>[A,B,C,D,G,H]</code>）</strong></p>
 <ul>
@@ -427,10 +451,12 @@ PagedAttention：block size = 4 tokens，按需动态分配
 </ul>
 <p>hash_to_block_id 新增：h_GH → Block3</p>
 <p><strong>4. 请求 1 结束，deallocate</strong></p>
-<p>遍历请求 1 的 Block Table <code>[0,1,2]</code>（逆序）：
-- Block2：ref_count=1 → 减到 0，释放（从 hash_to_block_id 删除，加入 free list）
-- Block1：ref_count=3 → 减到 2（仍被基础 prefix 和请求 2 共享）
-- Block0：ref_count=3 → 减到 2（仍被共享）</p>
+<p>遍历请求 1 的 Block Table <code>[0,1,2]</code>（逆序）：</p>
+<ul>
+<li>Block2：ref_count=1 → 减到 0，释放（从 hash_to_block_id 删除，加入 free list）</li>
+<li>Block1：ref_count=3 → 减到 2（仍被基础 prefix 和请求 2 共享）</li>
+<li>Block0：ref_count=3 → 减到 2（仍被共享）</li>
+</ul>
 <p><strong>5. 请求 2 的最终 Block Table</strong></p>
 <div class="highlight"><pre><span></span><code>请求 2 的 Block Table = [0, 1, 3]
 </code></pre></div>

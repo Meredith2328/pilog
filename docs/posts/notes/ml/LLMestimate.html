@@ -170,9 +170,11 @@ FFN Output输入维度是 <span class="arithmatex">\(4d\)</span> 、输出维度
 <blockquote>
 <p>参数量决定了模型的“内存占用”，而FLOPs（浮点运算次数）决定了模型的“计算成本”。</p>
 </blockquote>
-<p>FLOPs（Floating Point Operations）指的是模型进行一次前向传播所需的浮点运算次数。对于矩阵乘法，<strong>一个 <span class="arithmatex">\(m \times n\)</span> 的矩阵乘以 <span class="arithmatex">\(n \times p\)</span> 的矩阵，FLOPs大约是 <span class="arithmatex">\(2mnp\)</span></strong> ，因为：
-- 结果矩阵有 m×p 个元素，
-- 每个元素由两个长度为 <span class="arithmatex">\(n\)</span> 的向量点积得到，因此大约需要 <span class="arithmatex">\(n\)</span> 次乘法和 <span class="arithmatex">\(n\)</span> 次加法（共 <span class="arithmatex">\(2n\)</span> 次运算）。</p>
+<p>FLOPs（Floating Point Operations）指的是模型进行一次前向传播所需的浮点运算次数。对于矩阵乘法，<strong>一个 <span class="arithmatex">\(m \times n\)</span> 的矩阵乘以 <span class="arithmatex">\(n \times p\)</span> 的矩阵，FLOPs大约是 <span class="arithmatex">\(2mnp\)</span></strong> ，因为：</p>
+<ul>
+<li>结果矩阵有 m×p 个元素，</li>
+<li>每个元素由两个长度为 <span class="arithmatex">\(n\)</span> 的向量点积得到，因此大约需要 <span class="arithmatex">\(n\)</span> 次乘法和 <span class="arithmatex">\(n\)</span> 次加法（共 <span class="arithmatex">\(2n\)</span> 次运算）。</li>
+</ul>
 <p>下表汇总了Transformer Decoder层中各操作的FLOPs计算方式。
 （记 <code>batch_size = 1</code>，<code>context_length = n</code>，维度为 <span class="arithmatex">\(d\)</span> ，<span class="arithmatex">\(d_{ff}=4d\)</span>）</p>
 <table>
@@ -301,11 +303,15 @@ F_fwd ≈ L(24BTD^2 + 4BT^2D) + 2BTVD
 <p>从而有了以下三条观察：</p>
 <ol>
 <li><strong>Attention的上下文平方复杂度</strong>：当 <code>context_length = n</code> 较大时， <span class="arithmatex">\(4Nn^2d\)</span> 项占主导，这使得长上下文时，Attention项成为毫无疑问的瓶颈。</li>
-<li><strong>训练 vs 推理</strong>：
+<li>
+<p><strong>训练 vs 推理</strong>：
    - 前向传播：使用上述表格的FLOPs，即2倍训练token数乘以参数量
    - 后向传播：约2倍前向FLOPs
-   - 总训练FLOPs ≈ 3倍前向FLOPs</li>
-<li><strong>经验公式</strong>：训练总FLOPs ≈ 6 × 参数量 × 训练token数</li>
+   - 总训练FLOPs ≈ 3倍前向FLOPs</p>
+</li>
+<li>
+<p><strong>经验公式</strong>：训练总FLOPs ≈ 6 × 参数量 × 训练token数</p>
+</li>
 </ol>
 <p>代入GPT2-XL参数： <span class="arithmatex">\(N=48\)</span>, <span class="arithmatex">\(d=1600\)</span>, <span class="arithmatex">\(n=1024\)</span>, <span class="arithmatex">\(V=50257\)</span>, <span class="arithmatex">\(P=1.56B\)</span>
 得到的前向 <span class="arithmatex">\(FLOPs \approx 3.507T\)</span> 。</p>

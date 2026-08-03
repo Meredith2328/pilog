@@ -132,9 +132,11 @@ cat phaseX.txt | ./hex2raw | ./rtarget
    7:   68 92 18 40 00          pushq  $0x401892
    c:   c3                      retq   
 </code></pre></div>
-<p>此时我们要解决以下问题：
-1. <code>0x556400b8</code> 本来是我们用于存放字符串的位置（执行的命令之后），但是我们现在此位置未知。
-首先类似于phase4，将我们所需注入的代码： <code>mov 字符串地址,%rdi</code> 和执行touch3拆解为：（伪代码）</p>
+<p>此时我们要解决以下问题：</p>
+<ol>
+<li><code>0x556400b8</code> 本来是我们用于存放字符串的位置（执行的命令之后），但是我们现在此位置未知。
+首先类似于phase4，将我们所需注入的代码： <code>mov 字符串地址,%rdi</code> 和执行touch3拆解为：（伪代码）</li>
+</ol>
 <div class="highlight"><pre><span></span><code>`popq %rax` 对应地址
 此处存放所需字符串地址
 `movq %rax,%rdi` 对应地址
@@ -425,13 +427,15 @@ ret
 </code></pre></div>
 <p>有趣的是，如果我们将cookie字符串存放到大片的00处，由于调用touch3会额外有push和sub（add负值等同于sub）等对栈指针的操作（相减类似于向上述的往左覆盖），我们存放的cookie字符串会被覆盖。因此将cookie字符串存放在字符串末尾巧妙地防止了这一点。运气很好没碰到这个难点，直接解决了。</p>
 <h2 id="phase2">phase2</h2>
-<p>我们考虑的思路是分两步：
-1. 修改寄存器的值为我们所需的cookie
-2. 执行touch2
+<p>我们考虑的思路是分两步：</p>
+<ol>
+<li>修改寄存器的值为我们所需的cookie</li>
+<li>执行touch2
 为了做到这些，我们首先需要更多的空间存放cookie和修改的指令。
 考虑利用程序为该栈帧分配的40个字节。可以将修改值、之后执行的这些指令全部写在栈帧中，而我们前一个phase所做的跳转改为跳转到栈底，执行完上述操作。
 为了执行touch2，我们可以利用类似于call指令的方法，即将“call指令的下一行”压入栈中、之后返回就会将栈中的地址弹出到PC，作为我们下一处执行的地址，从而将控制归还给touch2。
-基于以上思路，写出的汇编代码如下：</p>
+基于以上思路，写出的汇编代码如下：</li>
+</ol>
 <div class="highlight"><pre><span></span><code>movq $0x3661a994,%rdi  # set the register
 pushq 0x401781         # the address of touch2
 ret

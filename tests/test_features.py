@@ -49,6 +49,15 @@ def test_markdown_del_and_math() -> None:
         ctx,
     ).html
     assert '<div class="arithmatex">\\[E=mc^2\\]</div>' in inline_html, inline_html
+    # a list directly after a paragraph (no blank line) must still be a list
+    list_html = render_markdown(
+        "**标题**：\n- 第一项\n- 第二项\n",
+        src,
+        "index.html",
+        ctx,
+    ).html
+    assert "<ul>" in list_html and "<li>第一项</li>" in list_html, list_html
+    assert "- 第一项" not in list_html.replace("<ul>", ""), list_html
     print("  [PASS] ~~strikethrough~~ and $...$ / $$...$$ render")
 
 

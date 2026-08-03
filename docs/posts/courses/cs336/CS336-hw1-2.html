@@ -199,10 +199,12 @@ Count pass done: lines=15,600,057, tokens=540,796,778, elapsed=320.67s
 DataLoader把它变成batch流，
 每个batch包含 <span class="arithmatex">\(B\)</span> 个 (sequence, next_tokens)  ，其中 sequence 和 next_tokens 的长度均为 <span class="arithmatex">\(m\)</span> 。
 例如一个 <span class="arithmatex">\(B=1,m=3\)</span> 的batch可以为 <span class="arithmatex">\(([x_2,x_3,x_4],[x_3,x_4,x_5])\)</span> 。用于next token prediction的原始序列是 <span class="arithmatex">\([x_2,x_3,x_4]\)</span> ，它需要预测出的 token 是 <span class="arithmatex">\([x_3,x_4,x_5]\)</span> ，正好是原始序列整体往后一个的窗口。
-具体而言，这个任务是masked的：
-- 看到 <code>x₂</code>，预测 <code>x₃</code>
-- 看到 <code>x₂, x₃</code>，预测 <code>x₄</code>
-- 看到 <code>x₂, x₃, x₄</code>，预测 <code>x₅</code></p>
+具体而言，这个任务是masked的：</p>
+<ul>
+<li>看到 <code>x₂</code>，预测 <code>x₃</code></li>
+<li>看到 <code>x₂, x₃</code>，预测 <code>x₄</code></li>
+<li>看到 <code>x₂, x₃, x₄</code>，预测 <code>x₅</code></li>
+</ul>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_batch</span><span class="p">(</span>
     <span class="n">dataset</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
     <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -274,10 +276,12 @@ learning rate, learning rate warmup, other AdamW hyperparameters (β1, β2, ϵ),
 <p>训练指令如下：（我提前跑过bpe和数据转二进制了，所以skip）</p>
 <div class="highlight"><pre><span></span><code>bash scripts/run_tinystories_train.sh --use-wandb --skip-bpe --skip-tokenize
 </code></pre></div>
-<p>第一次模型训练大致如下。
-- 检查一下，文档要求的<strong>token budget</strong>是 <code>327,680,000</code> ，符合我们的 <code>batch size * context_length * steps = 64 * 256 * 20000</code> 。这个budget大约是题目所示的参数量（17M）的20倍，符合Chinchilla定律。
-- 检查一下，发现<strong>模型大小</strong>大约是22M，这与文档中提到的约17M有所差别。（简单思考一下，应该是LM head和embedding层没有共享权重（测试要求），那么按照估算公式，差个 <code>Vd = 10000 * 512</code> 刚好是5M。完美！）
-- 检查一下，<strong>learning rate的变化</strong>是先急剧上升到 <code>6e-4</code> ，然后先缓、再快、再缓地下降到 <code>6e-5</code> 。这符合cosine学习率调度的想法：最开始lr急剧上升而不是直接设置为 <code>6e-4</code> 是因为一开始模型随机初始化、对数据分布没有什么了解，如果贸然采取大学习率，可能使得它陷入不稳定的初始状态；再之后保持一段时间的大学习率，快速探索搜索空间，使得模型快速收敛；再快速转到小学习率，在最优解附近稳定且精细地探索。</p>
+<p>第一次模型训练大致如下。</p>
+<ul>
+<li>检查一下，文档要求的<strong>token budget</strong>是 <code>327,680,000</code> ，符合我们的 <code>batch size * context_length * steps = 64 * 256 * 20000</code> 。这个budget大约是题目所示的参数量（17M）的20倍，符合Chinchilla定律。</li>
+<li>检查一下，发现<strong>模型大小</strong>大约是22M，这与文档中提到的约17M有所差别。（简单思考一下，应该是LM head和embedding层没有共享权重（测试要求），那么按照估算公式，差个 <code>Vd = 10000 * 512</code> 刚好是5M。完美！）</li>
+<li>检查一下，<strong>learning rate的变化</strong>是先急剧上升到 <code>6e-4</code> ，然后先缓、再快、再缓地下降到 <code>6e-5</code> 。这符合cosine学习率调度的想法：最开始lr急剧上升而不是直接设置为 <code>6e-4</code> 是因为一开始模型随机初始化、对数据分布没有什么了解，如果贸然采取大学习率，可能使得它陷入不稳定的初始状态；再之后保持一段时间的大学习率，快速探索搜索空间，使得模型快速收敛；再快速转到小学习率，在最优解附近稳定且精细地探索。</li>
+</ul>
 <div class="highlight"><pre><span></span><code>============================================================
 Step 3/3: train model
 train_bin: data/tinystories_train.bin

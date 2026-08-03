@@ -135,9 +135,11 @@ edit time: 2026-01-27 23:41:42 整除理论专题、暴力枚举专题暂略</p>
 <del>基础篇跟进阶篇看起来有这么多东西，为什么甚至没有网络流</del></p>
 <p>排错：</p>
 <p>另外思考：算法题的测试（边界、功能）是怎么快速出出来的？
-你现在已经掌握了估算数值的方法、思考递推的方法等等，还需要掌握的是：如何给自己出一些测试、从而帮助自己调出一些边界条件，而不是每次都需要全部打印出来？
-- 死循环TLE：应该排查循环条件。
-- Segmentation Fault和Runtime Error：排查变量是否显式初始化，循环变量对数组的访问是否处理边界，多层的循环看内层有没有写错变量名。</p>
+你现在已经掌握了估算数值的方法、思考递推的方法等等，还需要掌握的是：如何给自己出一些测试、从而帮助自己调出一些边界条件，而不是每次都需要全部打印出来？</p>
+<ul>
+<li>死循环TLE：应该排查循环条件。</li>
+<li>Segmentation Fault和Runtime Error：排查变量是否显式初始化，循环变量对数组的访问是否处理边界，多层的循环看内层有没有写错变量名。</li>
+</ul>
 <p>感悟：</p>
 <ul>
 <li><strong>所有变量要初始化。</strong></li>
@@ -261,9 +263,11 @@ edit time: 2026-01-27 23:41:42 整除理论专题、暴力枚举专题暂略</p>
 </code></pre></div>
 <h2 id="_3">高精度专题</h2>
 <p>本专题的三道题分别讲解了高精度加法、高精度乘法、Bigint封装。</p>
-<p><strong>高精度注意两次逆序</strong>：
-1. 写入数组时，第一次逆序写入。
-2. 从数组中输出时，第二次逆序输出。</p>
+<p><strong>高精度注意两次逆序</strong>：</p>
+<ol>
+<li>写入数组时，第一次逆序写入。</li>
+<li>从数组中输出时，第二次逆序输出。</li>
+</ol>
 <p><img alt="" src="../../migrated/post-images/20260119152217.png"/></p>
 <div class="highlight"><pre><span></span><code><span class="c1">// 1. 先把输入的整数逆序.</span>
 <span class="c1">// 2. 从低位到高位逐位相加 (循环条件是更大的位数), 得到加法与进位.</span>
@@ -901,12 +905,14 @@ ps. 递推还要顺手分析一下数值大小。（可以朴素地用求和式�
 <span class="p">}</span>
 </code></pre></div>
 <p><img alt="" src="../../migrated/post-images/20260120110235.png"/></p>
-<p>思路容易乱，做一个整理：从没有子问题、到有子问题。
-1. 放松条件：不考虑递归，只有前面两个条件，则为 <span class="arithmatex">\(n/2 + 1\)</span> 。例如 <span class="arithmatex">\(n = 6\)</span> 时，其本身计数为1，在它后面可以添加 <span class="arithmatex">\(n=3,2,1\)</span> 三种情况，故计数为 <span class="arithmatex">\(3+1=4\)</span> 。
-2. 添加条件：考虑递归。例如 <span class="arithmatex">\(n = 6\)</span> 时，之前是在 <span class="arithmatex">\(n = 6\)</span> 基础上添加了 <span class="arithmatex">\(n=3,2,1\)</span> 三个计数；现在把 <span class="arithmatex">\(n=3,2,1\)</span> 不看成每个问题计数为1（<code>result += 1</code>），而是<strong>每个问题为需要调用函数计算的子问题</strong>（<code>result += generate(i)</code>）。
-3. 在写好原始递归后，将其升级为备忘录。
+<p>思路容易乱，做一个整理：从没有子问题、到有子问题。</p>
+<ol>
+<li>放松条件：不考虑递归，只有前面两个条件，则为 <span class="arithmatex">\(n/2 + 1\)</span> 。例如 <span class="arithmatex">\(n = 6\)</span> 时，其本身计数为1，在它后面可以添加 <span class="arithmatex">\(n=3,2,1\)</span> 三种情况，故计数为 <span class="arithmatex">\(3+1=4\)</span> 。</li>
+<li>添加条件：考虑递归。例如 <span class="arithmatex">\(n = 6\)</span> 时，之前是在 <span class="arithmatex">\(n = 6\)</span> 基础上添加了 <span class="arithmatex">\(n=3,2,1\)</span> 三个计数；现在把 <span class="arithmatex">\(n=3,2,1\)</span> 不看成每个问题计数为1（<code>result += 1</code>），而是<strong>每个问题为需要调用函数计算的子问题</strong>（<code>result += generate(i)</code>）。</li>
+<li>在写好原始递归后，将其升级为备忘录。
 （ps. 下述这个树的每个节点代表一次函数调用）
-<img alt="" src="../../migrated/post-images/20260120112909.png"/></p>
+<img alt="" src="../../migrated/post-images/20260120112909.png"/></li>
+</ol>
 <div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cstdio&gt;</span>
 <span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">std</span><span class="p">;</span>
@@ -1007,10 +1013,12 @@ ps. 递推还要顺手分析一下数值大小。（可以朴素地用求和式�
 <span class="p">}</span>
 </code></pre></div>
 <p><img alt="" src="../../migrated/post-images/20260120115108.png"/>
-由简到繁思考。
-1. （不含递归）对于 <code>[4CB]</code> ，逐个字符读取。读到 <code>[</code> 时，读入这一段的数字，直到读到字母；然后读入字母，直到读到 <code>]</code> ，将字母转成字母的重复。
-2. （包含递归）对于 <code>[2[2CB]]</code> ，读到 <code>[</code> 时，读入这一段的数字，直到读到 <code>[</code> ，则一直往后读，直到读到 <code>]</code> ，对这一段调用函数，然后转成子问题结果的重复。
-总而言之，我们的函数解释为将一段字符串展开。如果遇到递归，则对递归段调用函数，从而转化回将一段字符串展开的问题，然后再展开。</p>
+由简到繁思考。</p>
+<ol>
+<li>（不含递归）对于 <code>[4CB]</code> ，逐个字符读取。读到 <code>[</code> 时，读入这一段的数字，直到读到字母；然后读入字母，直到读到 <code>]</code> ，将字母转成字母的重复。</li>
+<li>（包含递归）对于 <code>[2[2CB]]</code> ，读到 <code>[</code> 时，读入这一段的数字，直到读到 <code>[</code> ，则一直往后读，直到读到 <code>]</code> ，对这一段调用函数，然后转成子问题结果的重复。
+总而言之，我们的函数解释为将一段字符串展开。如果遇到递归，则对递归段调用函数，从而转化回将一段字符串展开的问题，然后再展开。</li>
+</ol>
 <p>举个例子：
 调用函数 <code>expand("[2[2CB]]")</code> 。
 首先读入 <code>[</code> 和数字 <code>2</code> ，然后发现又有 <code>[</code> ，需要先对后面一整段调用子函数，即 <code>expand([2CB]])</code> ，调用后子函数将这一段展开为 <code>CBCB]</code> ，则字符串变为 <code>[2CBCB]</code> ，再同理展开即可。</p>
@@ -1505,10 +1513,12 @@ ps. lower_bound(a, a+n, val + 1)等价于upper_bound(a, a+n, val).
 <p>深度优先：优先考虑搜索的深度，到头了再进行处理。</p>
 <p><img alt="" src="../../migrated/post-images/20260121131056.png"/></p>
 <p><img alt="" src="../../migrated/post-images/20260121130720.png"/>
-下述其实是回溯板子、坐标占位判断、坐标映射三部分内容的结合体。
-1. 回溯板子，满足条件时打印、枚举可行选择、保存并调用后取消（注意取消一切影响，包括原始数组、行列是否有数字的数组等）。
-2. 坐标占位判断是通过三个数组实现的，每个元素 <code>b[x][y]</code> 代表“第x行/列/块是否有数字y”，所以x和y的取值范围都是1~4。
-3. 坐标映射很像PyTorch的Tensor。函数参数使用的坐标是1~16，为了把它映射到行号和列号，需要先映射到0~15，然后使用整除<code>/</code>和取模<code>%</code>（本质是移位和位与）。而块号可以由行号和列号映射得到。当然也可以直接用原始坐标求得，见下。</p>
+下述其实是回溯板子、坐标占位判断、坐标映射三部分内容的结合体。</p>
+<ol>
+<li>回溯板子，满足条件时打印、枚举可行选择、保存并调用后取消（注意取消一切影响，包括原始数组、行列是否有数字的数组等）。</li>
+<li>坐标占位判断是通过三个数组实现的，每个元素 <code>b[x][y]</code> 代表“第x行/列/块是否有数字y”，所以x和y的取值范围都是1~4。</li>
+<li>坐标映射很像PyTorch的Tensor。函数参数使用的坐标是1~16，为了把它映射到行号和列号，需要先映射到0~15，然后使用整除<code>/</code>和取模<code>%</code>（本质是移位和位与）。而块号可以由行号和列号映射得到。当然也可以直接用原始坐标求得，见下。</li>
+</ol>
 <p>这里提供一个位运算直接求得块号的过程，仅限1~16。</p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">map_number</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">'''将n: 1~16映射到00110011 22332233.'''</span>
@@ -1629,10 +1639,12 @@ ps. lower_bound(a, a+n, val + 1)等价于upper_bound(a, a+n, val).
 </blockquote>
 <p>仅考虑一个科目的情况。
 对于每个科目，需要尽可能均分为两堆：取子集，总耗时不超过一半且尽可能地大。
-拆分一下知识点：
-1. 把一个集合划分为尽可能均等的两个子集。这是通过逐渐加入元素，直到不超过大小的一半实现的。
-2. 如果满足条件，则选择题目和不选择题目都要处理。否则只处理不选择题目。
-3. 当两个时间并行时，它们重叠了，时间总数的贡献量应该取更大的那个时间（<code>max(maxtime, sum - maxtime) = sum - maxtime, if maxtime &lt;= sum / 2</code>）。</p>
+拆分一下知识点：</p>
+<ol>
+<li>把一个集合划分为尽可能均等的两个子集。这是通过逐渐加入元素，直到不超过大小的一半实现的。</li>
+<li>如果满足条件，则选择题目和不选择题目都要处理。否则只处理不选择题目。</li>
+<li>当两个时间并行时，它们重叠了，时间总数的贡献量应该取更大的那个时间（<code>max(maxtime, sum - maxtime) = sum - maxtime, if maxtime &lt;= sum / 2</code>）。</li>
+</ol>
 <div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cstdio&gt;</span>
 <span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">std</span><span class="p">;</span>
@@ -1857,8 +1869,10 @@ ps. lower_bound(a, a+n, val + 1)等价于upper_bound(a, a+n, val).
 <p>memset的头文件为cstring。
 <img alt="" src="../../migrated/post-images/20260120181150.png"/></p>
 <p>字符串的头文件为string。
-<img alt="" src="../../migrated/post-images/20260118204421.png"/>
-7. <strong>find的返回值备注</strong>：<code>s.find(str [,pos])</code>在没找到时会返回<code>string::npos</code>, 需要强转为<code>int</code>才是-1, 否则直接输出得到 <code>size_t</code> 的最大值，可能是一个大数.</p>
+<img alt="" src="../../migrated/post-images/20260118204421.png"/></p>
+<ol start="7">
+<li><strong>find的返回值备注</strong>：<code>s.find(str [,pos])</code>在没找到时会返回<code>string::npos</code>, 需要强转为<code>int</code>才是-1, 否则直接输出得到 <code>size_t</code> 的最大值，可能是一个大数.</li>
+</ol>
 <p><img alt="" src="../../migrated/post-images/20260118213050.png"/></p>
 <h3 id="_15">举例</h3>
 <p>以下三道题目利用字符串的七大常用方法，实现了字符计数、字符串处理和<strong>单词统计</strong>（空格法查找单词，给源文档和待查字符串前后都添加空格）。</p>

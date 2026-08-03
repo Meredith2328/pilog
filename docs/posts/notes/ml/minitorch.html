@@ -110,12 +110,14 @@
 <h2 id="_1">项目整体介绍</h2>
 <p>MiniTorch是一个基于Python基础语法或Numpy，并进一步使用Numba和CUDA对矩阵运算进行优化，以实现符合PyTorch接口的一个简易版PyTorch的项目。
 原项目来自于康奈尔大学由Sasha Rush老师教授的机器学习系统课程 <a href="https://minitorch.github.io/">MiniTorch</a> 。</p>
-<p>目录：
-- Fundamentals
-- AutoDiff
-- Tensor
-- Efficiency
-- Network</p>
+<p>目录：</p>
+<ul>
+<li>Fundamentals</li>
+<li>AutoDiff</li>
+<li>Tensor</li>
+<li>Efficiency</li>
+<li>Network</li>
+</ul>
 <h2 id="_2">安装环境</h2>
 <p><img alt="" src="../../migrated/post-images/20250702081943.png"/></p>
 <p>将以下内容保存为requirements.txt并替换原始项目使用的requirements.txt和requirements.txt.extra：</p>
@@ -628,9 +630,11 @@ ctx: forward时记录的变量，现在直接传进去用就行，后面应该�
 仍然以一个简单的例子为例：
 假设输入值为<code>2.0</code>, 经过一个<code>log</code>，得到了<code>log(2.0)</code>。设<code>d_output = 1</code>
 那么我们当前一步的求导一定是：<code>1 * log'(2.0)</code>
-即执行了：
-1. collecting the local derivatives，即对last_fn进行backward得到全部偏导组成的tuple。
-2. pair these with the right variables，即再进行一个zip操作。</p>
+即执行了：</p>
+<ol>
+<li>collecting the local derivatives，即对last_fn进行backward得到全部偏导组成的tuple。</li>
+<li>pair these with the right variables，即再进行一个zip操作。</li>
+</ol>
 <p>根据测试里的顺序可以看到每个pair的variable在前面、derivative在后面。</p>
 <h3 id="backpropagate">Backpropagate</h3>
 <h4 id="_12">整体理解</h4>
@@ -717,15 +721,19 @@ ctx: forward时记录的变量，现在直接传进去用就行，后面应该�
 <p><a href="https://minitorch.github.io/module1/backpropagate/#running-example">Backpropagate - MiniTorch</a></p>
 <p>这一段看起来难理解一点，那就慢慢读，步步为营，小步快跑
 <img alt="" src="../../migrated/post-images/20250707212822.png"/></p>
-<p><img alt="" src="../../migrated/post-images/20250707213331.png"/>
-- 第一层
+<p><img alt="" src="../../migrated/post-images/20250707213331.png"/></p>
+<ul>
+<li>
+<p>第一层
 首先是最后一个黑盒 <del>橘盒</del> 即 <span class="arithmatex">\(+\)</span> 输出的 <span class="arithmatex">\(h(a, b)=a + b, a = log(z), b = exp(z)\)</span>
 <strong>每次反黑盒都是黑盒的输出变量通过黑盒的函数形式对输入变量逐个求偏导的过程。</strong>
 进行第一个反黑盒backward计算，得到<span class="arithmatex">\(h\)</span>对两个输入变量<span class="arithmatex">\(a, b\)</span>各自的偏导数。</p>
-<ul>
-<li>第二层
+</li>
+<li>
+<p>第二层
 接下来假设先对上面那个节点进行处理，a自顾自地对z反黑盒（先拿到了偏导数用来乘，再让a对z求导，把用来乘的值和求导值乘起来）
-<img alt="" src="../../migrated/post-images/20250707213447.png"/></li>
+<img alt="" src="../../migrated/post-images/20250707213447.png"/></p>
+</li>
 </ul>
 <p>再对下面黑盒处理，b对z反黑盒
 <img alt="" src="../../migrated/post-images/20250707213747.png"/></p>
@@ -1179,10 +1187,12 @@ permute函数的backward需要通过实验额外说明一下：</p>
 <p>只需要实现各个函数的backward，就可以复用和第三部分一样的Autodiff、Backpropagation逻辑。</p>
 <h2 id="efficiency">Efficiency</h2>
 <p>Efficiency：使用<code>numba</code>并行和CUDA编程等方式提升效率。</p>
-<p>参考了：
-1. <a href="https://minitorch.github.io/">Minitorch项目文档</a>
-2. numba的文档相关部分（<a href="https://numba.readthedocs.io/en/stable/user/parallel.html">Automatic parallelization with @jit</a>）
-3. https://github.com/mukobi/Minitorch-Self-Study-Guide-SAIA</p>
+<p>参考了：</p>
+<ol>
+<li><a href="https://minitorch.github.io/">Minitorch项目文档</a></li>
+<li>numba的文档相关部分（<a href="https://numba.readthedocs.io/en/stable/user/parallel.html">Automatic parallelization with @jit</a>）</li>
+<li>https://github.com/mukobi/Minitorch-Self-Study-Guide-SAIA</li>
+</ol>
 <h3 id="parallelization">parallelization</h3>
 <p>Numba教程属于是。
 比较：</p>
@@ -1207,11 +1217,13 @@ permute函数的backward需要通过实验额外说明一下：</p>
 
     <span class="k">return</span> <span class="n">njit</span><span class="p">(</span><span class="n">parallel</span><span class="o">=</span><span class="kc">True</span><span class="p">)(</span><span class="n">_map</span><span class="p">)</span>
 </code></pre></div>
-<p>三个优化目标：
-* Main loop in parallel （用 <code>numba.prange</code> 替代 <code>range</code>）
-* All indices use numpy buffers （所有索引计算都使用ndarray，而非list或tuple）
-* When <code>out</code> and <code>in</code> are stride-aligned, avoid indexing（跳过索引计算，直接线性遍历）
-（ps. 搞不懂reduce的不要调用函数是啥意思。查阅了其他github fork的实现，都调用了函数。我后面的理解是，好像不能调用numpy等包的<code>.dot</code>之类的实现，只能写原生python）</p>
+<p>三个优化目标：</p>
+<ul>
+<li>Main loop in parallel （用 <code>numba.prange</code> 替代 <code>range</code>）</li>
+<li>All indices use numpy buffers （所有索引计算都使用ndarray，而非list或tuple）</li>
+<li>When <code>out</code> and <code>in</code> are stride-aligned, avoid indexing（跳过索引计算，直接线性遍历）
+（ps. 搞不懂reduce的不要调用函数是啥意思。查阅了其他github fork的实现，都调用了函数。我后面的理解是，好像不能调用numpy等包的<code>.dot</code>之类的实现，只能写原生python）</li>
+</ul>
 <p>这里有个搞笑的事情：在tensor_data/to_index函数的实现中，要加个trick：
 把ordinal改成cur_pos，为了不是改变同一变量ordinal，加个0。</p>
 <div class="highlight"><pre><span></span><code>cur_pos = ordinal + 0 # 为了Module3并行, 不能修改循环变量的trick
@@ -1224,10 +1236,12 @@ for i in range(len(shape) - 1, -1, -1): # 倒序
 Parallel structure is already optimal.
 --------------------------------------------------------------------------------
 </code></pre></div>
-<p>写这个task踩的一些坑：
-1. 把parallel=True关掉再看看。控制变量，从而确定是并行的问题、还是改函数的时候把函数逻辑改错了。
-2. 一点一点改。先跟原来的实现保持完全一致，然后慢慢加prange和快速路径等等，小步快跑，这样出错了可以发现问题在哪里。一口气全加上去了，报错还是得一点一点改。
-3. 到了并行，似乎很多时候调试器也不完全能解决问题。就像我拿pdb调到那里、自己调用相关函数跑发现addConstant确实把<code>[[0.00], [0.00]]</code>加成<code>[[5.00], [5.00]]</code>了，明明跑的跟代码一模一样的函数，结果它并行起来就变成<code>[0.00, 5.00]</code>了。这是什么事嘛。</p>
+<p>写这个task踩的一些坑：</p>
+<ol>
+<li>把parallel=True关掉再看看。控制变量，从而确定是并行的问题、还是改函数的时候把函数逻辑改错了。</li>
+<li>一点一点改。先跟原来的实现保持完全一致，然后慢慢加prange和快速路径等等，小步快跑，这样出错了可以发现问题在哪里。一口气全加上去了，报错还是得一点一点改。</li>
+<li>到了并行，似乎很多时候调试器也不完全能解决问题。就像我拿pdb调到那里、自己调用相关函数跑发现addConstant确实把<code>[[0.00], [0.00]]</code>加成<code>[[5.00], [5.00]]</code>了，明明跑的跟代码一模一样的函数，结果它并行起来就变成<code>[0.00, 5.00]</code>了。这是什么事嘛。</li>
+</ol>
 <p>之后先把另外两个的parallel给关了，专心调map的问题。</p>
 <h4 id="cannot-determine-numba-type">Cannot determine Numba type</h4>
 <p>这里报了一个神奇的错误 <code>Untyped global name 'exp': Cannot determine Numba type of &lt;class 'function'&gt;</code>，需要回去改operators.py：
@@ -1340,10 +1354,12 @@ Parallel structure is already optimal.
 <h3 id="matrix-multiplication">Matrix Multiplication</h3>
 <p>根据矩阵微积分的性质有：
 <img alt="" src="../../migrated/post-images/20250717195114.png"/>
-优化要求：
-- Outer loop in parallel
-- No index buffers or function calls
-- Inner loop should have no global writes, 1 multiply.</p>
+优化要求：</p>
+<ul>
+<li>Outer loop in parallel</li>
+<li>No index buffers or function calls</li>
+<li>Inner loop should have no global writes, 1 multiply.</li>
+</ul>
 <p>outer loop很好理解，就是遍历结果矩阵index的那个loop，这个肯定是prange就搞定了的。
 第二个没有函数调用同上，还是不知道啥意思，略过。（我后面的理解是，好像不能调用numpy等包的<code>.dot</code>之类的实现，只能写原生python）
 第三个是理所应当的，按照numba优化的写法把reduction变量写在外面、里面+=。</p>

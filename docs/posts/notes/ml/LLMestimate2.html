@@ -146,17 +146,19 @@ peak memory由参数+激活值+梯度+优化器状态四部分组成： <code>M_
 </code></pre></div>
 <h3 id="_3">激活值</h3>
 <p>激活值指某层的输出值，激活量指某层的输出值的数量。
-（但其实实际语境中分得没有这么清，可以从上下文判断指的是数量还是值）
-- RMS Norm输出矩阵为 <code>(B, T, D)</code> ，输出矩阵元素数量应为 <code>BTD</code> ；
-- Q、K、V 是 <code>(B, T, D) × (D, D) = (B, T, D)</code> ，输出数量均为 <code>BTD</code> ；
-- QK\^T 是 <code>(B, H, T, D/H) × (B, H, D/H, T)</code> ，输出数量为 <code>BHT^2</code> 。
-- AttnV 是 <code>(B, H, T, T) × (B, H, T, D/H)</code> ，输出数量为 <code>BTD</code> 。
-- O是 <code>(B, T, D) × (D, D) = (B, T, D)</code> ，输出数量为 <code>BTD</code> 。
-- FFN第一步是 <code>(B, T, D) × (D, 4D) = (B, T, 4D)</code> ，输出数量为 <code>4BTD</code> 。
-- FFN第二步是SiLU： <code>(B, T, 4D)</code> 和它的 sigmoid 的逐元素相乘，输出数量为 <code>4BTD</code> 。（注意不考虑Gate，因为使用的是SiLU而不是SwiGLU，只有两个W）
-- FFN第三步是 <code>(B, T, 4D) × (4D, D) = (B, T, D)</code> ，输出数量为 <code>BTD</code> 。
-- output embedding是 <code>(B, T, D) × (D, V)</code> ，输出数量为 <code>BTV</code> 。
-- CrossEntropyLoss在分析中间最大激活值内存（peak memory）时，首先对输入的logits <code>(B, T, V)</code>做一个softmax，这里得到了 <code>BTV</code> 。然后对于 <code>(B, T)</code> 个label，取对应label位置的负对数，求平均得到标量loss。peak memory意味着只要计算出了一团新的东西，我们就要把它考虑在内。所以应为 <code>BTV</code> 。</p>
+（但其实实际语境中分得没有这么清，可以从上下文判断指的是数量还是值）</p>
+<ul>
+<li>RMS Norm输出矩阵为 <code>(B, T, D)</code> ，输出矩阵元素数量应为 <code>BTD</code> ；</li>
+<li>Q、K、V 是 <code>(B, T, D) × (D, D) = (B, T, D)</code> ，输出数量均为 <code>BTD</code> ；</li>
+<li>QK\^T 是 <code>(B, H, T, D/H) × (B, H, D/H, T)</code> ，输出数量为 <code>BHT^2</code> 。</li>
+<li>AttnV 是 <code>(B, H, T, T) × (B, H, T, D/H)</code> ，输出数量为 <code>BTD</code> 。</li>
+<li>O是 <code>(B, T, D) × (D, D) = (B, T, D)</code> ，输出数量为 <code>BTD</code> 。</li>
+<li>FFN第一步是 <code>(B, T, D) × (D, 4D) = (B, T, 4D)</code> ，输出数量为 <code>4BTD</code> 。</li>
+<li>FFN第二步是SiLU： <code>(B, T, 4D)</code> 和它的 sigmoid 的逐元素相乘，输出数量为 <code>4BTD</code> 。（注意不考虑Gate，因为使用的是SiLU而不是SwiGLU，只有两个W）</li>
+<li>FFN第三步是 <code>(B, T, 4D) × (4D, D) = (B, T, D)</code> ，输出数量为 <code>BTD</code> 。</li>
+<li>output embedding是 <code>(B, T, D) × (D, V)</code> ，输出数量为 <code>BTV</code> 。</li>
+<li>CrossEntropyLoss在分析中间最大激活值内存（peak memory）时，首先对输入的logits <code>(B, T, V)</code>做一个softmax，这里得到了 <code>BTV</code> 。然后对于 <code>(B, T)</code> 个label，取对应label位置的负对数，求平均得到标量loss。peak memory意味着只要计算出了一团新的东西，我们就要把它考虑在内。所以应为 <code>BTV</code> 。</li>
+</ul>
 <p>其余同理，慢慢算一下。
 我们按照题目要求细细算一下一个Transformer Block的激活值：</p>
 <div class="highlight"><pre><span></span><code>A_block
@@ -215,14 +217,20 @@ M_opt    = 8P
 <img alt="" src="../../migrated/post-images/20260312234704.png"/></p>
 <p>把它的内容转写下来：
 <span class="arithmatex">\(d = 2048\)</span> (hidden dimension), <span class="arithmatex">\(N = 24\)</span> (layers), <span class="arithmatex">\(V = 50,000\)</span> (vocab size),
-<span class="arithmatex">\(B = 8\)</span> (batch size), <span class="arithmatex">\(L = 1024\)</span> (sequence length), <span class="arithmatex">\(h = 16\)</span> (attention heads).
-- Parameters: <span class="arithmatex">\(12Nd^2+Vd\)</span>
-- Forward activations: <span class="arithmatex">\(9BLd+2BhL^2\)</span> per layer
-- Backpropagation: ~ 2-3× activations + gradients + optimizer states
-Example (d=2048, N=24, L=1024, B=8, h=16, V=50k):
-- Parameters: ≈ 1.31B (≈ 2.4 GB in FP16, ≈ 21 GB with Adam states)
-- Forward activations: ≈ 18.7 GB
-- Backprop: ≈ 40-75 GB</p>
+<span class="arithmatex">\(B = 8\)</span> (batch size), <span class="arithmatex">\(L = 1024\)</span> (sequence length), <span class="arithmatex">\(h = 16\)</span> (attention heads).</p>
+<ul>
+<li>Parameters: <span class="arithmatex">\(12Nd^2+Vd\)</span></li>
+<li>Forward activations: <span class="arithmatex">\(9BLd+2BhL^2\)</span> per layer</li>
+<li>
+<p>Backpropagation: ~ 2-3× activations + gradients + optimizer states
+Example (d=2048, N=24, L=1024, B=8, h=16, V=50k):</p>
+</li>
+<li>
+<p>Parameters: ≈ 1.31B (≈ 2.4 GB in FP16, ≈ 21 GB with Adam states)</p>
+</li>
+<li>Forward activations: ≈ 18.7 GB</li>
+<li>Backprop: ≈ 40-75 GB</li>
+</ul>
 <p>它为什么是以下两个公式呢？</p>
 <div class="arithmatex">\[P=12Nd^2+Vd\]</div>
 <div class="arithmatex">\[A_{per\_layer}=9BLd+2BhL^2\]</div>

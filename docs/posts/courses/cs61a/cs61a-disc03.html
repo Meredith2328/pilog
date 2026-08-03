@@ -313,10 +313,12 @@
 <p>一种树状图思路如下：</p>
 <p><img alt="" src="../../migrated/post-images/1724983148922.jpg"/></p>
 <p>我们从上往下考虑。对于每一个金额（节点），分支上的数字是小于该金额的所有金币，并且要求下面的分支的金币面额不能大于上面的分支。则题目所示的所有情况就是从根节点（值为总金额）到叶节点（值为0）路径的总数。</p>
-<p>观察发现以下命题 <del>规则类怪谈</del> ：
-1. 如果减到剩余的值恰为0，则计数为一。
-2. （可以合并到 1. 中，用于提升计算效率）如果用到的金币面额为1，仅有后面一直用面额为1的一种情况，计数为一。
-3. 可以把单个节点连接三个、四个及以上的分支拆解成两个分支的情况，即图中的最小单元，且这两个分支用到的金额关系是较大和较小相邻的。两个分支总共的可能性是两个分支各自的可能性之和。</p>
+<p>观察发现以下命题 <del>规则类怪谈</del> ：</p>
+<ol>
+<li>如果减到剩余的值恰为0，则计数为一。</li>
+<li>（可以合并到 1. 中，用于提升计算效率）如果用到的金币面额为1，仅有后面一直用面额为1的一种情况，计数为一。</li>
+<li>可以把单个节点连接三个、四个及以上的分支拆解成两个分支的情况，即图中的最小单元，且这两个分支用到的金额关系是较大和较小相邻的。两个分支总共的可能性是两个分支各自的可能性之和。</li>
+</ol>
 <p>从而可能的方法如下：
 （以下Solution1 和 Solution 1 another implement都能跑，至于Solution 2, 3, 4, ..., 114514就交给你啦（））</p>
 <div class="highlight"><pre><span></span><code>    <span class="c1"># Solution 1</span>
@@ -343,8 +345,10 @@
             <span class="k">return</span> <span class="n">helper</span><span class="p">(</span><span class="n">remain</span> <span class="o">-</span> <span class="n">coin</span><span class="p">,</span> <span class="n">coin</span><span class="p">)</span> <span class="o">+</span> <span class="n">helper</span><span class="p">(</span><span class="n">remain</span><span class="p">,</span> <span class="n">next_smaller_coin</span><span class="p">(</span><span class="n">coin</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">helper</span><span class="p">(</span><span class="n">remain</span> <span class="o">=</span> <span class="n">total</span><span class="p">,</span> <span class="n">coin</span> <span class="o">=</span> <span class="mi">25</span><span class="p">)</span>
 </code></pre></div>
-<p>当然，如果认真听了课，学会了 <code>count_partition</code> 那道更一般的情况，这一道题也是相似的。最终要总结出类似于以下这样的命题：
-- In <code>count_partitions</code> from lecture, the recursive case is to partition <code>n-m</code> using parts up to size <code>m</code> <strong>and</strong> to partition <code>n</code> using parts up to size <code>m-1</code>. （引自 <a href="https://cs61a.org/disc/disc04/">Discussion 4 | CS 61A Summer 2024</a> ）</p>
+<p>当然，如果认真听了课，学会了 <code>count_partition</code> 那道更一般的情况，这一道题也是相似的。最终要总结出类似于以下这样的命题：</p>
+<ul>
+<li>In <code>count_partitions</code> from lecture, the recursive case is to partition <code>n-m</code> using parts up to size <code>m</code> <strong>and</strong> to partition <code>n</code> using parts up to size <code>m-1</code>. （引自 <a href="https://cs61a.org/disc/disc04/">Discussion 4 | CS 61A Summer 2024</a> ）</li>
+</ul>
   </div>
 
   

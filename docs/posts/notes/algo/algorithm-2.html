@@ -139,24 +139,38 @@ Lec17 近似算法可以√</p>
 <p>edit time: 2025-12-15 13:21:02</p>
 </blockquote>
 <p>算法理解的框架是：<strong>直觉 + 过程案例 + 伪代码</strong> <strong>及其追问</strong>。</p>
-<p>对于直觉，我们要追问：
-- 这个直觉适用于什么上下文？复杂度如何？
-- 在这个上下文中，如果不使用这个直觉，最简化或暴力的方式是什么？</p>
-<p>对于过程案例，我们要追问：
-- 边界条件的执行过程如何？换一个过程你还能写出来吗？
-- 在这个过程中，最不显然的是哪个点，比如某个变量含义的设置？</p>
-<p>对于伪代码，我们要追问：
-- 递归或循环的循环不变量是什么？
-- 如何向不懂算法的人解释清楚这个算法的过程？</p>
+<p>对于直觉，我们要追问：</p>
+<ul>
+<li>这个直觉适用于什么上下文？复杂度如何？</li>
+<li>在这个上下文中，如果不使用这个直觉，最简化或暴力的方式是什么？</li>
+</ul>
+<p>对于过程案例，我们要追问：</p>
+<ul>
+<li>边界条件的执行过程如何？换一个过程你还能写出来吗？</li>
+<li>在这个过程中，最不显然的是哪个点，比如某个变量含义的设置？</li>
+</ul>
+<p>对于伪代码，我们要追问：</p>
+<ul>
+<li>递归或循环的循环不变量是什么？</li>
+<li>如何向不懂算法的人解释清楚这个算法的过程？</li>
+</ul>
 <h2 id="lec1">Lec1 简单排序</h2>
 <h3 id="_1">插入排序</h3>
-<p>直觉：我们可以把新的元素插入已排好序的序列的合理位置，使得有序序列长度增加。
-- 追问略去. 复杂度为 <span class="arithmatex">\(\Theta(n^2)\)</span> 。
-过程：以31 41 59 26 41 58为例，
-- 循环不变量：<code>i</code>记录有序段的长度，<code>a[i]</code>是待排序元素，迭代前有序段已有序，迭代后有序段有序、且长度加一。
+<p>直觉：我们可以把新的元素插入已排好序的序列的合理位置，使得有序序列长度增加。</p>
+<ul>
+<li>
+<p>追问略去. 复杂度为 <span class="arithmatex">\(\Theta(n^2)\)</span> 。
+过程：以31 41 59 26 41 58为例，</p>
+</li>
+<li>
+<p>循环不变量：<code>i</code>记录有序段的长度，<code>a[i]</code>是待排序元素，迭代前有序段已有序，迭代后有序段有序、且长度加一。
 <img alt="" src="../../migrated/post-images/20251215125004.png"/>
-伪代码：
-- 找到<code>a[i]</code>应该放置的位置，给它腾出空间，将它放置于此.</p>
+伪代码：</p>
+</li>
+<li>
+<p>找到<code>a[i]</code>应该放置的位置，给它腾出空间，将它放置于此.</p>
+</li>
+</ul>
 <div class="highlight"><pre><span></span><code>// 设数组长度为n, 下标从0到n-1.
 
 for i = 1 to n - 1: // 已有序的元素数量
@@ -167,12 +181,18 @@ for i = 1 to n - 1: // 已有序的元素数量
 </code></pre></div>
 <h3 id="_2">归并排序</h3>
 <p>直觉：我们可以设置两个指针，将两个有序段合并成一个有序段。每次合并是 <span class="arithmatex">\(O(n)\)</span> 的。
-与此同时，<strong>为了减少合并次数</strong>，我们可以将数组二分，合并次数是 <span class="arithmatex">\(O(\log n)\)</span> 。
-- 追问：什么是低效的合并？比如一个有序段每次只和一个元素合并，这样的合并次数是 <span class="arithmatex">\(O(n)\)</span> 。甚至有点像插入排序了。
+与此同时，<strong>为了减少合并次数</strong>，我们可以将数组二分，合并次数是 <span class="arithmatex">\(O(\log n)\)</span> 。</p>
+<ul>
+<li>
+<p>追问：什么是低效的合并？比如一个有序段每次只和一个元素合并，这样的合并次数是 <span class="arithmatex">\(O(n)\)</span> 。甚至有点像插入排序了。
 过程：（子数组长度为1,2,4,8）
-<img alt="" src="../../migrated/post-images/20251215130312.png"/>
-- 追问：一定要考虑边界条件。对于原数组长度为1时，已自动有序，不需要找子数组。除此之外，<strong>二分并不保证两个数组长度严格相等</strong>，且我们在合并迭代过程中事实上需要处理数组长度不相等的情况。对于其中一个子数组长度为0时，我们不需要做比较，而是直接把另一个子数组的所有元素依序添加到合并数组最后即可。
+<img alt="" src="../../migrated/post-images/20251215130312.png"/></p>
+</li>
+<li>
+<p>追问：一定要考虑边界条件。对于原数组长度为1时，已自动有序，不需要找子数组。除此之外，<strong>二分并不保证两个数组长度严格相等</strong>，且我们在合并迭代过程中事实上需要处理数组长度不相等的情况。对于其中一个子数组长度为0时，我们不需要做比较，而是直接把另一个子数组的所有元素依序添加到合并数组最后即可。
 伪代码：</p>
+</li>
+</ul>
 <div class="highlight"><pre><span></span><code>MergeSort(A, l, r):
     if (l == r) return;
     mid = (l + r) / 2;
@@ -198,14 +218,20 @@ Merge(A, l, mid, mid + 1, r) {
 </ul>
 <h2 id="lec2">Lec2 分治</h2>
 <h3 id="_3">二分查找</h3>
-<p>直觉：我们可以通过每一次迭代时的信息，排除掉数组中一部分不满足性质的段，只在满足性质的段中查找所需元素。
-- 上下文：<strong>有序</strong>，或者更深刻地：<strong>当前元素的左半部分或右半部分满足某一性质，另一半部分不满足。</strong>
-- 暴力：从前往后或从后往前，需要判断所有元素所以 <span class="arithmatex">\(\Theta(n)\)</span> ，但我们二分的话只需要判断 <span class="arithmatex">\(\Theta(\log n)\)</span> 的元素。
+<p>直觉：我们可以通过每一次迭代时的信息，排除掉数组中一部分不满足性质的段，只在满足性质的段中查找所需元素。</p>
+<ul>
+<li>上下文：<strong>有序</strong>，或者更深刻地：<strong>当前元素的左半部分或右半部分满足某一性质，另一半部分不满足。</strong></li>
+<li>
+<p>暴力：从前往后或从后往前，需要判断所有元素所以 <span class="arithmatex">\(\Theta(n)\)</span> ，但我们二分的话只需要判断 <span class="arithmatex">\(\Theta(\log n)\)</span> 的元素。
 过程：
-<img alt="" src="../../migrated/post-images/20251215133035.png"/>
-- 边界：当待判断元素恰等于所求元素时，则已找到。当待判断区间长度为0还是找不到时（这是一定存在的，因为二分并不严格保证两个子区间长度相同），则不存在。
-- 关键：通过判断，<strong>只执行左半或右半子函数</strong>，或者修改循环边界点。
-伪代码：</p>
+<img alt="" src="../../migrated/post-images/20251215133035.png"/></p>
+</li>
+<li>
+<p>边界：当待判断元素恰等于所求元素时，则已找到。当待判断区间长度为0还是找不到时（这是一定存在的，因为二分并不严格保证两个子区间长度相同），则不存在。</p>
+</li>
+<li>关键：通过判断，<strong>只执行左半或右半子函数</strong>，或者修改循环边界点。
+伪代码：</li>
+</ul>
 <div class="highlight"><pre><span></span><code>// 假如A是升序的, 我们要找到元素x所在的位置.
 
 BSEARCH(A, l, r, x) {
@@ -226,30 +252,48 @@ BSEARCH(A, l, r, x) {
 <p>写着写着突然反应过来了这个直觉。好玩。开心。
 edit time: 2025-12-15 14:00:51</p>
 </blockquote>
-<p>直觉：<strong>当每个元素的左侧都小于等于它、右侧都大于它时，则整个数组已有序。</strong> 即我们由长到短进行“划分”，当我们划分区间长度为1或0时，则整个数组已有序。
-- 复杂度：每次选一个划分点、把其余元素放到左边和右边是 <span class="arithmatex">\(O(n)\)</span> 的。当我们选择元素作为划分点这件事需要对所有元素执行时，则快速排序退化为 <span class="arithmatex">\(O(n^2)\)</span> 。当我们选择元素作为划分点这件事只需要对一个元素执行时（原数组已有序），则快速排序进化为 <span class="arithmatex">\(O(n)\)</span> 。一般地，不严谨地讨论，当我们随机地选择划分点时，左右两侧的区间长度是基本相等的，那么我们总共需要选择 <span class="arithmatex">\(O(\log n)\)</span> 次划分点，也就是一般的复杂度为 <span class="arithmatex">\(O(n \log n)\)</span> 。
-- 上下文：排序就不说了，大家伙都清楚。
+<p>直觉：<strong>当每个元素的左侧都小于等于它、右侧都大于它时，则整个数组已有序。</strong> 即我们由长到短进行“划分”，当我们划分区间长度为1或0时，则整个数组已有序。</p>
+<ul>
+<li>复杂度：每次选一个划分点、把其余元素放到左边和右边是 <span class="arithmatex">\(O(n)\)</span> 的。当我们选择元素作为划分点这件事需要对所有元素执行时，则快速排序退化为 <span class="arithmatex">\(O(n^2)\)</span> 。当我们选择元素作为划分点这件事只需要对一个元素执行时（原数组已有序），则快速排序进化为 <span class="arithmatex">\(O(n)\)</span> 。一般地，不严谨地讨论，当我们随机地选择划分点时，左右两侧的区间长度是基本相等的，那么我们总共需要选择 <span class="arithmatex">\(O(\log n)\)</span> 次划分点，也就是一般的复杂度为 <span class="arithmatex">\(O(n \log n)\)</span> 。</li>
+<li>
+<p>上下文：排序就不说了，大家伙都清楚。
 过程：下述是对数组长度为8的划分过程，后续还要对子区间依次执行划分过程才能完成整个排序。
-<img alt="" src="../../migrated/post-images/20251215135127.png"/>
-- 边界：前述复杂度已讨论。
-- 关键：维护小于等于的段和大于的段。除此之外，<strong>我们先对大的区间进行划分、再对两个子区间进行划分</strong>。
-伪代码：
-- 循环不变量：
-    - 循环：划分点左侧的区间都小于等于划分元素，右侧都大于划分元素。
-    - 递归：<strong>每个子区间，它左边的子区间一定小于等于它，右边一定大于它</strong>。
-- 描述：我们把原数组划分为几个段，每次迭代前后维护这几个段的性质。第一个段是小于等于划分元素的段，第二个段是大于等于划分元素的段，其余部分是未排序的段。我们每次迭代从未排序的段取出元素加入两个段中，最后把划分元素置于两个段之间。</p>
+<img alt="" src="../../migrated/post-images/20251215135127.png"/></p>
+</li>
+<li>
+<p>边界：前述复杂度已讨论。</p>
+</li>
+<li>
+<p>关键：维护小于等于的段和大于的段。除此之外，<strong>我们先对大的区间进行划分、再对两个子区间进行划分</strong>。
+伪代码：</p>
+</li>
+<li>
+<p>循环不变量：</p>
+<ul>
+<li>循环：划分点左侧的区间都小于等于划分元素，右侧都大于划分元素。</li>
+<li>递归：<strong>每个子区间，它左边的子区间一定小于等于它，右边一定大于它</strong>。</li>
+</ul>
+</li>
+<li>
+<p>描述：我们把原数组划分为几个段，每次迭代前后维护这几个段的性质。第一个段是小于等于划分元素的段，第二个段是大于等于划分元素的段，其余部分是未排序的段。我们每次迭代从未排序的段取出元素加入两个段中，最后把划分元素置于两个段之间。</p>
+</li>
+</ul>
 <h3 id="_5">矩阵乘法</h3>
 <p>先讲解朴素分治，后面再优化到Strassen算法等。</p>
 <blockquote>
 <p>以下为了节省自己的工作量，文字部分由ai编写。</p>
 </blockquote>
-<p>直觉：我们可以将大矩阵分解为小块进行乘法，减少单次乘法的规模，利用递归实现。
-- 根据下述过程，<strong>设 <span class="arithmatex">\(n \times n\)</span> 的矩阵乘法的代价为 <span class="arithmatex">\(T(n)\)</span></strong> ，<strong>则根据计算1次矩阵乘法需要计算8次子矩阵乘法，有 <span class="arithmatex">\(T(n)=8T(n/2)+\Theta(n)\)</span> 。求得为 <span class="arithmatex">\(O(n^3)\)</span></strong>。但它为后续的优化算法（如Strassen算法，<span class="arithmatex">\(O(n^{2.81})\)</span>）提供了基础框架。
-- 暴力方式是三重循环直接计算 <span class="arithmatex">\(C[i][j] = \sum_{k=1}^{n} A[i][k] \cdot B[k][j]\)</span>，<span class="arithmatex">\(O(n^3)\)</span> 。</p>
+<p>直觉：我们可以将大矩阵分解为小块进行乘法，减少单次乘法的规模，利用递归实现。</p>
+<ul>
+<li>根据下述过程，<strong>设 <span class="arithmatex">\(n \times n\)</span> 的矩阵乘法的代价为 <span class="arithmatex">\(T(n)\)</span></strong> ，<strong>则根据计算1次矩阵乘法需要计算8次子矩阵乘法，有 <span class="arithmatex">\(T(n)=8T(n/2)+\Theta(n)\)</span> 。求得为 <span class="arithmatex">\(O(n^3)\)</span></strong>。但它为后续的优化算法（如Strassen算法，<span class="arithmatex">\(O(n^{2.81})\)</span>）提供了基础框架。</li>
+<li>暴力方式是三重循环直接计算 <span class="arithmatex">\(C[i][j] = \sum_{k=1}^{n} A[i][k] \cdot B[k][j]\)</span>，<span class="arithmatex">\(O(n^3)\)</span> 。</li>
+</ul>
 <p>过程：矩阵乘法的分块计算。（核心！！）
-<img alt="" src="../../migrated/post-images/20251215141246.png"/>
-- 边界条件是当矩阵大小为 <span class="arithmatex">\(1 \times 1\)</span> 时，递归终止，直接返回两个数的乘积。如果尝试用分治处理非2的幂次维度，需要进行填充或特殊处理子矩阵大小。
-- <strong>先解决小的矩阵，再解决大的矩阵。所以递归调用写在把矩阵组合起来的前面</strong>。</p>
+<img alt="" src="../../migrated/post-images/20251215141246.png"/></p>
+<ul>
+<li>边界条件是当矩阵大小为 <span class="arithmatex">\(1 \times 1\)</span> 时，递归终止，直接返回两个数的乘积。如果尝试用分治处理非2的幂次维度，需要进行填充或特殊处理子矩阵大小。</li>
+<li><strong>先解决小的矩阵，再解决大的矩阵。所以递归调用写在把矩阵组合起来的前面</strong>。</li>
+</ul>
 <p>伪代码：</p>
 <div class="highlight"><pre><span></span><code>MatrixMultiply(A, B, n):
     if n == 1:
@@ -267,8 +311,10 @@ edit time: 2025-12-15 14:00:51</p>
     将C11, C12, C21, C22组合成 n×n 矩阵C
     return C
 </code></pre></div>
-<p>循环不变量：
-- 每次迭代前，先进行划分，四个子块未完成计算。迭代后，<strong>四个子块均完成计算，可以直接合并成为结果块。</strong> 返回的矩阵大小和两个输入矩阵大小相等。</p>
+<p>循环不变量：</p>
+<ul>
+<li>每次迭代前，先进行划分，四个子块未完成计算。迭代后，<strong>四个子块均完成计算，可以直接合并成为结果块。</strong> 返回的矩阵大小和两个输入矩阵大小相等。</li>
+</ul>
 <p>Strassen算法：
 之前的矩阵乘法的分块计算需要8次矩阵乘法。Strassen算法通过一些巧妙的方式，只需要7次矩阵乘法。<del>怎么直觉感觉是信息压缩和共享</del></p>
 <h3 id="_6">多项式乘法</h3>
@@ -305,20 +351,26 @@ edit time: 2025-12-15 14:00:51</p>
 <p>非常易错：<strong>建立堆是 <span class="arithmatex">\(O(n)\)</span> 的。</strong>
 而每次更新是 <span class="arithmatex">\(O(\log n)\)</span> 的。</p>
 </blockquote>
-<p>直觉：<strong>先建立大根堆，然后每次从堆中排出一个元素</strong>，这样形成的一个序列是升序的。
-- 建立大根堆是 <span class="arithmatex">\(O(n)\)</span> 的，下述会证明。每次从堆中排出一个元素时，不妨把它与数组末尾的元素交换，则一次交换和一次维护堆的过程是 <span class="arithmatex">\(O(\log n)\)</span> 的，故堆排序是 <span class="arithmatex">\(O(n \log n)\)</span> 的。
-- 关于建立大根堆是 <span class="arithmatex">\(O(n)\)</span> 的，我们可能会不严谨地想：对于一个数组，把后半作为叶子元素，然后对前 <span class="arithmatex">\(n/2\)</span> 个元素执行维护操作，而维护操作是 <span class="arithmatex">\(O(\log n)\)</span> 的，故这一操作应该有个上界 <span class="arithmatex">\(O(n \log n)\)</span> 。但通过严格分析，我们发现不同高度的维护代价是不同的：<strong>对于某个特定的 <span class="arithmatex">\(h\)</span> ，维护操作是 <span class="arithmatex">\(O(h)\)</span> 的，高度为 <span class="arithmatex">\(h\)</span> 的节点数为 <span class="arithmatex">\(n/2^{h+1}\)</span>，<span class="arithmatex">\(h\)</span>的取值范围是 <span class="arithmatex">\(0\)</span> 到<span class="arithmatex">\(\log n\)</span>。</strong> 这样求和之后即得 <span class="arithmatex">\(O(n)\)</span> 。
-<img alt="" src="../../migrated/post-images/20251215162710.png"/></p>
+<p>直觉：<strong>先建立大根堆，然后每次从堆中排出一个元素</strong>，这样形成的一个序列是升序的。</p>
+<ul>
+<li>建立大根堆是 <span class="arithmatex">\(O(n)\)</span> 的，下述会证明。每次从堆中排出一个元素时，不妨把它与数组末尾的元素交换，则一次交换和一次维护堆的过程是 <span class="arithmatex">\(O(\log n)\)</span> 的，故堆排序是 <span class="arithmatex">\(O(n \log n)\)</span> 的。</li>
+<li>关于建立大根堆是 <span class="arithmatex">\(O(n)\)</span> 的，我们可能会不严谨地想：对于一个数组，把后半作为叶子元素，然后对前 <span class="arithmatex">\(n/2\)</span> 个元素执行维护操作，而维护操作是 <span class="arithmatex">\(O(\log n)\)</span> 的，故这一操作应该有个上界 <span class="arithmatex">\(O(n \log n)\)</span> 。但通过严格分析，我们发现不同高度的维护代价是不同的：<strong>对于某个特定的 <span class="arithmatex">\(h\)</span> ，维护操作是 <span class="arithmatex">\(O(h)\)</span> 的，高度为 <span class="arithmatex">\(h\)</span> 的节点数为 <span class="arithmatex">\(n/2^{h+1}\)</span>，<span class="arithmatex">\(h\)</span>的取值范围是 <span class="arithmatex">\(0\)</span> 到<span class="arithmatex">\(\log n\)</span>。</strong> 这样求和之后即得 <span class="arithmatex">\(O(n)\)</span> 。
+<img alt="" src="../../migrated/post-images/20251215162710.png"/></li>
+</ul>
 <blockquote>
 <p>上面这一处建立大根堆是 <span class="arithmatex">\(O(n)\)</span> 的分析比较重要！</p>
 </blockquote>
-<p>过程：
-1. 维护大根堆
-<img alt="" src="../../migrated/post-images/20251215163215.png"/>
-- 边界条件：当一个元素为叶子元素、或者子元素都比它小时，交换结束。
-- 对于大根堆，一个小的元素是往远离根的方向逐层下降的。其实是在树上进行一个有序链表的元素插入，挨个交换腾挪即可。
-2. 建立大根堆
-- 一定要注意是<strong>自底向上</strong>建立，见下述循环不变量的讨论。</p>
+<p>过程：</p>
+<ol>
+<li>维护大根堆
+<img alt="" src="../../migrated/post-images/20251215163215.png"/></li>
+</ol>
+<ul>
+<li>边界条件：当一个元素为叶子元素、或者子元素都比它小时，交换结束。</li>
+<li>对于大根堆，一个小的元素是往远离根的方向逐层下降的。其实是在树上进行一个有序链表的元素插入，挨个交换腾挪即可。
+2. 建立大根堆</li>
+<li>一定要注意是<strong>自底向上</strong>建立，见下述循环不变量的讨论。</li>
+</ul>
 <p>伪代码：</p>
 <div class="highlight"><pre><span></span><code>BUILD_MAXHEAP(A, n) {
     for i from n/2 to 1 {
@@ -358,11 +410,13 @@ HEAPIFY(A, n, i) {
 <p><img alt="" src="../../migrated/post-images/20251229230520.png"/>
 <img alt="" src="../../migrated/post-images/20251229230728.png"/>
 <img alt="" src="../../migrated/post-images/20251229230734.png"/>
-SELECT函数过程：（<span class="arithmatex">\(T(n)\)</span>）
-1. 我们将n个元素分成5个一组的约n/5个组。在每个5个一组中，我们使用直接插入排序，找到中位数（黄色）。
-2. 对这些约n/5个中位数执行SELECT函数，得到中位数的中位数 <span class="arithmatex">\(x\)</span> （红色）。（<span class="arithmatex">\(T(n/5)\)</span>）
-3. 如果 <span class="arithmatex">\(x\)</span> 就是要找的 top-k ，则停止。否则大于等于 <span class="arithmatex">\(x\)</span> 的元素至少有 <span class="arithmatex">\(3n/10\)</span> 个，小于等于 <span class="arithmatex">\(x\)</span> 的元素也至少有 <span class="arithmatex">\(3n/10\)</span> 个。我们只会排除掉这二者中的一部分，在剩下至多 <span class="arithmatex">\(7n/10\)</span> 个元素中执行SELECT函数，继续下去。（<span class="arithmatex">\(T(7n/10)\)</span>）
-上述这样的过程是 <span class="arithmatex">\(T(n)=T(n/5)+T(7n/10)+O(n)\)</span> 的。</p>
+SELECT函数过程：（<span class="arithmatex">\(T(n)\)</span>）</p>
+<ol>
+<li>我们将n个元素分成5个一组的约n/5个组。在每个5个一组中，我们使用直接插入排序，找到中位数（黄色）。</li>
+<li>对这些约n/5个中位数执行SELECT函数，得到中位数的中位数 <span class="arithmatex">\(x\)</span> （红色）。（<span class="arithmatex">\(T(n/5)\)</span>）</li>
+<li>如果 <span class="arithmatex">\(x\)</span> 就是要找的 top-k ，则停止。否则大于等于 <span class="arithmatex">\(x\)</span> 的元素至少有 <span class="arithmatex">\(3n/10\)</span> 个，小于等于 <span class="arithmatex">\(x\)</span> 的元素也至少有 <span class="arithmatex">\(3n/10\)</span> 个。我们只会排除掉这二者中的一部分，在剩下至多 <span class="arithmatex">\(7n/10\)</span> 个元素中执行SELECT函数，继续下去。（<span class="arithmatex">\(T(7n/10)\)</span>）
+上述这样的过程是 <span class="arithmatex">\(T(n)=T(n/5)+T(7n/10)+O(n)\)</span> 的。</li>
+</ol>
 <p><img alt="" src="../../migrated/post-images/20251229231014.png"/></p>
 <h3 id="top-k">顺序统计量和top-k问题总结</h3>
 <h4 id="_10">总结</h4>
@@ -508,12 +562,16 @@ n个端点（概率记为 <span class="arithmatex">\(b_i\)</span> ，从1到n）
 </ol>
 <p>假设少一个元素的两个序列（可能不等长！）的最长公共子序列已经计算出来了，我们要在它们之后各自添加一个元素。
 如果这两个元素相同，则为最长公共子序列贡献一个元素（+1）。
-如果这两个元素不同，其中仍然可能有一个元素能够为最长公共子序列贡献一个元素，需要把两个情况都取一下、取其最大值。
-- 边界：两个序列中任一个长度为0时，最长公共子序列为0。
-- 递推：
-    - <span class="arithmatex">\(C[i,j]=C[i-1,j-1]+1,x[i]=y[j]\)</span>
-    - <span class="arithmatex">\(C[i,j]=max(C[i-1,j],C[i,j-1]),x[i] \ne y[j]\)</span>
-<img alt="" src="../../migrated/post-images/20251222215053.png"/></p>
+如果这两个元素不同，其中仍然可能有一个元素能够为最长公共子序列贡献一个元素，需要把两个情况都取一下、取其最大值。</p>
+<ul>
+<li>边界：两个序列中任一个长度为0时，最长公共子序列为0。</li>
+<li>递推：<ul>
+<li><span class="arithmatex">\(C[i,j]=C[i-1,j-1]+1,x[i]=y[j]\)</span></li>
+<li><span class="arithmatex">\(C[i,j]=max(C[i-1,j],C[i,j-1]),x[i] \ne y[j]\)</span>
+<img alt="" src="../../migrated/post-images/20251222215053.png"/></li>
+</ul>
+</li>
+</ul>
 <p><img alt="" src="../../migrated/post-images/20251222215145.png"/>
 <img alt="" src="../../migrated/post-images/20251222215301.png"/></p>
 <h3 id="_13">背包问题</h3>
@@ -818,38 +876,48 @@ Dinic：BFS建分层图（<span class="arithmatex">\(O(|E|)\)</span>）、DFS找
 所以自己补了点例题。
 网络流与建模问题.pdf</p>
 <h3 id="1"><strong>例1：二分图匹配 → 最大流</strong></h3>
-<p><strong>问题</strong>：有3个程序员（A,B,C）和3个项目（X,Y,Z），每个程序员能做的项目有限：
-- A能做X,Y
-- B能做Y
-- C能做X,Z
+<p><strong>问题</strong>：有3个程序员（A,B,C）和3个项目（X,Y,Z），每个程序员能做的项目有限：</p>
+<ul>
+<li>A能做X,Y</li>
+<li>B能做Y</li>
+<li>C能做X,Z
 问最多能分配几个项目（一人做一个项目）？
-<strong>建模</strong>：
-1. 源点→每个程序员（容量1）
-2. 程序员→他能做的项目（容量1）
-3. 每个项目→汇点（容量1）
+<strong>建模</strong>：</li>
+</ul>
+<ol>
+<li>源点→每个程序员（容量1）</li>
+<li>程序员→他能做的项目（容量1）</li>
+<li>每个项目→汇点（容量1）
 <strong>为什么对</strong>：<br/>
 流从源到程序员=1表示选中该程序员，流到项目=1表示项目被分配，项目到汇点=1表示项目只被一人做。<br/>
-最大流值 = 最大匹配数。</p>
+最大流值 = 最大匹配数。</li>
+</ol>
 <h3 id="2"><strong>例2：多源多汇 → 单源单汇</strong></h3>
 <p><strong>问题</strong>：多个水厂给多个小区供水，水管网络已知，问最大总供水量。
-<strong>技巧</strong>：
-- 加一个<strong>超级源点</strong>，连到每个水厂（容量=水厂产能）。
-- 加一个<strong>超级汇点</strong>，每个小区连到它（容量=小区需求或无穷大）。
-- 跑最大流。</p>
+<strong>技巧</strong>：</p>
+<ul>
+<li>加一个<strong>超级源点</strong>，连到每个水厂（容量=水厂产能）。</li>
+<li>加一个<strong>超级汇点</strong>，每个小区连到它（容量=小区需求或无穷大）。</li>
+<li>跑最大流。</li>
+</ul>
 <h3 id="3"><strong>例3：点容量问题 → 边容量</strong></h3>
 <p>（作业里就有这个题）</p>
 <p><strong>问题</strong>：每个路口（节点）有通过人数上限，道路（边）也有容量，求从起点到终点最大人流。
-<strong>技巧</strong>：把每个节点 <span class="arithmatex">\(u\)</span> 拆成 <span class="arithmatex">\(u_{in}​\)</span> 和 <span class="arithmatex">\(u_{out}\)</span>：
-- 原进入 u 的边连到 uin​。
-- uin→uout 边容量 = 节点容量。
-- 原离开 u 的边从 uout 出发。</p>
+<strong>技巧</strong>：把每个节点 <span class="arithmatex">\(u\)</span> 拆成 <span class="arithmatex">\(u_{in}​\)</span> 和 <span class="arithmatex">\(u_{out}\)</span>：</p>
+<ul>
+<li>原进入 u 的边连到 uin​。</li>
+<li>uin→uout 边容量 = 节点容量。</li>
+<li>原离开 u 的边从 uout 出发。</li>
+</ul>
 <h3 id="4dag"><strong>例4：最小路径覆盖（DAG）</strong></h3>
 <p><strong>问题</strong>：有向无环图中，选择最少的路径，覆盖所有顶点（每个顶点恰好在一条路径中）。
-<strong>建模</strong>：
-1. 每个点 u 拆成 ux​（左）和 uy（右）。
-2. 原边 u→v 变成 ux→vy​（容量1）。
-3. 源点→所有 ux（容量1），所有 uy→汇点（容量1）。
-<strong>最大匹配</strong>对应路径覆盖，答案 = 顶点数 - 最大匹配数。</p>
+<strong>建模</strong>：</p>
+<ol>
+<li>每个点 u 拆成 ux​（左）和 uy（右）。</li>
+<li>原边 u→v 变成 ux→vy​（容量1）。</li>
+<li>源点→所有 ux（容量1），所有 uy→汇点（容量1）。
+<strong>最大匹配</strong>对应路径覆盖，答案 = 顶点数 - 最大匹配数。</li>
+</ol>
 <p>举例：（参考 <a href="https://www.luogu.com.cn/article/uqd9pow8">网络流与建模问题 - 洛谷专栏</a> ）
 <img alt="" src="../../migrated/post-images/20251224184759.png"/>
 像这样的一张图，最小路径覆盖
@@ -870,15 +938,21 @@ Dinic：BFS建分层图（<span class="arithmatex">\(O(|E|)\)</span>）、DFS找
 “<em>割值：付出的成本f + 没赚到的钱 (c的剩余量)</em>”
 网络流最小割的建模</p>
 <p><strong>问题</strong>：你要做几个项目，每个项目有收益，但需要租用一些设备。设备有租金。怎么选项目使（总收益-总租金）最大？
-<strong>建模</strong>：
-- 源点→每个项目（容量=项目收益）
-- 每个项目→它需要的设备（容量=∞）
-- 每个设备→汇点（容量=设备租金）
-<strong>最小割的意义</strong>：
-- 割左边（与源点同侧）的项目是<strong>要做的</strong>。
-- 割右边（与汇点同侧）的项目是<strong>不做的</strong>。
-- 割值 = 放弃的收益（右边项目收益）+ 付出的租金（左边项目用到的设备租金）。
-- 总利润 = 总收益 - 割值 → 要使割值最小，就是<strong>最小割</strong>！</p>
+<strong>建模</strong>：</p>
+<ul>
+<li>源点→每个项目（容量=项目收益）</li>
+<li>每个项目→它需要的设备（容量=∞）</li>
+<li>
+<p>每个设备→汇点（容量=设备租金）
+<strong>最小割的意义</strong>：</p>
+</li>
+<li>
+<p>割左边（与源点同侧）的项目是<strong>要做的</strong>。</p>
+</li>
+<li>割右边（与汇点同侧）的项目是<strong>不做的</strong>。</li>
+<li>割值 = 放弃的收益（右边项目收益）+ 付出的租金（左边项目用到的设备租金）。</li>
+<li>总利润 = 总收益 - 割值 → 要使割值最小，就是<strong>最小割</strong>！</li>
+</ul>
 <h2 id="lec11">Lec11 回溯</h2>
 <blockquote>
 <p><strong><em>可能因为过程中没有可选的选项而回溯，</em>*
@@ -1225,28 +1299,34 @@ y&gt;S-E时，最优解是一开始就爬楼梯即时间成本为S，BLTN时间�
 <img alt="" src="../../migrated/post-images/20251226113429.png"/>
 <img alt="" src="../../migrated/post-images/20251226113433.png"/></p>
 <p>这道题相当绕。需要以下几个直觉：
-一开始有n个点（1, 2, 3, ..., n)，I = {1, 2, 3, ..., n}。
-1. 如果出现的边两个点都在I中，至少需要删除其中一个点，保持独立集。
-2. 对抗构造的结果是，一开始就说是一棵n-1条边的树，结果也确实是一棵树，但是仍然让在线算法从n个点删得只剩下1个点了。
-3. （如果对抗构造不好，可能给出的边两个端点不一定在当时的I里，不需要删点，这样的话n-1条边之后剩下的点会多一些）</p>
+一开始有n个点（1, 2, 3, ..., n)，I = {1, 2, 3, ..., n}。</p>
+<ol>
+<li>如果出现的边两个点都在I中，至少需要删除其中一个点，保持独立集。</li>
+<li>对抗构造的结果是，一开始就说是一棵n-1条边的树，结果也确实是一棵树，但是仍然让在线算法从n个点删得只剩下1个点了。</li>
+<li>（如果对抗构造不好，可能给出的边两个端点不一定在当时的I里，不需要删点，这样的话n-1条边之后剩下的点会多一些）</li>
+</ol>
 <p>对于任意的在线算法，对抗构造如下：
 对抗者目标是让算法只剩下1个点，在线算法目标是剩下尽可能多的点。</p>
-<p>对抗者举例如下（n=5）：
-1. 对抗者随意选两个点，比如 A_1=1 和 A_2=2，给边 (1,2)。  算法必须删掉 1 或 2。假设算法删了 2，现在 I={1,3,4,5}。
-2. 对抗者选一个新点（还没参与过边的点），比如 3，给边 (1,3)。因为 1 还在 I 里，3 也在 I 里，所以算法必须删 1 或 3。  假设算法删 3，则 I={1,4,5}。
-3. 对抗者发现算法总是保留 1，删掉新点。  那么对抗者可以继续用同样的方式：给边 (1,4)、(1,5)，每次都逼算法删掉 4 或 5，算法如果总保留 1，最后 I={1}。这样就成功了：最终图是 星形树，中心是 1，所有叶子 2,3,4,5 都被删掉了。算法最终只剩 1 个点。</p>
+<p>对抗者举例如下（n=5）：</p>
+<ol>
+<li>对抗者随意选两个点，比如 A_1=1 和 A_2=2，给边 (1,2)。  算法必须删掉 1 或 2。假设算法删了 2，现在 I={1,3,4,5}。</li>
+<li>对抗者选一个新点（还没参与过边的点），比如 3，给边 (1,3)。因为 1 还在 I 里，3 也在 I 里，所以算法必须删 1 或 3。  假设算法删 3，则 I={1,4,5}。</li>
+<li>对抗者发现算法总是保留 1，删掉新点。  那么对抗者可以继续用同样的方式：给边 (1,4)、(1,5)，每次都逼算法删掉 4 或 5，算法如果总保留 1，最后 I={1}。这样就成功了：最终图是 星形树，中心是 1，所有叶子 2,3,4,5 都被删掉了。算法最终只剩 1 个点。</li>
+</ol>
 <p>如果在线算法改变选择会怎样？
 假设在第 2 步，给边 (1,3) 时，算法删了 1（保留 3）。<br/>
 那么 I={3,4,5}。
 对抗者就记录：现在“中心”变成了 3。<br/>
 下一步，给边 (3,4)，算法必须删 3 或 4。
 如果删 4，中心还是 3；如果删 3，中心变成 4。</p>
-<p>无论如何：
-- 每个新点（第一次出现的边的一个端点）都会和当前的“中心”连边。
-- 算法只能保留其中一个（中心或新点）。
-- 一旦算法保留新点（删除旧中心），那新点就成为新的中心，对抗者之后就用它连下一个新点。
+<p>无论如何：</p>
+<ul>
+<li>每个新点（第一次出现的边的一个端点）都会和当前的“中心”连边。</li>
+<li>算法只能保留其中一个（中心或新点）。</li>
+<li>一旦算法保留新点（删除旧中心），那新点就成为新的中心，对抗者之后就用它连下一个新点。
 这样，整个过程中，任何时刻 I 中最多只有一个“中心点”能和所有后来的点相连，最后当所有点都加入图后，I 里最多只有 最后保留下来的那个中心，其余点都会因为某条与中心的边而被删除。
-所以 最终 I 的大小 ≤ 1。</p>
+所以 最终 I 的大小 ≤ 1。</li>
+</ul>
 <blockquote>
 <p>总之，上述的对抗构造，<strong>让任何的在线算法都只能剩1个点</strong>。
 但是假如我们可以预知未来，一开始就知道对抗构造最终得到的树的所有边，树一定是二分图，所以可以只删二分图中点比较少的那部分。<strong>剩下的点数至少为n/2</strong>。
@@ -1357,12 +1437,16 @@ ps. 这里“否则”只要取任意大于1的数即可，保证TSP的解一定
 <img alt="" src="../../migrated/post-images/20251224165453.png"/>
 <img alt="" src="../../migrated/post-images/20251224165514.png"/></p>
 <h4 id="3-sat">3-SAT规约到独立集</h4>
-<p><strong>独立集问题是 NP 完全的证明</strong>：
-1. 独立集 ∈ NP：给定集合，可在多项式时间验证是否大小为 k 且无边相连。
-2. 从 3SAT 归约到独立集问题：“在每个子句中找（至少）一个变量置为1”
-给组内每对顶点添加一条边，给互反顶点之间添加一条边。
-- 子句内互斥：子句内变量两两之间有连边。（把“至少”转化成“必须选一个”，这样比较简单）
-- 矛盾互斥：变量和变量的非之间有连边。</p>
+<p><strong>独立集问题是 NP 完全的证明</strong>：</p>
+<ol>
+<li>独立集 ∈ NP：给定集合，可在多项式时间验证是否大小为 k 且无边相连。</li>
+<li>从 3SAT 归约到独立集问题：“在每个子句中找（至少）一个变量置为1”
+给组内每对顶点添加一条边，给互反顶点之间添加一条边。</li>
+</ol>
+<ul>
+<li>子句内互斥：子句内变量两两之间有连边。（把“至少”转化成“必须选一个”，这样比较简单）</li>
+<li>矛盾互斥：变量和变量的非之间有连边。</li>
+</ul>
 <p><img alt="" src="../../migrated/post-images/20251227202512.png"/></p>
 <h3 id="np-complete_1">一些NP-complete的碎碎念</h3>
 <p>Circuit-SAT：给定一个电路，确定电路是否可满足（比如从电路倒推满足实例）
