@@ -191,6 +191,10 @@ def main() -> None:
             "document.querySelector('#graph-stats').textContent.includes('篇文章')",
             timeout=20000,
         )
+        ok &= check("graph loading indicator present",
+                    page.locator("#site-graph-loading").count() == 1)
+        ok &= check("graph loading hidden after load",
+                    page.locator("#site-graph-loading").evaluate("el => el.hidden"))
         page.click("#graph-expand-all")
         page.wait_for_timeout(600)
         node_count = page.locator(".graph-node").count()

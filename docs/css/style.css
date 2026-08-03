@@ -1136,6 +1136,44 @@ a:hover {
   -webkit-touch-callout: none;
 }
 
+.graph-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(247, 247, 247, 0.9);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+}
+
+.graph-loading[hidden] {
+  display: none;
+}
+
+.graph-loading-px {
+  width: 12px;
+  height: 12px;
+  background: var(--accent);
+  box-shadow: 3px 3px 0 var(--shadow);
+  animation: graph-loading-blink 0.8s linear infinite;
+}
+
+@keyframes graph-loading-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+
 .graph-wrap:active {
   cursor: grabbing;
 }

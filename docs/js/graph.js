@@ -1048,11 +1048,14 @@
     start: function () {
       if (this.started) return;
       this.started = true;
+      setLoading(true, "加载图谱中…");
+      var self = this;
       fetch(dataRoot + "data/graph.json")
         .then(function (r) { return r.json(); })
         .then(function (d) {
           data = d;
           run();
+          setLoading(false);
           if (pendingHighlight) {
             var f = pendingHighlight;
             pendingHighlight = null;
@@ -1060,13 +1063,25 @@
           }
         })
         .catch(function () {
-          this.started = false;
+          self.started = false;
+          setLoading(true, "图谱加载失败，请刷新重试");
         });
     },
     highlightFolder: function (folder) {
       highlightFolder(folder);
     }
   };
+
+  /* ---------- loading indicator (site graph pane) ---------- */
+
+  var loadingEl = document.getElementById("site-graph-loading");
+  var loadingText = document.getElementById("site-graph-loading-text");
+
+  function setLoading(on, msg) {
+    if (!loadingEl) return;
+    loadingEl.hidden = !on;
+    if (msg && loadingText) loadingText.textContent = msg;
+  }
 
   var pane = document.querySelector(".view-pane.is-active");
   if (pane && pane.dataset.pane === "graph") {
