@@ -8,9 +8,12 @@ feature: null
 isTop: false
 ---
 本部分适合于知道AdamW更新流程、但没有尝试推导过peak memory和计算量、计算时间的朋友。
+
 省流：
-A_{per\_layer} ≈ 9BLd + 2BhL^2
-C ≈ 6 × P × D
+
+$$A_{per\_layer} ≈ 9BLd + 2BhL^2$$
+
+$$C ≈ 6 × P × D$$
 
 <!-- more -->
 
@@ -27,26 +30,37 @@ C ≈ 6 × P × D
 
 Problem (adamwAccounting): Resource accounting for training with AdamW
 接下来我们计算一下使用AdamW需要多少内存和计算。tensor一律使用float32。
+
 **(a) 运行AdamW的peak memory是多少？**
+
 （内存需求=参数+激活值+梯度+优化器状态，基于 `batch_size` 和 `(vocab_size, context_length, num_layers, d_model, num_heads)` ，假设 `d_ff = 4 × d_model` ）
+
 只考虑以下部分：
-• Transformer block
-– RMSNorm(s)
-– Multi-head self-attention sublayer: QKV projections, $Q^TK$ matrix multiply, softmax, weighted sum of values, output projection.
-– Position-wise feed-forward: W1 matrix multiply, SiLU, W2 matrix multiply
-• final RMSNorm
-• output embedding
-• cross-entropy on logits
+
+- Transformer block
+  - RMSNorm(s)
+  - Multi-head self-attention sublayer: QKV projections, $Q^TK$ matrix multiply, softmax, weighted sum of values, output projection.
+  - Position-wise feed-forward: W1 matrix multiply, SiLU, W2 matrix multiply
+- final RMSNorm
+- output embedding
+- cross-entropy on logits
+
 **(b) 对于GPT-2 XL-shaped model，回答(a)。在80GB内存的前提下，最大可用的batch size是多少？**
+
 **(c) 运行AdamW的一个step需要多少的FLOPs？**
+
 **(d)** Model FLOPs utilization (MFU)定义为 the ratio of observed throughput (tokens per second) / the hardware’s theoretical peak FLOP throughput [Chowdhery et al., 2022] 。单台NVIDIA A100 GPU对于float32操作的理论峰值是19.5T FLOPs。**假设你能获得50%的MFU，在单台NVIDIA A100 GPU上训练GPT-2 XL需要多少天**（400K steps，batch size 1024）？
+
 （基于 [Kaplan et al. ,2020] and [Hoffmann et al. ,2022] ，假设反向FLOPs是前向FLOPs的两倍）
 
 ## (a) 运行AdamW的peak memory是多少？
 
 记 `B = batch_size, V = vocab_size, T = context_length, L = num_layers, D = d_model, H = num_heads, D_ff = 4D` 。
+
 peak memory由参数+激活值+梯度+优化器状态四部分组成： `M_total = M_params + M_acts + M_grads + M_opt` 。
+
 所有tensor都是float32，所以每个元素应为4 bytes。
+
 ### 参数量
 
 **参数量**如果按 [以前推导过的参数量估算公式](https://meredith2328.github.io/post/LLMestimate/) 来，则有：（假设embedding层和LM Head参数共享，$d_{ff}=4d$ ，RMS Norm的参数量忽略不计）
@@ -536,9 +550,13 @@ LARGE    772.1M   12.56      21.83      42.4%
 ****
 
 关于异常值（GPT-2 SMALL的 `Actual 8.99GB` ）：
+
 我发现SMALL的这个有一定规律性。我固定了GPU（Tesla T4，Total GPU memory: 15.64 GB），在启动机器之后，利用连续的cell运行完全相同的代码三次。第一次运行时权重从网上下载，此时运行分配的SMALL是2.47GB，连着第二次运行时SMALL稳定飙升到8.99GB，第三次也是8.99GB左右。
+
 我尝试静置五分钟（运行时没有关闭、仍然停在运行完之前代码的状态），再新建一个cell跑，第四次仍然是8.99GB左右。
+
 我的看法是，它似乎是各次运行循环互相之间有影响，而且基本上只影响到了SMALL。不知道是哪一环——把跟SMALL无关的内存消耗算进去了？各个运行之间互相有影响？我静置个很久（比如1h）就会不一样？
+
 但不得不说，排除掉这个导致110%的8.99GB异常，三个模型40%、41%、42%这样的比例极其稳定。
 
 ****

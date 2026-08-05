@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="generator" content="pilog">
   <title>怎么估算LLM训练的内存和计算需求？推一推、测一测 · 10PI&#39;S BLOG丨十派的玩具箱</title>
-  <meta name="description" content="本部分适合于知道AdamW更新流程、但没有尝试推导过peak memory和计算量、计算时间的朋友。 A{per\layer} ≈ 9BLd + 2BhL^2 C ≈ 6 × P × D Problem (adamwAccounting): Resource accounting for training with A">
+  <meta name="description" content="本部分适合于知道AdamW更新流程、但没有尝试推导过peak memory和计算量、计算时间的朋友。 $$A{per\layer} ≈ 9BLd + 2BhL^2$$ $$C ≈ 6 × P × D$$ Problem (adamwAccounting): Resource accounting for trainin">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="10PI&#39;S BLOG丨十派的玩具箱">
   <meta property="og:title" content="怎么估算LLM训练的内存和计算需求？推一推、测一测">
-  <meta property="og:description" content="本部分适合于知道AdamW更新流程、但没有尝试推导过peak memory和计算量、计算时间的朋友。 A{per\layer} ≈ 9BLd + 2BhL^2 C ≈ 6 × P × D Problem (adamwAccounting): Resource accounting for training with A">
+  <meta property="og:description" content="本部分适合于知道AdamW更新流程、但没有尝试推导过peak memory和计算量、计算时间的朋友。 $$A{per\layer} ≈ 9BLd + 2BhL^2$$ $$C ≈ 6 × P × D$$ Problem (adamwAccounting): Resource accounting for trainin">
   <link rel="canonical" href="https://meredith2328.github.io/posts/notes/ml/LLMestimate2.html">
   
   <meta property="og:image" content="https://meredith2328.github.io/assets/.thumbs/31abc74ea940.jpg">
@@ -101,10 +101,10 @@
   
 
   <div class="post-body markdown-body">
-    <p>本部分适合于知道AdamW更新流程、但没有尝试推导过peak memory和计算量、计算时间的朋友。
-省流：
-A_{per_layer} ≈ 9BLd + 2BhL^2
-C ≈ 6 × P × D</p>
+    <p>本部分适合于知道AdamW更新流程、但没有尝试推导过peak memory和计算量、计算时间的朋友。</p>
+<p>省流：</p>
+<div class="arithmatex">\[A_{per\_layer} ≈ 9BLd + 2BhL^2\]</div>
+<div class="arithmatex">\[C ≈ 6 × P × D\]</div>
 <!-- more -->
 <blockquote>
 <p>上接前文： <a href="https://meredith2328.github.io/post/LLMestimate/">怎么估算LLM的参数量和FLOPs？推一推、测一测 | 十派的玩具箱</a><br/>本部分推导与验证的公式基于<strong>激活值不会提前释放、而是全部保留</strong>的假设，得到了 <span class="arithmatex">\(A_{per\_layer} \approx 16BLd+2BhL^2\)</span> 的结论，后续实测也是基于这个结论。另外引言中的 <span class="arithmatex">\(C \approx 6 × P × D\)</span> 指计算量约等于六倍的参数量乘以训练token数。<br/>事实上，许多中间值通常在后续层进行计算时就已经释放了，相关讨论在 (a) 的“如果会提前释放，不同时保存所有激活值？”部分，结论应为 <span class="arithmatex">\(A_{per\_layer}=9BLd+2BhL^2\)</span> 。<br/>撰写过程中借助了DeepSeek v3.2生成相关代码、以及处理一部分计算工作。<br/>另外，本篇只是个人基于现在已知的知识做的具有阶段性、一定合理性的推测，不代表真正的事实：不代表PyTorch、CUDA的实际工程实现。后者还需要更多的调查研究才能得出更好的结论。<br/>edit time: 2026-03-13 11:12:50</p>
@@ -114,25 +114,31 @@ C ≈ 6 × P × D</p>
 <p>来自CS336。自己翻的，可能有错，欢迎在 <a href="https://github.com/Meredith2328/meredith2328.github.io/issues">Issues · Meredith2328/meredith2328.github.io</a> 指正。</p>
 </blockquote>
 <p>Problem (adamwAccounting): Resource accounting for training with AdamW
-接下来我们计算一下使用AdamW需要多少内存和计算。tensor一律使用float32。
-<strong>(a) 运行AdamW的peak memory是多少？</strong>
-（内存需求=参数+激活值+梯度+优化器状态，基于 <code>batch_size</code> 和 <code>(vocab_size, context_length, num_layers, d_model, num_heads)</code> ，假设 <code>d_ff = 4 × d_model</code> ）
-只考虑以下部分：
-• Transformer block
-– RMSNorm(s)
-– Multi-head self-attention sublayer: QKV projections, <span class="arithmatex">\(Q^TK\)</span> matrix multiply, softmax, weighted sum of values, output projection.
-– Position-wise feed-forward: W1 matrix multiply, SiLU, W2 matrix multiply
-• final RMSNorm
-• output embedding
-• cross-entropy on logits
-<strong>(b) 对于GPT-2 XL-shaped model，回答(a)。在80GB内存的前提下，最大可用的batch size是多少？</strong>
-<strong>(c) 运行AdamW的一个step需要多少的FLOPs？</strong>
-<strong>(d)</strong> Model FLOPs utilization (MFU)定义为 the ratio of observed throughput (tokens per second) / the hardware’s theoretical peak FLOP throughput [Chowdhery et al., 2022] 。单台NVIDIA A100 GPU对于float32操作的理论峰值是19.5T FLOPs。<strong>假设你能获得50%的MFU，在单台NVIDIA A100 GPU上训练GPT-2 XL需要多少天</strong>（400K steps，batch size 1024）？
-（基于 [Kaplan et al. ,2020] and [Hoffmann et al. ,2022] ，假设反向FLOPs是前向FLOPs的两倍）</p>
+接下来我们计算一下使用AdamW需要多少内存和计算。tensor一律使用float32。</p>
+<p><strong>(a) 运行AdamW的peak memory是多少？</strong></p>
+<p>（内存需求=参数+激活值+梯度+优化器状态，基于 <code>batch_size</code> 和 <code>(vocab_size, context_length, num_layers, d_model, num_heads)</code> ，假设 <code>d_ff = 4 × d_model</code> ）</p>
+<p>只考虑以下部分：</p>
+<ul>
+<li>Transformer block</li>
+<li>RMSNorm(s)</li>
+<li>Multi-head self-attention sublayer: QKV projections, <span class="arithmatex">\(Q^TK\)</span> matrix multiply, softmax, weighted sum of values, output projection.</li>
+<li>
+<p>Position-wise feed-forward: W1 matrix multiply, SiLU, W2 matrix multiply</p>
+</li>
+<li>
+<p>final RMSNorm</p>
+</li>
+<li>output embedding</li>
+<li>cross-entropy on logits</li>
+</ul>
+<p><strong>(b) 对于GPT-2 XL-shaped model，回答(a)。在80GB内存的前提下，最大可用的batch size是多少？</strong></p>
+<p><strong>(c) 运行AdamW的一个step需要多少的FLOPs？</strong></p>
+<p><strong>(d)</strong> Model FLOPs utilization (MFU)定义为 the ratio of observed throughput (tokens per second) / the hardware’s theoretical peak FLOP throughput [Chowdhery et al., 2022] 。单台NVIDIA A100 GPU对于float32操作的理论峰值是19.5T FLOPs。<strong>假设你能获得50%的MFU，在单台NVIDIA A100 GPU上训练GPT-2 XL需要多少天</strong>（400K steps，batch size 1024）？</p>
+<p>（基于 [Kaplan et al. ,2020] and [Hoffmann et al. ,2022] ，假设反向FLOPs是前向FLOPs的两倍）</p>
 <h2 id="a-adamwpeak-memory">(a) 运行AdamW的peak memory是多少？</h2>
-<p>记 <code>B = batch_size, V = vocab_size, T = context_length, L = num_layers, D = d_model, H = num_heads, D_ff = 4D</code> 。
-peak memory由参数+激活值+梯度+优化器状态四部分组成： <code>M_total = M_params + M_acts + M_grads + M_opt</code> 。
-所有tensor都是float32，所以每个元素应为4 bytes。</p>
+<p>记 <code>B = batch_size, V = vocab_size, T = context_length, L = num_layers, D = d_model, H = num_heads, D_ff = 4D</code> 。</p>
+<p>peak memory由参数+激活值+梯度+优化器状态四部分组成： <code>M_total = M_params + M_acts + M_grads + M_opt</code> 。</p>
+<p>所有tensor都是float32，所以每个元素应为4 bytes。</p>
 <h3 id="_2">参数量</h3>
 <p><strong>参数量</strong>如果按 <a href="https://meredith2328.github.io/post/LLMestimate/">以前推导过的参数量估算公式</a> 来，则有：（假设embedding层和LM Head参数共享，<span class="arithmatex">\(d_{ff}=4d\)</span> ，RMS Norm的参数量忽略不计）</p>
 <div class="arithmatex">\[P=12Nd^2+Vd\]</div>
@@ -532,11 +538,11 @@ LARGE    772.1M   12.56      21.83      42.4%
 ============================================================
 </code></pre></div>
 <hr/>
-<p>关于异常值（GPT-2 SMALL的 <code>Actual 8.99GB</code> ）：
-我发现SMALL的这个有一定规律性。我固定了GPU（Tesla T4，Total GPU memory: 15.64 GB），在启动机器之后，利用连续的cell运行完全相同的代码三次。第一次运行时权重从网上下载，此时运行分配的SMALL是2.47GB，连着第二次运行时SMALL稳定飙升到8.99GB，第三次也是8.99GB左右。
-我尝试静置五分钟（运行时没有关闭、仍然停在运行完之前代码的状态），再新建一个cell跑，第四次仍然是8.99GB左右。
-我的看法是，它似乎是各次运行循环互相之间有影响，而且基本上只影响到了SMALL。不知道是哪一环——把跟SMALL无关的内存消耗算进去了？各个运行之间互相有影响？我静置个很久（比如1h）就会不一样？
-但不得不说，排除掉这个导致110%的8.99GB异常，三个模型40%、41%、42%这样的比例极其稳定。</p>
+<p>关于异常值（GPT-2 SMALL的 <code>Actual 8.99GB</code> ）：</p>
+<p>我发现SMALL的这个有一定规律性。我固定了GPU（Tesla T4，Total GPU memory: 15.64 GB），在启动机器之后，利用连续的cell运行完全相同的代码三次。第一次运行时权重从网上下载，此时运行分配的SMALL是2.47GB，连着第二次运行时SMALL稳定飙升到8.99GB，第三次也是8.99GB左右。</p>
+<p>我尝试静置五分钟（运行时没有关闭、仍然停在运行完之前代码的状态），再新建一个cell跑，第四次仍然是8.99GB左右。</p>
+<p>我的看法是，它似乎是各次运行循环互相之间有影响，而且基本上只影响到了SMALL。不知道是哪一环——把跟SMALL无关的内存消耗算进去了？各个运行之间互相有影响？我静置个很久（比如1h）就会不一样？</p>
+<p>但不得不说，排除掉这个导致110%的8.99GB异常，三个模型40%、41%、42%这样的比例极其稳定。</p>
 <hr/>
 <p>验证代码如下。
 最关键的是</p>

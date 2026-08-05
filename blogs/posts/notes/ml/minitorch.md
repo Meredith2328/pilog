@@ -574,7 +574,9 @@ ctx: forward时记录的变量，现在直接传进去用就行，后面应该�
 def chain_rule(self, d_output: Any) -> Iterable[Tuple[Variable, Any]]:
 ```
 
-> Implement the chain_rule function in Scalar for functions of arbitrary arguments. This function should be able to backward process a function by passing it in a context and \(d\) and then **collecting the local derivatives**. It should then **pair these with the right variables** and return them. This function is also where we filter out constants that were used on the forward pass, but do not need derivatives.
+> Implement the chain_rule function in Scalar for functions of arbitrary arguments. This function should be able to backward process a function by passing it in a context and \(d\) and then **collecting the local derivatives**.
+>  It should then **pair these with the right variables** and return them.
+>  This function is also where we filter out constants that were used on the forward pass, but do not need derivatives.
 
 d_output我们知道是backward里面用到要乘的数值，我们要计算的是 d_output \* f'(x)。
 仍然以一个简单的例子为例：
@@ -1392,7 +1394,13 @@ Numba 并行线程数： 16
 
 但如果通过 `y += x[i]` 等 Numba 能识别的 “规约操作”（reduction），Numba 会自动把 `y += x[i]` 转换成线程安全的加法，不会多个线程同时写同一个位置，不会race。
 
-> A reduction is inferred automatically if a variable is updated by a supported binary function/operator using its previous value in the loop body. The following functions/operators are supported: `+=`, `+`, `-=`, `-`, `*=`, `*`, `/=`, `/`, `max()`, `min()`. The initial value of the reduction is inferred automatically for the supported operators (i.e., not the `max` and `min` functions). Note that the `//=` operator is not supported because in the general case the result depends on the order in which the divisors are applied. However, if all divisors are integers then the programmer may be able to rewrite the `//=` reduction as a `*=` reduction followed by a single floor division after the parallel region where the divisor is the accumulated product. For the `max` and `min` functions, the reduction variable should hold the identity value right before entering the `prange` loop. Reductions in this manner are supported for scalars and for arrays of arbitrary dimensions. （numba文档）
+> A reduction is inferred automatically if a variable is updated by a supported binary function/operator using its previous value in the loop body.
+>  The following functions/operators are supported: `+=`, `+`, `-=`, `-`, `*=`, `*`, `/=`, `/`, `max()`, `min()`.
+>  The initial value of the reduction is inferred automatically for the supported operators (i.e., not the `max` and `min` functions).
+>  Note that the `//=` operator is not supported because in the general case the result depends on the order in which the divisors are applied.
+>  However, if all divisors are integers then the programmer may be able to rewrite the `//=` reduction as a `*=` reduction followed by a single floor division after the parallel region where the divisor is the accumulated product.
+>  For the `max` and `min` functions, the reduction variable should hold the identity value right before entering the `prange` loop.
+>  Reductions in this manner are supported for scalars and for arrays of arbitrary dimensions. （numba文档）
 
 因此排除发现，是我把out_index和in_index的初始化拿出循环的锅，出现race了。
 它们的初始化应该是每个线程（每次循环迭代）独立的，这样就会保证各个线程之间不会race。

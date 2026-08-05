@@ -329,14 +329,14 @@ O_1 = \frac{O}{l} = \begin{bmatrix}2/2.986 &amp; 1.493/2.986 \\ 1.493/2.986 &amp
 \]</div>
 <p>这就是 <span class="arithmatex">\(Q_1\)</span> 中两个 token 经过完整 softmax 注意力后的输出。</p>
 <hr/>
-<p>补充：离 <a href="https://arxiv.org/abs/2205.14135">原论文</a> 还差在哪里？
-<img alt="" src="../../migrated/post-images/20260516181328.png"/>
-事实上，
-原版算法的 <span class="arithmatex">\(K/V\)</span> 在外层，<span class="arithmatex">\(Q\)</span> 在内层。这是为了共用。
-原版算法最后才做归一化（<span class="arithmatex">\(\text{diag}(l_i^{new})^{-1}\)</span> 乘在前面），写到HBM时 <span class="arithmatex">\(O_i\)</span> 已经是归一化后的值，下一轮循环可以直接使用（不用再除以 <span class="arithmatex">\(l\)</span>），我们这里的简化版算法是在 <span class="arithmatex">\(Q\)</span> 块全部循环结束后统一进行归一化的。
-原版算法有堪称实现灵魂的块大小计算公式 <span class="arithmatex">\(B_c=\lceil \frac{M}{4d} \rceil\)</span> 和 <span class="arithmatex">\(B_r = \min(\lceil \frac{M}{4d} \rceil,d)\)</span> ，保证 <span class="arithmatex">\(Q_i,K_j,V_j,O_i\)</span> 能同时放进SRAM，我们未对这一部分做阐述。
-原版用 diag⁡(ℓ)diag(ℓ) 来表达「逐行缩放」，数学上更严谨，也对应代码实现（广播乘法）。
-简化用 <code>O * e^(m - m_new)</code> 隐式假设逐行乘，没有强调向量和矩阵的广播语义。</p>
+<p>补充：离 <a href="https://arxiv.org/abs/2205.14135">原论文</a> 还差在哪里？</p>
+<p><img alt="" src="../../migrated/post-images/20260516181328.png"/></p>
+<p>事实上，
+原版算法的 <span class="arithmatex">\(K/V\)</span> 在外层，<span class="arithmatex">\(Q\)</span> 在内层。这是为了共用。</p>
+<p>原版算法最后才做归一化（<span class="arithmatex">\(\text{diag}(l_i^{new})^{-1}\)</span> 乘在前面），写到HBM时 <span class="arithmatex">\(O_i\)</span> 已经是归一化后的值，下一轮循环可以直接使用（不用再除以 <span class="arithmatex">\(l\)</span>），我们这里的简化版算法是在 <span class="arithmatex">\(Q\)</span> 块全部循环结束后统一进行归一化的。</p>
+<p>原版算法有堪称实现灵魂的块大小计算公式 <span class="arithmatex">\(B_c=\lceil \frac{M}{4d} \rceil\)</span> 和 <span class="arithmatex">\(B_r = \min(\lceil \frac{M}{4d} \rceil,d)\)</span> ，保证 <span class="arithmatex">\(Q_i,K_j,V_j,O_i\)</span> 能同时放进SRAM，我们未对这一部分做阐述。</p>
+<p>原版用 diag⁡(ℓ)diag(ℓ) 来表达「逐行缩放」，数学上更严谨，也对应代码实现（广播乘法）。
+简化用 <code>O * e^(m - m_new)</code> 隐式假设逐行乘，没有强调向量和矩阵的广播语义。</p>
 <h2 id="4pagedattention">题目4：PagedAttention的显存管理优势</h2>
 <p>在生成文本时，每次只生成一个新的token，但做这个token的预测时，需要它之前所有token的 <span class="arithmatex">\(K\)</span> 和 <span class="arithmatex">\(V\)</span> 。标准做法是把之前算过的 <span class="arithmatex">\(K\)</span> 和 <span class="arithmatex">\(V\)</span> 存起来，避免重复计算，这就是<strong>KV Cache</strong>。</p>
 <p>但是，由于每个请求所需要的tokens数未知、有的多有的少，

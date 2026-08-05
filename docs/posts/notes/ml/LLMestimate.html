@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="generator" content="pilog">
   <title>怎么估算LLM的参数量和训练FLOPs？推一推、测一测 · 10PI&#39;S BLOG丨十派的玩具箱</title>
-  <meta name="description" content="本Blog适合于知道 Transformer 基础结构、但没有尝试推导过参数量和FLOPs的朋友。 省流：P ≈ 12Nd^2 + Vd 本文的LLM基于Transformer Decoder结构，以 GPT2-XL 为例。它有以下超参数设置： 实测得到的可训练参数量为 1,557,611,200 = 1.56B。 以">
+  <meta name="description" content="本Blog适合于知道 Transformer 基础结构、但没有尝试推导过参数量和FLOPs的朋友。 $$P ≈ 12Nd^2 + Vd$$ 本文的LLM基于Transformer Decoder结构，以 GPT2-XL 为例。它有以下超参数设置： 实测得到的可训练参数量为 1,557,611,200 = 1.56B。 ">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="10PI&#39;S BLOG丨十派的玩具箱">
   <meta property="og:title" content="怎么估算LLM的参数量和训练FLOPs？推一推、测一测">
-  <meta property="og:description" content="本Blog适合于知道 Transformer 基础结构、但没有尝试推导过参数量和FLOPs的朋友。 省流：P ≈ 12Nd^2 + Vd 本文的LLM基于Transformer Decoder结构，以 GPT2-XL 为例。它有以下超参数设置： 实测得到的可训练参数量为 1,557,611,200 = 1.56B。 以">
+  <meta property="og:description" content="本Blog适合于知道 Transformer 基础结构、但没有尝试推导过参数量和FLOPs的朋友。 $$P ≈ 12Nd^2 + Vd$$ 本文的LLM基于Transformer Decoder结构，以 GPT2-XL 为例。它有以下超参数设置： 实测得到的可训练参数量为 1,557,611,200 = 1.56B。 ">
   <link rel="canonical" href="https://meredith2328.github.io/posts/notes/ml/LLMestimate.html">
   
   <meta property="og:image" content="https://meredith2328.github.io/posts/migrated/post-images/20260303103200.png">
@@ -101,8 +101,9 @@
   
 
   <div class="post-body markdown-body">
-    <p>本Blog适合于知道 Transformer 基础结构、但没有尝试推导过参数量和FLOPs的朋友。
-省流：P ≈ 12Nd^2 + Vd</p>
+    <p>本Blog适合于知道 Transformer 基础结构、但没有尝试推导过参数量和FLOPs的朋友。</p>
+<p>省流：</p>
+<div class="arithmatex">\[P ≈ 12Nd^2 + Vd\]</div>
 <!-- more -->
 <blockquote>
 <p>本文是第一篇。第二篇为 <a href="https://meredith2328.github.io/post/LLMestimate2/">怎么估算LLM训练的内存和计算需求？推一推、测一测  | 十派的玩具箱</a> 。<br/>edit time: 2026-03-05 17:03:20</p>
@@ -148,19 +149,19 @@ Layer 0 总计               : 30,740,800 (30.74M)
 <p>我们需要确定这个公式适用于什么情况，所以需要引入它的适用范围。</p>
 <p>(1) Embedding
 <span class="arithmatex">\(Vd\)</span> 很好理解：这是Embedding层的大小，可训练参数量就是一个大小为 <span class="arithmatex">\(Vd\)</span> 的二维大矩阵。并且我们在把表示换回token时，使用的LM_head权重是和Embedding共享的、而不需要额外再训练一个 <span class="arithmatex">\(Vd\)</span> ，所以它们总共只需要训练一个 <span class="arithmatex">\(Vd\)</span> 。</p>
-<p>(2) Attention &amp; FFN
-那么 <span class="arithmatex">\(12Nd^2\)</span> 又是怎么来的呢？答案就是Attention和FFN。
-对于Attention，有 <span class="arithmatex">\(W_Q,W_K,W_V\)</span> ，还有输出使用的 <span class="arithmatex">\(W_O\)</span> ，它们都是 <span class="arithmatex">\(d \times d = d^2\)</span> 的方阵，总共就是 <span class="arithmatex">\(4d^2\)</span>。
-对于FFN，它首先负责把维度从 <span class="arithmatex">\(d\)</span> 扩大到 <span class="arithmatex">\(d_{ff}=4d\)</span> ，然后再从 <span class="arithmatex">\(d_{ff}\)</span> 缩小回 <span class="arithmatex">\(d\)</span> 。因此前者为 <span class="arithmatex">\(d \times 4d=4d^2\)</span> ，后者是 <span class="arithmatex">\(4d \times d = 4d^2\)</span> ，总共 <span class="arithmatex">\(8d^2\)</span> 。
-因此，一个Transformer Block内的Attention和FFN加起来应该是 <span class="arithmatex">\(12d^2\)</span> 。<span class="arithmatex">\(N\)</span> 层堆叠起来就是 <span class="arithmatex">\(12Nd^2\)</span> 。</p>
+<p>(2) Attention &amp; FFN</p>
+<p>那么 <span class="arithmatex">\(12Nd^2\)</span> 又是怎么来的呢？答案就是Attention和FFN。</p>
+<p>对于Attention，有 <span class="arithmatex">\(W_Q,W_K,W_V\)</span> ，还有输出使用的 <span class="arithmatex">\(W_O\)</span> ，它们都是 <span class="arithmatex">\(d \times d = d^2\)</span> 的方阵，总共就是 <span class="arithmatex">\(4d^2\)</span>。
+对于FFN，它首先负责把维度从 <span class="arithmatex">\(d\)</span> 扩大到 <span class="arithmatex">\(d_{ff}=4d\)</span> ，然后再从 <span class="arithmatex">\(d_{ff}\)</span> 缩小回 <span class="arithmatex">\(d\)</span> 。因此前者为 <span class="arithmatex">\(d \times 4d=4d^2\)</span> ，后者是 <span class="arithmatex">\(4d \times d = 4d^2\)</span> ，总共 <span class="arithmatex">\(8d^2\)</span> 。</p>
+<p>因此，一个Transformer Block内的Attention和FFN加起来应该是 <span class="arithmatex">\(12d^2\)</span> 。<span class="arithmatex">\(N\)</span> 层堆叠起来就是 <span class="arithmatex">\(12Nd^2\)</span> 。</p>
 <h2 id="_4">怎么更精确地估算参数量？</h2>
 <p>(1) Layer Norm
 由上可见，我们忽略了Layer Norm里面的可训练参数开销（<span class="arithmatex">\(\beta\)</span> 和 <span class="arithmatex">\(\gamma\)</span>），它们都是用于缩放的可训练向量（防止归一化不合适而添加的缩放因子），大小均为 <span class="arithmatex">\(d\)</span> ，所以每个 LayerNorm 应该还有 <span class="arithmatex">\(2d\)</span> ，符合实测的 <code>3,200</code> 。</p>
-<p>(2) Attention &amp; FFN?
-我们之前算下来，Attention的每个 <span class="arithmatex">\(W\)</span> 按理来说应该是 <span class="arithmatex">\(d^2=1600^2=2560000\)</span> 的方阵，可实测结果是 <code>2,561,600</code> ；
-FFN也有类似的差距，FFN Input和FFN Output都应该是 <span class="arithmatex">\(4d^2=10240000\)</span> ，可它们一个是 <code>10,246,400</code> ，另一个是 <code>10,241,600</code> 。
-相信对数字敏感的话已经知道问题在哪里了。我们估算时假定可训练参数只有 <span class="arithmatex">\(W\)</span> ，可这是GPT-2，不是llama等更加现代的模型，在GPT-2的时代还是有 <span class="arithmatex">\(Wx+b\)</span> 中这个 <code>bias</code> 的！
-加上之后马上符合事实了：
+<p>(2) Attention &amp; FFN?</p>
+<p>我们之前算下来，Attention的每个 <span class="arithmatex">\(W\)</span> 按理来说应该是 <span class="arithmatex">\(d^2=1600^2=2560000\)</span> 的方阵，可实测结果是 <code>2,561,600</code> ；
+FFN也有类似的差距，FFN Input和FFN Output都应该是 <span class="arithmatex">\(4d^2=10240000\)</span> ，可它们一个是 <code>10,246,400</code> ，另一个是 <code>10,241,600</code> 。</p>
+<p>相信对数字敏感的话已经知道问题在哪里了。我们估算时假定可训练参数只有 <span class="arithmatex">\(W\)</span> ，可这是GPT-2，不是llama等更加现代的模型，在GPT-2的时代还是有 <span class="arithmatex">\(Wx+b\)</span> 中这个 <code>bias</code> 的！</p>
+<p>加上之后马上符合事实了：
 Attention输入和输出维度都是 <span class="arithmatex">\(d\)</span> ，所以 <span class="arithmatex">\(W\)</span> 和 <span class="arithmatex">\(b\)</span> 总共 <span class="arithmatex">\(d^2+d=2561600\)</span> 正确；
 FFN Input输入维度是 <span class="arithmatex">\(d\)</span> 、输出维度是 <span class="arithmatex">\(4d\)</span> ，所以总共 <span class="arithmatex">\(4d^2+4d = 10246400\)</span> 正确；
 FFN Output输入维度是 <span class="arithmatex">\(4d\)</span> 、输出维度是 <span class="arithmatex">\(d\)</span> ，所以总共 <span class="arithmatex">\(4d^2+d=10241600\)</span> 正确。</p>

@@ -47,7 +47,7 @@
         <link>https://meredith2328.github.io/posts/notes/ml/LLMestimate2.html</link>
         <guid isPermaLink="false">https://meredith2328.github.io/posts/notes/ml/LLMestimate2.html</guid>
         <pubDate>Thu, 12 Mar 2026 00:00:00 -0000</pubDate>
-        <description>本部分适合于知道AdamW更新流程、但没有尝试推导过peak memory和计算量、计算时间的朋友。 省流： A_{per_layer} ≈ 9BLd + 2BhL^2 C ≈ 6 × P × D  Problem (adamwAccounting): Resource accounting for training with AdamW 接下来我们计算一下使用AdamW需要多少内存和计算。tensor一律使用float32。 **(a) 运行AdamW的peak…</description>
+        <description>本部分适合于知道AdamW更新流程、但没有尝试推导过peak memory和计算量、计算时间的朋友。 省流： &lt;span class="arithmatex"&gt;\(A_{per\_layer} ≈ 9BLd + 2BhL^2\)&lt;/span&gt; &lt;span class="arithmatex"&gt;\(C ≈ 6 × P × D\)&lt;/span&gt;  Problem (adamwAccounting): Resource accounting for training with AdamW 接下来我们计算一下使用AdamW需要多少内存和计算。tensor一律使用float32。 **(a)…</description>
       </item>
       <item>
         <title>从SGD到AdamW，优化器怎么发展过来的？</title>
@@ -89,7 +89,7 @@
         <link>https://meredith2328.github.io/posts/notes/ml/LLMestimate.html</link>
         <guid isPermaLink="false">https://meredith2328.github.io/posts/notes/ml/LLMestimate.html</guid>
         <pubDate>Tue, 03 Mar 2026 00:00:00 -0000</pubDate>
-        <description>本Blog适合于知道 Transformer 基础结构、但没有尝试推导过参数量和FLOPs的朋友。 省流：P ≈ 12Nd^2 + Vd  本文的LLM基于Transformer Decoder结构，以 GPT2-XL 为例。它有以下超参数设置： 实测得到的可训练参数量为 &lt;code&gt;1,557,611,200&lt;/code&gt; = 1.56B。 以下是使用HuggingFace…</description>
+        <description>本Blog适合于知道 Transformer 基础结构、但没有尝试推导过参数量和FLOPs的朋友。 省流： &lt;span class="arithmatex"&gt;\(P ≈ 12Nd^2 + Vd\)&lt;/span&gt;  本文的LLM基于Transformer Decoder结构，以 GPT2-XL 为例。它有以下超参数设置： 实测得到的可训练参数量为 &lt;code&gt;1,557,611,200&lt;/code&gt; = 1.56B。 以下是使用HuggingFace…</description>
       </item>
       <item>
         <title>【数据结构与算法4】LeetCode HOT 100 in Python（前50）</title>

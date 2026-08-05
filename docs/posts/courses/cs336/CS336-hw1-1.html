@@ -1551,9 +1551,11 @@ UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 0: invalid 
 我们刚刚做的事情是<strong>把原始的字符串转化成了连续的byte</strong>：<code>.encode("utf-8")</code>。
 现在文章的表示变得相当长，训练模型需要太多的计算。因此需要压缩。
 压缩的方法是，让词汇表的数量增加（256），添加子词，实现对整个序列的压缩。构造词汇表的过程称作“训练BPE tokenizer”。</p>
-<p>pre-tokenize：例如使用正则表达式，把空格和后面的词汇连在一起。
-使用 <code>re.finditer</code> 。
-For example, the word 'text' might be a pre-token that appears 10 times. In this case, when we count how often the characters ‘t’ and ‘e’ appear next to each other, we will see that the word ‘text’ has ‘t’ and ‘e’ adjacent and we can increment their count by 10 instead of looking through the corpus. Since we’re training a byte-level BPE model, each pre-token is represented as a sequence of UTF-8 bytes.</p>
+<p>pre-tokenize：例如使用正则表达式，把空格和后面的词汇连在一起。</p>
+<p>使用 <code>re.finditer</code> 。</p>
+<p>For example, the word 'text' might be a pre-token that appears 10 times.</p>
+<p>In this case, when we count how often the characters ‘t’ and ‘e’ appear next to each other, we will see that the word ‘text’ has ‘t’ and ‘e’ adjacent and we can increment their count by 10 instead of looking through the corpus.</p>
+<p>Since we’re training a byte-level BPE model, each pre-token is represented as a sequence of UTF-8 bytes.</p>
 <div class="highlight"><pre><span></span><code>&gt;&gt;&gt; PAT = r"""'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+"""
 &gt;&gt;&gt; # requires `regex` package
 &gt;&gt;&gt; import regex as re
@@ -1567,11 +1569,11 @@ For example, the word 'text' might be a pre-token that appears 10 times. In this
 <li>Compute BPE merges（使用频率最高且字典序最大的）
 频率：`dict[tuple[bytes], int]</li>
 </ul>
-<p>eg. pre-token的依次合并：
-<code>{low: 5, lower: 2, widest: 3, newest: 6}</code>
+<p>eg. pre-token的依次合并：</p>
+<p><code>{low: 5, lower: 2, widest: 3, newest: 6}</code>
 <code>{(l,o,w): 5, (l,o,w,e,r): 2, (w,i,d,e,st): 3, (n,e,w,e,st): 6}</code>
-<code>{(l,o,w): 5, (l,o,w,e,r): 2, (w,i,d,est): 3, (n,e,w,est): 6}</code>
-Continuing this, the sequence of merges we get in the end will be <code>['s t', 'e st', 'o w', 'l ow', 'w est', 'n e','ne west', 'w i', 'wi d', 'wid est', 'low e', 'lowe r']</code> 。</p>
+<code>{(l,o,w): 5, (l,o,w,e,r): 2, (w,i,d,est): 3, (n,e,w,est): 6}</code></p>
+<p>Continuing this, the sequence of merges we get in the end will be <code>['s t', 'e st', 'o w', 'l ow', 'w est', 'n e','ne west', 'w i', 'wi d', 'wid est', 'low e', 'lowe r']</code> 。</p>
 <p>此时词汇表从一开始的 <code>[&lt;|endoftext|&gt;, [...256 BYTE CHARS]</code> 变成：
 <code>[&lt;|endoftext|&gt;, [...256 BYTE CHARS], st, est, ow, low, west, ne]</code></p>
 <h3 id="24-bpe-tokenizer-trainingnaive">2.4 BPE Tokenizer Training的naive实现</h3>

@@ -135,12 +135,12 @@
 <p>虽然这道题实现很容易，而且很可能已经在读者的长期记忆中存下来了，但不妨去跟着hint想一下这个过程。</p>
 <p>（1. Pick an example input and corresponding output.）
 用 <code>n=10, return False</code> 举例，考虑详细过程 ：</p>
-<p>（2. Describe a process (in English) that computes the output from the input using simple steps.）
-检测是否为素数即该正整数（下简写为数）不被 <code>1</code> 和 <code>10</code> 整除。
+<p>（2. Describe a process (in English) that computes the output from the input using simple steps.）</p>
+<p>检测是否为素数即该正整数（下简写为数）不被 <code>1</code> 和 <code>10</code> 整除。
 <code>10</code> 显然不会被大于<code>10</code>的数整除。
-因此我们要考虑的是：怎样描述一个过程，以检测<code>10</code> 是否被 <code>1</code> 到 <code>10</code> 中间的这些正整数整除。
-可以从小到大按顺序依次递增检测：
-检测<code>10</code>是否被<code>2</code>整除，即<code>10 % 2 == 0</code> ，若满足则返回<code>False</code> ，不满足则继续检测<code>3</code>；
+因此我们要考虑的是：怎样描述一个过程，以检测<code>10</code> 是否被 <code>1</code> 到 <code>10</code> 中间的这些正整数整除。</p>
+<p>可以从小到大按顺序依次递增检测：</p>
+<p>检测<code>10</code>是否被<code>2</code>整除，即<code>10 % 2 == 0</code> ，若满足则返回<code>False</code> ，不满足则继续检测<code>3</code>；
 检测<code>10</code>是否被<code>3</code>整除，即<code>10 % 3 == 0</code> ，若满足则返回<code>False</code> ，不满足则继续检测<code>4</code>；
 ...
 直到全部检测完毕（即检测完<code>n-1</code>）为止，返回<code>True</code>。</p>

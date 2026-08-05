@@ -988,13 +988,13 @@ n个端点（概率记为 <span class="arithmatex">\(b_i\)</span> ，从1到n）
 <li>否则继续搜索。</li>
 </ul>
 </blockquote>
-<p>详细地我们可以这么看：
-一开始，估算能达到的价值上界是 10 * 9/7，因为重量为10，<span class="arithmatex">\(x_1\)</span>单价为 9/7。
+<p>详细地我们可以这么看：</p>
+<p>一开始，估算能达到的价值上界是 10 * 9/7，因为重量为10，<span class="arithmatex">\(x_1\)</span>单价为 9/7。
 假如此时选择了 <span class="arithmatex">\(x_1=1\)</span> ，则能达到的价值上界是 9 + 3 * 5/4 ，因为剩余能用的重量是3，这里第二层要考虑的是 <span class="arithmatex">\(x_2\)</span> ，单价为 5/4。
-假如此时选择了 <span class="arithmatex">\(x_2=2\)</span> ，重量超了。剪枝。
-...
-<span class="arithmatex">\(x_1=1,x_2=0,x_3=1\)</span> 是已有的最大价值，是12。
-...
+假如此时选择了 <span class="arithmatex">\(x_2=2\)</span> ，重量超了。剪枝。</p>
+<p>...
+<span class="arithmatex">\(x_1=1,x_2=0,x_3=1\)</span> 是已有的最大价值，是12。</p>
+<p>...
 假如选择了 <span class="arithmatex">\(x_1=1,x_2=0,x_3=0\)</span> 看看行不行。价值上界是 9 + 3 * 1/2 ，都不到已有的最大价值12，所以不需要继续往下判断了。这就是分支限界利用界函数的剪枝。
 还有一个更好的例子：<span class="arithmatex">\(x_1=0,x_2=2\)</span> ，这里都不用选择 <span class="arithmatex">\(x_3\)</span> 和 <span class="arithmatex">\(x_4\)</span> ，我们拿 <span class="arithmatex">\(x_3\)</span> 估算以下上界为 10 + 2 * 3/3 ，也就只是跟已有的最大价值12恰好相等。那就不用往下看了。</p>
 <p><img alt="" src="../../migrated/post-images/20251224171058.png"/></p>
@@ -1211,8 +1211,8 @@ y&gt;S-E时，最优解是一开始就爬楼梯即时间成本为S，BLTN时间�
 <p><a href="https://zhuanlan.zhihu.com/p/711591099">数学规划与运筹学 (14) 算法专题之在线算法 - 知乎</a></p>
 <p><strong>引理</strong>：<strong>使用倍增策略求解直线上的在线搜索问题是 9-竞争的。</strong></p>
 <p><strong>证明</strong>：考虑最差的情况，设目标位于距离原点距离为 <span class="arithmatex">\(n\)</span> 的位置，且对某 <span class="arithmatex">\(j \in \mathbb{N}\)</span> 有<br/>
-<span class="arithmatex">\(2^j &lt; n \leq 2^{j+1}\)</span>，那么倍增策略的前 <span class="arithmatex">\(j\)</span> 步都不会找到目标，此时共走的路程为 <span class="arithmatex">\(2 \times \sum_{i=1}^{j} 2^i\)</span>。
-（<span class="arithmatex">\(\times 2\)</span> 是因为往返）。接下来的第 <span class="arithmatex">\(j + 1\)</span> 步，假定我们不幸选错了方向，于是在错误的方向上又走了 <span class="arithmatex">\(2 \times 2^{j+1}\)</span> 路程。接下来，我们向着正确的方向走了 <span class="arithmatex">\(n\)</span> 路程，终于找到了目标。算下来一共走的路程为<br/>
+<span class="arithmatex">\(2^j &lt; n \leq 2^{j+1}\)</span>，那么倍增策略的前 <span class="arithmatex">\(j\)</span> 步都不会找到目标，此时共走的路程为 <span class="arithmatex">\(2 \times \sum_{i=1}^{j} 2^i\)</span>。</p>
+<p>（<span class="arithmatex">\(\times 2\)</span> 是因为往返）。接下来的第 <span class="arithmatex">\(j + 1\)</span> 步，假定我们不幸选错了方向，于是在错误的方向上又走了 <span class="arithmatex">\(2 \times 2^{j+1}\)</span> 路程。接下来，我们向着正确的方向走了 <span class="arithmatex">\(n\)</span> 路程，终于找到了目标。算下来一共走的路程为<br/>
 <span class="arithmatex">\(2 \sum_{i=1}^{j+1} 2^i + n = 2(2^{j+2} - 1) + n \leq 8n - 2 + n \leq 9n\)</span></p>
 <p>而最优情况显然是 <span class="arithmatex">\(n\)</span>，因此倍增方案是 9-竞争的。</p>
 <p>可以证明，9 是最好的结果，没有其它算法的竞争比能比 9 更低；这一结论的证明较困难，请见 Baezayates, R. A., Culberson, J. C., &amp; Rawlins, G. J. (1993). <em>Searching in the plane</em>. Information and computation,106(2), 234-252. 的 Theorem 2.1。</p>

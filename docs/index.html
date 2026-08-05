@@ -290,7 +290,7 @@
           </div>
           <h3 class="card-title">怎么估算LLM训练的内存和计算需求？推一推、测一测</h3>
           
-          <div class="card-preview">本部分适合于知道AdamW更新流程、但没有尝试推导过peak memory和计算量、计算时间的朋友。 省流： A_{per_layer} ≈ 9BLd + 2BhL^2 C ≈ 6 × P × D  Problem (adamwAccounting): Resource accounting for training with AdamW 接下来我们计算一下使用AdamW需要多少内存和计算。tensor一律使用float32。 **(a) 运行AdamW的peak…</div>
+          <div class="card-preview">本部分适合于知道AdamW更新流程、但没有尝试推导过peak memory和计算量、计算时间的朋友。 省流： <span class="arithmatex">\(A_{per\_layer} ≈ 9BLd + 2BhL^2\)</span> <span class="arithmatex">\(C ≈ 6 × P × D\)</span>  Problem (adamwAccounting): Resource accounting for training with AdamW 接下来我们计算一下使用AdamW需要多少内存和计算。tensor一律使用float32。 **(a)…</div>
           
           <div class="card-tags">
             
@@ -462,7 +462,7 @@
           </div>
           <h3 class="card-title">怎么估算LLM的参数量和训练FLOPs？推一推、测一测</h3>
           
-          <div class="card-preview">本Blog适合于知道 Transformer 基础结构、但没有尝试推导过参数量和FLOPs的朋友。 省流：P ≈ 12Nd^2 + Vd  本文的LLM基于Transformer Decoder结构，以 GPT2-XL 为例。它有以下超参数设置： 实测得到的可训练参数量为 <code>1,557,611,200</code> = 1.56B。 以下是使用HuggingFace…</div>
+          <div class="card-preview">本Blog适合于知道 Transformer 基础结构、但没有尝试推导过参数量和FLOPs的朋友。 省流： <span class="arithmatex">\(P ≈ 12Nd^2 + Vd\)</span>  本文的LLM基于Transformer Decoder结构，以 GPT2-XL 为例。它有以下超参数设置： 实测得到的可训练参数量为 <code>1,557,611,200</code> = 1.56B。 以下是使用HuggingFace…</div>
           
           <div class="card-tags">
             
