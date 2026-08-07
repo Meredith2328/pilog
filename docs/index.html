@@ -109,27 +109,17 @@
       
       <button class="tag-chip" type="button" data-tag="CSAPP">#CSAPP</button>
       
-      <button class="tag-chip" type="button" data-tag="GRPO">#GRPO</button>
-      
       <button class="tag-chip" type="button" data-tag="LLM">#LLM</button>
       
       <button class="tag-chip" type="button" data-tag="meta">#meta</button>
       
       <button class="tag-chip" type="button" data-tag="pilog">#pilog</button>
       
-      <button class="tag-chip" type="button" data-tag="RL">#RL</button>
-      
       <button class="tag-chip" type="button" data-tag="乐队">#乐队</button>
       
       <button class="tag-chip" type="button" data-tag="奇怪的东西">#奇怪的东西</button>
       
       <button class="tag-chip" type="button" data-tag="数据结构与算法">#数据结构与算法</button>
-      
-      <button class="tag-chip" type="button" data-tag="网站">#网站</button>
-      
-      <button class="tag-chip" type="button" data-tag="训练">#训练</button>
-      
-      <button class="tag-chip" type="button" data-tag="随笔">#随笔</button>
       
     </div>
   </div>
@@ -142,7 +132,7 @@
 
   <div class="card-grid" id="card-grid">
     
-    <article class="card" data-tags="RL GRPO Agent LLM 训练 " data-folder="posts/notes" data-date="2026-08-07">
+    <article class="card" data-tags="Agent LLM " data-folder="posts/notes" data-date="2026-08-07">
       
       <a class="card-link" href="posts/notes/mathqwen-0.6b-agentic-rl.html">
         <div class="card-body">
@@ -156,53 +146,15 @@
             </span>
             
           </div>
-          <h3 class="card-title">用双卡 5090 训练 Qwen3-0.6B：从数学推理到 Agentic RL 的完整实验</h3>
+          <h3 class="card-title">用双卡 5090 训练 Qwen3-0.6B：从数学推理到 Agentic RL 的完整踩坑大集锦</h3>
           
-          <div class="card-preview">这篇文章是我最近一个多月做的一组实验的记录。起因很简单：想看看 0.6B 这种“小参数”模型， 在两张 RTX 5090 上，到底能不能被强化学习练出像样的数学推理和 Agent 能力。 起点是 Datawhale 第 11 章的 hello-agents 案例，但做着做着就停不下来了—— 从 GSM8K 数学推理，到多轮工具调用，再到自己搭一个跨应用的工具基准， 最后还顺手用 QLoRA 挑战了一下 72B…</div>
+          <div class="card-preview">这篇文章是我最近一个月做的一组实验的记录。起因很简单：想看看 0.6B 这种“小参数”模型， 在两张 RTX 5090 上，到底能不能用强化学习训出像样的数学推理和 Agent 能力。 起点是 Datawhale 第 11 章的 hello-agents 案例，之后延伸出了一堆东西。 从 GSM8K 数学推理，到多轮工具调用，再到自己搭一个跨应用的工具基准， 最后还顺手用 QLoRA 挑战了一下 72B 的微调。 想试着讲讲看整个过程踩到的无数的坑。 <strong>完整的论文、报告和代码</strong>：…</div>
           
           <div class="card-tags">
-            
-            <button class="tag-chip" type="button" data-tag="RL">#RL</button>
-            
-            <button class="tag-chip" type="button" data-tag="GRPO">#GRPO</button>
             
             <button class="tag-chip" type="button" data-tag="Agent">#Agent</button>
             
             <button class="tag-chip" type="button" data-tag="LLM">#LLM</button>
-            
-            <button class="tag-chip" type="button" data-tag="训练">#训练</button>
-            
-          </div>
-        </div>
-        
-      </a>
-    </article>
-    
-    <article class="card" data-tags="乐队 网站 随笔 " data-folder="posts/notes" data-date="2026-08-07">
-      
-      <a class="card-link" href="posts/notes/xyjz.html">
-        <div class="card-body">
-          <div class="card-meta">
-            <time datetime="2026-08-07">2026-08-07</time>
-            
-            
-            
-            <span class="card-folder" title="点击目录片段筛选">
-              <button class="folder-part" type="button" data-folder="posts">posts</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/notes">notes</button>
-            </span>
-            
-          </div>
-          <h3 class="card-title">夏夜将终：一个乐队官网是怎么搭的</h3>
-          
-          <div class="card-preview">2023 年夏末，因为夜鹿（ヨルシカ）走到一起的校园乐队「夏夜将终」，把官网复刻成了 Yorushika 官网的样子。</div>
-          
-          <div class="card-tags">
-            
-            <button class="tag-chip" type="button" data-tag="乐队">#乐队</button>
-            
-            <button class="tag-chip" type="button" data-tag="网站">#网站</button>
-            
-            <button class="tag-chip" type="button" data-tag="随笔">#随笔</button>
             
           </div>
         </div>
@@ -239,6 +191,36 @@
         
         <div class="card-thumb">
           <img src="assets/cover-pixel.png" alt="" loading="lazy">
+        </div>
+        
+      </a>
+    </article>
+    
+    <article class="card" data-tags="乐队 奇怪的东西 " data-folder="posts/toy" data-date="2026-07-16">
+      
+      <a class="card-link" href="posts/toy/xyjz.html">
+        <div class="card-body">
+          <div class="card-meta">
+            <time datetime="2026-07-16">2026-07-16</time>
+            
+            
+            
+            <span class="card-folder" title="点击目录片段筛选">
+              <button class="folder-part" type="button" data-folder="posts">posts</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/toy">toy</button>
+            </span>
+            
+          </div>
+          <h3 class="card-title">夏夜将终：一个乐队官网是怎么搭的</h3>
+          
+          <div class="card-preview">2026 年夏末，因为夜鹿（ヨルシカ）走到一起的校园乐队「夏夜将终」，把官网复刻成了 Yorushika 官网的样子。</div>
+          
+          <div class="card-tags">
+            
+            <button class="tag-chip" type="button" data-tag="乐队">#乐队</button>
+            
+            <button class="tag-chip" type="button" data-tag="奇怪的东西">#奇怪的东西</button>
+            
+          </div>
         </div>
         
       </a>
@@ -973,18 +955,7 @@
             <a class="tree-row" href="posts/notes/mathqwen-0.6b-agentic-rl.html">
               <span class="tree-toggle tree-toggle-empty"></span>
               <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
-              <span class="tree-name">用双卡 5090 训练 Qwen3-0.6B：从数学推理到 Agentic RL 的完整实验</span>
-              <span class="tree-date">2026-08-07</span>
-            </a>
-          </li>
-          
-        
-          
-          <li class="tree-file" data-path="posts/notes/xyjz">
-            <a class="tree-row" href="posts/notes/xyjz.html">
-              <span class="tree-toggle tree-toggle-empty"></span>
-              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
-              <span class="tree-name">夏夜将终：一个乐队官网是怎么搭的</span>
+              <span class="tree-name">用双卡 5090 训练 Qwen3-0.6B：从数学推理到 Agentic RL 的完整踩坑大集锦</span>
               <span class="tree-date">2026-08-07</span>
             </a>
           </li>
@@ -1115,6 +1086,17 @@
               <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
               <span class="tree-name">贴贴棋（reverseChess）介绍</span>
               <span class="tree-date">2026-02-26</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/toy/xyjz">
+            <a class="tree-row" href="posts/toy/xyjz.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">夏夜将终：一个乐队官网是怎么搭的</span>
+              <span class="tree-date">2026-07-16</span>
             </a>
           </li>
           

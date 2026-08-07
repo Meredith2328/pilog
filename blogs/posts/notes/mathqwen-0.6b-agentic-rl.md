@@ -1,72 +1,118 @@
 ---
-title: 用双卡 5090 训练 Qwen3-0.6B：从数学推理到 Agentic RL 的完整实验
+title: 用双卡 5090 训练 Qwen3-0.6B：从数学推理到 Agentic RL 的完整踩坑大集锦
 date: 2026-08-07 23:30:00
-tags: [RL, GRPO, Agent, LLM, 训练]
+tags: [Agent, LLM]
 published: true
 hideInList: false
 feature: null
 isTop: false
 ---
 
-这篇文章是我最近一个多月做的一组实验的记录。起因很简单：想看看 0.6B 这种“小参数”模型，
-在两张 RTX 5090 上，到底能不能被强化学习练出像样的数学推理和 Agent 能力。
-起点是 Datawhale 第 11 章的 hello-agents 案例，但做着做着就停不下来了——
+这篇文章是我最近一个月做的一组实验的记录。起因很简单：想看看 0.6B 这种“小参数”模型，
+在两张 RTX 5090 上，到底能不能用强化学习训出像样的数学推理和 Agent 能力。
+起点是 Datawhale 第 11 章的 hello-agents 案例，之后延伸出了一堆东西。
 从 GSM8K 数学推理，到多轮工具调用，再到自己搭一个跨应用的工具基准，
-最后还顺手用 QLoRA 挑战了一下 72B 的微调。这篇博客想把整条路线讲清楚，
-尤其是那些“看起来对、其实没发生”的坑。
+最后还顺手用 QLoRA 挑战了一下 72B 的微调。
 
-完整的论文、报告和代码在 [MathQwen 仓库](https://github.com/Meredith2328/MathQwen)，
-训练曲线都在 [wandb 项目](https://wandb.ai/10pi-fudan-university-school-of-management/agenticrl)
-里，所有数字都能对上，欢迎对照。
+想试着讲讲看整个过程踩到的无数的坑。
 
-## 先补一点背景知识
+**完整的论文、报告和代码**： [Meredith2328/MathQwen](https://github.com/Meredith2328/MathQwen)，
+**训练曲线**： [wandb](https://wandb.ai/10pi-fudan-university-school-of-management/agenticrl)
 
-如果你没接触过 RLHF 那一套，我尽量用最短的话讲清楚。
+欢迎在评论区参考交流 ~~或者拷打~~ 。
 
-**SFT（监督微调）** 就是拿一批“问题-标准答案”的数据让模型照着学，本质是抄作业。
+## 用到哪些知识
+
+**SFT（监督微调）** 就是拿一批“问题-标准答案”的数据让模型“**照着背**”。
 它稳定，但只会模仿数据里出现过的行为。
 
-**强化学习（RL）** 是另一条路：让模型自己生成答案，用奖励函数打分，
+**RL（强化学习）** 是另一条路：让模型自己生成答案，用奖励函数打分，
 再把高分行为强化。最常见的算法是 **PPO**，但它需要价值网络，显存开销大。
 
-**GRPO** 是 DeepSeek 提出的简化版：对同一个问题采样一组回答，用这组回答内部的
-均值方差做归一化，代替价值网络。公式是
-$A_i = (r_i - \mathrm{mean}(\{r_j\})) / \mathrm{std}(\{r_j\})$，
-再加上 PPO 的裁剪和 KL 约束。省掉价值网络之后，单机双卡也能跑得动。
+**GRPO** 是另一种RL方法，是 [DeepSeekMath](https://arxiv.org/abs/2402.03300) 提出的相比于PPO的简化版：
+
+对同一个问题采样一组回答，用这组回答内部的
+均值方差做归一化，代替价值网络。
+再加上 PPO 的裁剪和 KL 约束。省掉价值网络之后，我的单机双卡也能跑得动。
+
+公式如下：
+
+$$\mathcal{J}_{GRPO}(\theta) = \mathbb{E}_{q, \{o_i\}_{i=1}^G} \left[ \frac{1}{G} \sum_{i=1}^G \min\left( r_i(\theta) A_i, \operatorname{clip}(r_i(\theta), 1-\epsilon, 1+\epsilon) A_i \right) - \beta \operatorname{KL}(\pi_\theta \| \pi_{ref}) \right]$$
+
+$$r_i(\theta) = \frac{\pi_\theta(o_i|q)}{\pi_{\theta_{old}}(o_i|q)}$$
+
+$$A_i = \frac{r_i - \operatorname{mean}(\mathbf{r})}{\operatorname{std}(\mathbf{r})}, \quad \mathbf{r} = \{r_1, \dots, r_G\}$$
+
+（详细的含义我会随着实验一起讲一讲）
 
 **Agentic RL** 更进一步：模型不是输出一段文字就结束，而是进入
 “思考 → 调工具 → 看工具返回 → 再思考”的循环，奖励来自工具执行的真实结果。
 
-**wandb** 是我们的实验管理工具：每个训练 run 的 loss、reward、显存、超参都会
-自动记录并同步到云端。它让“每个结论都能追溯到具体某次训练”成为可能，
-这一点在后面的审计里帮了大忙。
+**wandb** 参考我之前写过的 [WanDB基础使用教程总结 · 10PI'S BLOG丨十派的玩具箱](https://meredith2328.github.io/posts/notes/tools/wandb.html) 。
 
-## 实验一：GSM8K 数学推理，四个训练栈对比
+## 实验一：通过四种训练栈在 GSM8K 上训练Qwen3 0.6B的数学推理能力
 
-协议很简单：GSM8K 前 500 条训练、前 500 条测试，$G=8$、lr=1e-6、β=0.001，
-统一从模型输出里抽数字和标准答案比对。四个框架分别是 hello-agents（起点）、
-DeepSpeed（TRL+ZeRO-2）、Megatron-LM（全参）、Verl（FSDP+vLLM）。
+> 问答 -> CoT -> Agentic
+>
+> 一切的开端是推理能力。
+>
+> 在ChatGPT o1横空出世之前，人们对GPT的理解是类似InstructGPT那样的问答。
+>
+> 可o1借助CoT一下子大大提升了能力，DeepSeek R1则把RL训练思想开源了出来。
+>
+> 没有这样强大的推理能力，现在的Agent就总是“差些什么”。
+
+实验设计如下：
+
+使用 [openai/gsm8k](https://huggingface.co/datasets/openai/gsm8k) 数据集，前 500 条用于训练、后 500 条用于测试。
+
+进行GRPO训练，实验的超参数： $G=8$、$lr=1e^{-6}$ 、$β=0.001$ （KL散度的系数）。
+
+我分别用了四个框架进行GRPO训练，一是操练相关的技术，而是确保我的超参数是跨框架可用的： 
+
+**hello-agents**（起点）、**DeepSpeed**（TRL+ZeRO-2）、**Megatron-LM**（全参）、**Verl**（FSDP+vLLM）。
+
+模型输出通过统一的抽取函数和标准答案比对。结果如下。
 
 | 配置 | GSM8K test |
 |---|---|
 | 基座 Qwen3-0.6B | 42.2% |
 | hello-agents · SFT | 57.0% |
-| hello-agents · GRPO（默认 lr=5e-5） | 2.4% |
+| hello-agents · GRPO（框架默认 lr=5e-5） | 2.4% |
 | DeepSpeed GRPO | 46.8% |
 | Megatron-LM GRPO | 52.6% |
 | **Verl GRPO** | **68.8%** |
 
-三个发现：
+诶？
 
-第一，0.6B 也能被 RL 显著提升。Verl 只花了 27 分钟就把 42.2% 提到 68.8%。
-小模型不是学不动，是要用对的工具和超参。
+我相信最显眼的是hello-agents在GRPO的2.4%，这体现了“**灾难性遗忘**”问题。
 
-第二，跑通不等于跑好。hello-agents 默认 lr=5e-5 直接把策略练塌了，
-57% 掉到 2.4%。对 0.6B 这种小模型，学习率一大，一步就能把输出分布冲没。
+我们从理论上早就学到，强化学习对稳定性的要求相当高。我们平时预训练的步长调太高、可能模型loss一直不下降（甚至反而升高）；而GRPO则是一定需要特别特别小的步长。HelloAgents默认设计的5e-5这种步长都有些太大了。
 
-第三，框架自带的奖励不一定适合你的模型。Megatron 官方示例只认 `\boxed{}` 结尾的
-答案，Qwen3 不这么输出，导致奖励几乎恒为 0、梯度为零。改成统一数值抽取奖励后，
-Megatron 才从“约等于基座”变成真正训练。
+$$\mathcal{J}_{GRPO}(\theta) = \mathbb{E}_{q, \{o_i\}_{i=1}^G} \left[ \frac{1}{G} \sum_{i=1}^G \min\left( r_i(\theta) A_i, \operatorname{clip}(r_i(\theta), 1-\epsilon, 1+\epsilon) A_i \right) - \beta \operatorname{KL}(\pi_\theta \| \pi_{ref}) \right]$$
+
+对应到上述GRPO的式子上。我们不妨从左往右读一下它的含义。
+
+- 我们总是希望在式子最外层看到一个“**期望**”。这是因为但凡有期望，就可以用“样本均值”进行近似。再重复一遍，用样本均值近似期望。这个真的很重要。所以我们总是会在各种各样的地方看到期望这种设计。
+- 做了**组平均**，所以是对G求和，然后再除以组数G。组平均的直觉是，同一个模型如果多做几次题目（术语：rollout，其实就是对相同的prompt做多次推理生成多条文本样本）、发现其中有些相对做得更好（比如做对了），那么就矮个子里拔高个、鼓励它做对的这种“分布”。这就是前述用组内平均替代了价值网络的打分。（当然，这种方式有优有劣，那又是后话了。）我在实验中对组数G做了消融实验，发现组数太少太多都不好，这里的 $G=8$ 是对于我的实验表现比较好的超参数。
+- RL的更新为了稳定，更加倾向于“**小步快跑**”，所以有clip这样的技巧、使得新的策略 $\pi_\theta$ 不能离旧的策略 $\pi_{\theta_{old}}$ 更新得太远。与此同时，我们的GRPO是为了在 $\pi_{ref}$ 基础上做“强化”（“移动分布”），而不是完全推倒重来，所以又通过loss里添加KL散度的方式，约束 $\pi_\theta$ 不能离参考策略 $\pi_{ref}$ 太远。
+
+> 一个直觉上的例子，我们通过SFT使得模型学会使用了工具（$\pi_{ref}$），那么我们就希望用GRPO让它用得得心应手（训出好的 $\pi_{\theta}$）、却又不希望让它走火入魔、连自己一开始是谁、会的那些知识都忘了（灾难性遗忘，即 $\pi_{\theta}$ 更新得不合理）。
+
+前述hello-agents框架在GRPO的2.4%就是**默认设置的学习率太大**、直接把策略搞崩掉了，小模型一步把输出分布就给练没了。
+
+因为这个问题，我还顺手给hello-agents提了一个 [Pull Request #771 · datawhalechina/hello-agents](https://github.com/datawhalechina/hello-agents/pull/771) 并且已合入。
+
+相比起来，如果训好了，效果就很显著了。例如 Verl 只花了 27 分钟就把小模型 42.2% 提到 68.8%，说明超参和工具都合理。小模型不是不能训，是方法要用对。
+
+ps. 在训练过程中还遇到一些细节问题。例如我参考了 Megatron 官方示例，但是它只认 `\boxed{}` 结尾的
+答案，Qwen3 在还没有训出这种输出格式的情况下奖励几乎恒为 0、梯度为零，RL训练一度停滞。
+
+之后我担心把格式也作为奖励信号、会冲淡我更关注的数学推理能力信号，所以在答案抽取上做了放松。
+
+只要大致符合格式、抽取出的结果正确，我就给它奖励。
+
+做了这样的处理之后，Megatron 才真正训起来，而不是一直停在基座附近。
 
 ## 实验二：Agentic 工具链，从 0% 摸到 98%
 
@@ -81,7 +127,7 @@ SFT 之后六档任务全部达到 97–100%。
 但这里发生了一件很值得写的事：**我们最初报告“SFT→GRPO 与 SFT 持平（98.3%）”，
 后来发现那是假的。**
 
-有一天我闲得无聊，对远端所有 adapter 做了一次 md5 哈希比对，结果发现：
+在训练过程中，顺手对远端所有 adapter 做了一次 md5 哈希比对，结果发现：
 所有从 SFT 初始化的 GRPO 产物，和 SFT 初始化权重**逐字节相同**。
 也就是说 GRPO 压根没更新权重，那 98.3% 就是 SFT 自己的成绩。
 
@@ -132,12 +178,10 @@ GRPO 版本（修复了保存 bug 之后跑的，adapter 哈希已校验）也�
 而是 0.6B 在这个流水线里学不会“把工具返回内容串接成下一步参数”，
 也就是工具结果接地（tool-output grounding）这个能力本身缺位。
 
-## 工程经验清单
-
-这组实验踩过的坑，值得单独列出来：
+## 一些踩坑清单
 
 - **sm_120 软件栈**：PyPI 默认 cu126 的 torch 不支持 Blackwell，必须 cu128/cu130；
-  torch 2.7.1 的 NCCL 半精度 all-reduce 有内存损坏 bug，升 2.9.0 解决。
+  torch 2.7.1 的 NCCL 半精度 all-reduce 有内存损坏 bug，升级torch到 2.9.0 解决。
 - **TRL ref-adapter 保存陷阱**：见上文，这是本实验最重要的 bug。
 - **评测器要和训练格式对齐**：TRL 原生 rollout 支持一条回复多个 `<tool_call>`，
   旧评测器每轮只执行第一个，会系统性低估批量调用模型（3.3% vs 20%）。
@@ -145,16 +189,24 @@ GRPO 版本（修复了保存 bug 之后跑的，adapter 哈希已校验）也�
 - **SFT 后熵太低**：token 熵约 0.002，温度 0.9 下采样几乎相同、奖励零方差；
   要提到温度 1.2、top-p 0.95 才有学习信号。
 
-## 结尾
+## 结语
 
-回头看，这组实验最有价值的产出可能不是某个准确率数字，而是**一套能自证清白的
-实验协议**：数据生成带自检、训练结束校验保存哈希、评估标注清楚口径、负结果照实写。
-对于 RL 这种“看起来在动、实际不知道动没动”的训练方式，可审计比好看更重要。
+我想实验本身是有学习价值的，实验过程中的“可观测性”则更是重中之重。
 
-想深入的话：
+例如数据生成时写了一些自检、帮助我发现许多问题；
 
-- 教学级实验报告：[REPORT.md](https://github.com/Meredith2328/MathQwen/blob/main/REPORT.md)
+训练结束通过哈希值校验发现了压根没训到的TRL保存陷阱；
+
+还有无论是训练成功、还是训练失败，都要完整记录下来足够完整的信息。
+
+> RL 是十分“稀疏”的。
+>
+> 对于人来说，它总是“看起来在动、实际不知道动没动”。
+>
+> 为此，我们需要足够多的提升可观测性的措施，以期在“稀疏”的RL世界求得一隅安身之地。
+
+随本实验附以下资料供参考：
+
+- 实验报告：[REPORT.md](https://github.com/Meredith2328/MathQwen/blob/main/REPORT.md)
 - 29 页论文：[paper.pdf](https://github.com/Meredith2328/MathQwen/blob/main/paper/paper.pdf)
-- 缺口审计与修正：[GAP_ANALYSIS.md](https://github.com/Meredith2328/MathQwen/blob/main/GAP_ANALYSIS.md)
 - 全部训练曲线：[wandb agenticrl](https://wandb.ai/10pi-fudan-university-school-of-management/agenticrl)
-- 数据云盘备份：`/mnt/data/backups/ma_bench_*.tar.gz`（远端）与仓库 `backup/`（本地）
