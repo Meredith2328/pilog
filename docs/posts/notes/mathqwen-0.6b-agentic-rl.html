@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="pilog">
+  <title>用双卡 5090 训练 Qwen3-0.6B：从数学推理到 Agentic RL 的完整实验 · 10PI&#39;S BLOG丨十派的玩具箱</title>
+  <meta name="description" content="这篇文章是我最近一个多月做的一组实验的记录。起因很简单：想看看 0.6B 这种“小参数”模型， 在两张 RTX 5090 上，到底能不能被强化学习练出像样的数学推理和 Agent 能力。 起点是 Datawhale 第 11 章的 hello-agents 案例，但做着做着就停不下来了—— 从 GSM8K 数学推理，到">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="10PI&#39;S BLOG丨十派的玩具箱">
+  <meta property="og:title" content="用双卡 5090 训练 Qwen3-0.6B：从数学推理到 Agentic RL 的完整实验">
+  <meta property="og:description" content="这篇文章是我最近一个多月做的一组实验的记录。起因很简单：想看看 0.6B 这种“小参数”模型， 在两张 RTX 5090 上，到底能不能被强化学习练出像样的数学推理和 Agent 能力。 起点是 Datawhale 第 11 章的 hello-agents 案例，但做着做着就停不下来了—— 从 GSM8K 数学推理，到">
+  <link rel="canonical" href="https://meredith2328.github.io/posts/notes/mathqwen-0.6b-agentic-rl.html">
+  
+  
+  <meta property="article:published_time" content="2026-08-07T00:00:00">
+
+  <link rel="icon" href="../../favicon.png">
+  <link rel="apple-touch-icon" href="../../favicon.png">
+  <link rel="alternate" type="application/rss+xml" title="10PI&#39;S BLOG丨十派的玩具箱 · RSS" href="../../rss.xml">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <link rel="stylesheet" href="../../css/style.css">
+  
+</head>
+<body>
+  <div class="deco deco-left" aria-hidden="true"></div>
+  <div class="deco deco-right" aria-hidden="true"></div>
+  <header class="site-header">
+    <div class="header-banner is-default"
+         style="background-image:url('../../img/banner-default.svg')"></div>
+    <div class="header-row">
+      <a class="brand" href="../../index.html">
+        <img class="brand-icon" src="../../img/dino-icon.png" alt="dino" width="28" height="30">
+        <span class="brand-name">10PI&#39;S BLOG丨十派的玩具箱</span>
+        
+      </a>
+
+      <div class="view-switch" role="tablist" aria-label="视图切换">
+        <button class="view-tab is-active" role="tab" data-view="cards" aria-selected="true">卡片视图</button>
+        <button class="view-tab" role="tab" data-view="tree" aria-selected="false">清单视图</button>
+        <button class="view-tab" role="tab" data-view="graph" aria-selected="false">图谱视图</button>
+      </div>
+
+      <div class="search-wrap" id="search-wrap">
+        <input id="search-input" type="search" placeholder="搜索 标题 / 全文 / 标签…"
+               autocomplete="off" aria-label="搜索">
+        <div class="search-results" id="search-results" hidden></div>
+      </div>
+
+      <div class="socials">
+        
+          
+            <a class="social-icon" href="https://github.com/meredith2328" title="github" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></a>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        
+          <a class="social-icon" href="../../rss.xml" title="RSS"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg></a>
+        
+      </div>
+    </div>
+    
+    <nav class="site-nav" aria-label="站点导航"><h1 id="_1">导航</h1>
+<ul>
+<li><a href="../../index.html">首页</a></li>
+<li><a href="../toy/10pi.html">关于</a></li>
+<li><a data-kind="folder" href="../../index.html#folder=posts/courses">CS相关</a></li>
+<li><a data-kind="folder" href="../../index.html#folder=posts/toy">玩具</a></li>
+<li><a href="../toy/friends.html">友链</a></li>
+<li><a href="../../dino/index.html">恐龙游戏</a></li>
+</ul></nav>
+    
+  </header>
+
+  <main class="site-main">
+<article class="post">
+  <header class="post-header">
+    <a class="back-link" href="../../index.html">← 返回首页</a>
+    <h1 class="post-title">用双卡 5090 训练 Qwen3-0.6B：从数学推理到 Agentic RL 的完整实验</h1>
+    <div class="post-meta">
+      <time datetime="2026-08-07T00:00:00">2026-08-07</time>
+      
+      <a class="tag-chip" href="../../index.html#tag=RL">#RL</a>
+      
+      <a class="tag-chip" href="../../index.html#tag=GRPO">#GRPO</a>
+      
+      <a class="tag-chip" href="../../index.html#tag=Agent">#Agent</a>
+      
+      <a class="tag-chip" href="../../index.html#tag=LLM">#LLM</a>
+      
+      <a class="tag-chip" href="../../index.html#tag=%E8%AE%AD%E7%BB%83">#训练</a>
+      
+      <span class="post-folder">▣ posts/notes</span>
+    </div>
+  </header>
+
+  
+
+  <div class="post-body markdown-body">
+    <p>这篇文章是我最近一个多月做的一组实验的记录。起因很简单：想看看 0.6B 这种“小参数”模型，
+在两张 RTX 5090 上，到底能不能被强化学习练出像样的数学推理和 Agent 能力。
+起点是 Datawhale 第 11 章的 hello-agents 案例，但做着做着就停不下来了——
+从 GSM8K 数学推理，到多轮工具调用，再到自己搭一个跨应用的工具基准，
+最后还顺手用 QLoRA 挑战了一下 72B 的微调。这篇博客想把整条路线讲清楚，
+尤其是那些“看起来对、其实没发生”的坑。</p>
+<p>完整的论文、报告和代码在 <a href="https://github.com/Meredith2328/MathQwen">MathQwen 仓库</a>，
+训练曲线都在 <a href="https://wandb.ai/10pi-fudan-university-school-of-management/agenticrl">wandb 项目</a>
+里，所有数字都能对上，欢迎对照。</p>
+<h2 id="_1">先补一点背景知识</h2>
+<p>如果你没接触过 RLHF 那一套，我尽量用最短的话讲清楚。</p>
+<p><strong>SFT（监督微调）</strong> 就是拿一批“问题-标准答案”的数据让模型照着学，本质是抄作业。
+它稳定，但只会模仿数据里出现过的行为。</p>
+<p><strong>强化学习（RL）</strong> 是另一条路：让模型自己生成答案，用奖励函数打分，
+再把高分行为强化。最常见的算法是 <strong>PPO</strong>，但它需要价值网络，显存开销大。</p>
+<p><strong>GRPO</strong> 是 DeepSeek 提出的简化版：对同一个问题采样一组回答，用这组回答内部的
+均值方差做归一化，代替价值网络。公式是
+<span class="arithmatex">\(A_i = (r_i - \mathrm{mean}(\{r_j\})) / \mathrm{std}(\{r_j\})\)</span>，
+再加上 PPO 的裁剪和 KL 约束。省掉价值网络之后，单机双卡也能跑得动。</p>
+<p><strong>Agentic RL</strong> 更进一步：模型不是输出一段文字就结束，而是进入
+“思考 → 调工具 → 看工具返回 → 再思考”的循环，奖励来自工具执行的真实结果。</p>
+<p><strong>wandb</strong> 是我们的实验管理工具：每个训练 run 的 loss、reward、显存、超参都会
+自动记录并同步到云端。它让“每个结论都能追溯到具体某次训练”成为可能，
+这一点在后面的审计里帮了大忙。</p>
+<h2 id="gsm8k">实验一：GSM8K 数学推理，四个训练栈对比</h2>
+<p>协议很简单：GSM8K 前 500 条训练、前 500 条测试，<span class="arithmatex">\(G=8\)</span>、lr=1e-6、β=0.001，
+统一从模型输出里抽数字和标准答案比对。四个框架分别是 hello-agents（起点）、
+DeepSpeed（TRL+ZeRO-2）、Megatron-LM（全参）、Verl（FSDP+vLLM）。</p>
+<table>
+<thead>
+<tr>
+<th>配置</th>
+<th>GSM8K test</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>基座 Qwen3-0.6B</td>
+<td>42.2%</td>
+</tr>
+<tr>
+<td>hello-agents · SFT</td>
+<td>57.0%</td>
+</tr>
+<tr>
+<td>hello-agents · GRPO（默认 lr=5e-5）</td>
+<td>2.4%</td>
+</tr>
+<tr>
+<td>DeepSpeed GRPO</td>
+<td>46.8%</td>
+</tr>
+<tr>
+<td>Megatron-LM GRPO</td>
+<td>52.6%</td>
+</tr>
+<tr>
+<td><strong>Verl GRPO</strong></td>
+<td><strong>68.8%</strong></td>
+</tr>
+</tbody>
+</table>
+<p>三个发现：</p>
+<p>第一，0.6B 也能被 RL 显著提升。Verl 只花了 27 分钟就把 42.2% 提到 68.8%。
+小模型不是学不动，是要用对的工具和超参。</p>
+<p>第二，跑通不等于跑好。hello-agents 默认 lr=5e-5 直接把策略练塌了，
+57% 掉到 2.4%。对 0.6B 这种小模型，学习率一大，一步就能把输出分布冲没。</p>
+<p>第三，框架自带的奖励不一定适合你的模型。Megatron 官方示例只认 <code>\boxed{}</code> 结尾的
+答案，Qwen3 不这么输出，导致奖励几乎恒为 0、梯度为零。改成统一数值抽取奖励后，
+Megatron 才从“约等于基座”变成真正训练。</p>
+<h2 id="agentic-0-98">实验二：Agentic 工具链，从 0% 摸到 98%</h2>
+<p>光做数学推理不过瘾，我们把重点转向“会调用工具”的智能体。设计了两档到六档递进任务：
+Easy（1 次计算器调用）、Multi-step（2–3 步链）、Hard（4–5 步链）、Long-chain（6–8 步）、
+Multi-tool（汇率/单位换算跨工具）、Planning（场景目标自主规划）。数字全是 9–13 位，
+心算不可能，模型必须真的调用工具、读取返回、串接下一步。</p>
+<p>方法是 SFT 预热（教格式和循环）加过程奖励 GRPO（格式 0.1 + 每步正确 0.6 + 最终答案 0.3）。
+SFT 之后六档任务全部达到 97–100%。</p>
+<p>但这里发生了一件很值得写的事：<strong>我们最初报告“SFT→GRPO 与 SFT 持平（98.3%）”，
+后来发现那是假的。</strong></p>
+<p>有一天我闲得无聊，对远端所有 adapter 做了一次 md5 哈希比对，结果发现：
+所有从 SFT 初始化的 GRPO 产物，和 SFT 初始化权重<strong>逐字节相同</strong>。
+也就是说 GRPO 压根没更新权重，那 98.3% 就是 SFT 自己的成绩。</p>
+<p>根因是 TRL 1.9.2 的 “ref adapter” 机制：从已有 adapter 续训 GRPO 时，
+TRL 会在模型里复制一份初始权重当 KL 参照，训练日志一切正常（loss 在降、
+梯度范数非零），但梯度没有落到最终保存的 default adapter 上。
+修复方法是先把预热权重 <code>merge_and_unload()</code> 合进基座，再新建一个干净的 LoRA。
+我还把这个校验写进了训练脚本：每次训练结束打印保存哈希和初始哈希，
+两者相同就直接报警，以后不会再犯。</p>
+<p>修复后复跑 Hard，真实结果和之前完全不一样：</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>单调用评测器</th>
+<th>多调用评测器</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SFT（Hard 数据）</td>
+<td>98.3%</td>
+<td>66.7%</td>
+</tr>
+<tr>
+<td>SFT→GRPO 过程奖励（修复后）</td>
+<td>3.3%</td>
+<td>2.5%</td>
+</tr>
+<tr>
+<td>SFT→GRPO 仅结果奖励（修复后）</td>
+<td>–</td>
+<td>0.8%</td>
+</tr>
+</tbody>
+</table>
+<p>也就是说，在 SFT 已经饱和的任务上继续做 GRPO，对 0.6B 是<strong>破坏性的</strong>——
+策略退化成“调用一次工具 + 长篇叙述”。而在后面实验三里，SFT 只有 2.5%（远未饱和），
+修复后的 GRPO 反而能把它提到 12.5%。RL 的增益依赖“SFT 未饱和”的分布，
+这一点比“GRPO 与 SFT 持平”更接近真相。</p>
+<h2 id="_2">实验三：自己搭一个跨应用工具基准</h2>
+<p>真实世界的 Agent 基准（比如 Toolathlon，604 个工具、32 个真实应用）需要
+Docker、MCP、真实账号，双卡 5090 环境根本跑不起来。所以我们按同样的方法论
+自己搭了一个可控沙箱：9 个模拟应用（文件、数据表、笔记、日历、邮件、数学、文本、
+终端、网页）、47 个工具，验证器直接检查最终沙箱状态（文件名、笔记标题、收件人、
+表行数、数值），而不是只看模型说了什么。</p>
+<p>为了防数据泄露，做了三层保留：<code>web</code> 应用只出现在测试集（训练完全不可见）；
+测试模板和训练模板没有任何一对应用例复用；每个实例的数值由独立种子生成。
+所有专家轨迹都过了自检（重放必须让验证器通过）。</p>
+<p>结果：基座 10.8% → GRPO 12.5%（执行错误从 221 降到 12），pass@3 采样三次 16.7%。
+但 <strong>web 保留应用通过率始终是 0%</strong>。失败模式非常典型：模型能选对工具
+（基座在没见过的 web 任务上工具选择准确率有 96.5%），却不会把工具返回的内容
+串接进下一步——比如把 URL 当正文传给 extract_numbers，而不是读取
+get_webpage 返回的“604 tools”。</p>
+<p>为了确认 0% 不是“任务太难”的假象，我们做了可学习性正对照：
+把 web 样本加入训练再测。SFT 版本即使见过 web 也还是 0%（交互循环里乱调工具）；
+GRPO 版本正在跑，结果会如实更新在仓库里。</p>
+<h2 id="_3">工程经验清单</h2>
+<p>这组实验踩过的坑，值得单独列出来：</p>
+<ul>
+<li>
+<p><strong>sm_120 软件栈</strong>：PyPI 默认 cu126 的 torch 不支持 Blackwell，必须 cu128/cu130；
+  torch 2.7.1 的 NCCL 半精度 all-reduce 有内存损坏 bug，升 2.9.0 解决。</p>
+</li>
+<li>
+<p><strong>TRL ref-adapter 保存陷阱</strong>：见上文，这是本实验最重要的 bug。</p>
+</li>
+<li>
+<p><strong>评测器要和训练格式对齐</strong>：TRL 原生 rollout 支持一条回复多个 <code>&lt;tool_call&gt;</code>，
+  旧评测器每轮只执行第一个，会系统性低估批量调用模型（3.3% vs 20%）。</p>
+</li>
+<li>
+<p><strong>批量评估必须左填充</strong>：右填充会让短样本解码起点偏移，工具调用率从 78% 掉到 26%。</p>
+</li>
+<li><strong>SFT 后熵太低</strong>：token 熵约 0.002，温度 0.9 下采样几乎相同、奖励零方差；
+  要提到温度 1.2、top-p 0.95 才有学习信号。</li>
+</ul>
+<h2 id="_4">结尾</h2>
+<p>回头看，这组实验最有价值的产出可能不是某个准确率数字，而是<strong>一套能自证清白的
+实验协议</strong>：数据生成带自检、训练结束校验保存哈希、评估标注清楚口径、负结果照实写。
+对于 RL 这种“看起来在动、实际不知道动没动”的训练方式，可审计比好看更重要。</p>
+<p>想深入的话：</p>
+<ul>
+<li>教学级实验报告：<a href="https://github.com/Meredith2328/MathQwen/blob/main/REPORT.md">REPORT.md</a></li>
+<li>29 页论文：<a href="https://github.com/Meredith2328/MathQwen/blob/main/paper/paper.pdf">paper.pdf</a></li>
+<li>缺口审计与修正：<a href="https://github.com/Meredith2328/MathQwen/blob/main/GAP_ANALYSIS.md">GAP_ANALYSIS.md</a></li>
+<li>全部训练曲线：<a href="https://wandb.ai/10pi-fudan-university-school-of-management/agenticrl">wandb agenticrl</a></li>
+<li>数据云盘备份：<code>/mnt/data/backups/ma_bench_*.tar.gz</code>（远端）与仓库 <code>backup/</code>（本地）</li>
+</ul>
+  </div>
+
+  
+  <section class="post-comments">
+    <h2 class="comments-title">评论</h2>
+    <script src="https://giscus.app/client.js"
+      data-repo="Meredith2328/pilog"
+      data-repo-id="R_kgDOTpY2UA"
+      data-category="Announcements"
+      data-category-id="DIC_kwDOTpY2UM4DCZMy"
+      data-mapping="pathname"
+      data-strict="0"
+      data-reactions-enabled="1"
+      data-emit-metadata="0"
+      data-input-position="top"
+      data-theme="light"
+      data-lang="zh-CN"
+      crossorigin="anonymous"
+      async></script>
+  </section>
+  
+</article>
+</main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span>© 2026 10pi (Meredith2328) — built with pilog</span>
+      <span class="footer-sep">::</span>
+      <a href="../../rss.xml">RSS</a>
+      <span class="footer-sep">::</span>
+      <span>powered by <a href="https://github.com/meredith2328/pilog" target="_blank" rel="noopener">pilog</a></span>
+    </div>
+  </footer>
+
+  
+  <div class="dino-widget" data-widget="dino">
+    <div class="dino-panel" hidden>
+      <div class="dino-bar">
+        <span class="dino-title">T-REX RUNNER</span>
+        <span class="dino-hint">点击游戏区域后按 空格</span>
+        <button class="dino-close" type="button" aria-label="关闭">×</button>
+      </div>
+      <div class="dino-stage">
+        <iframe class="dino-frame" src="../../dino/index.html" title="Chrome 断网小恐龙" loading="lazy"></iframe>
+        <div class="dino-loading" id="dino-loading">加载中…</div>
+      </div>
+    </div>
+    <button class="dino-toggle" type="button" aria-label="打开小恐龙游戏">
+      <img src="../../img/dino-icon.png" alt="小恐龙" width="26" height="28">
+      <span>PLAY</span>
+    </button>
+  </div>
+  
+
+  <script src="../../js/main.js" defer></script>
+  <script>
+    window.PILOG_ROOT = "../../";
+    window.PILOG_DEFAULT_VIEW = "cards";
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+          onload="try{if(window.renderMathInElement){renderMathInElement(document.body,{delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});}}catch(e){}"></script>
+  <script src="../../js/search.js" defer></script>
+  
+</body>
+</html>

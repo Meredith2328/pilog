@@ -103,17 +103,27 @@
     <input id="filter-more-search" type="search" placeholder="搜索标签…">
     <div class="filter-more-list" id="filter-more-list">
       
+      <button class="tag-chip" type="button" data-tag="Agent">#Agent</button>
+      
       <button class="tag-chip" type="button" data-tag="CS61A">#CS61A</button>
       
       <button class="tag-chip" type="button" data-tag="CSAPP">#CSAPP</button>
+      
+      <button class="tag-chip" type="button" data-tag="GRPO">#GRPO</button>
+      
+      <button class="tag-chip" type="button" data-tag="LLM">#LLM</button>
       
       <button class="tag-chip" type="button" data-tag="meta">#meta</button>
       
       <button class="tag-chip" type="button" data-tag="pilog">#pilog</button>
       
+      <button class="tag-chip" type="button" data-tag="RL">#RL</button>
+      
       <button class="tag-chip" type="button" data-tag="奇怪的东西">#奇怪的东西</button>
       
       <button class="tag-chip" type="button" data-tag="数据结构与算法">#数据结构与算法</button>
+      
+      <button class="tag-chip" type="button" data-tag="训练">#训练</button>
       
     </div>
   </div>
@@ -125,6 +135,36 @@
   </div>
 
   <div class="card-grid" id="card-grid">
+    
+    <article class="card is-cover" data-tags="奇怪的东西 " data-folder="posts/toy" data-date="2024-08-26">
+      
+      <span class="card-cover" style="background-image:url('../posts/migrated/post-images/freshdan-xin-sheng-wiki-xiang-mu.png')"></span>
+      
+      <a class="card-link" href="../posts/toy/freshdan.html">
+        <div class="card-body">
+          <div class="card-meta">
+            <time datetime="2024-08-26">2024-08-26</time>
+            
+            
+            
+            <span class="card-folder" title="点击目录片段筛选">
+              <button class="folder-part" type="button" data-folder="posts">posts</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/toy">toy</button>
+            </span>
+            
+          </div>
+          <h3 class="card-title">freshdan 新生wiki项目</h3>
+          
+          <div class="card-preview">已发布至 freshdan  假期内跟 @Jingyijun 老师聊天时画了这个饼，和 @CodingMizore 激烈交流、以及参考了 @Cameudis…</div>
+          
+          <div class="card-tags">
+            
+            <button class="tag-chip" type="button" data-tag="奇怪的东西">#奇怪的东西</button>
+            
+          </div>
+        </div>
+        
+      </a>
+    </article>
     
     <article class="card is-cover" data-tags="CSAPP " data-folder="posts/courses/csapp" data-date="2024-06-27">
       
@@ -441,34 +481,6 @@
           <h3 class="card-title">CS61A disc07 树、链表</h3>
           
           <div class="card-preview">左子树的所有节点的值都小于等于父节点的值， 右子树的所有节点的值都大于父节点的值。 Solution 1 Solution 2 Hint写得很清楚，摘抄一下。 <strong>Hint: Approach</strong> Place the division pattern from the example above in a <code>while</code> statement: While constructing the decimal expansion, store the <code>tail</code> for each <code>n</code> in a…</div>
-          
-          <div class="card-tags">
-            
-            <button class="tag-chip" type="button" data-tag="CS61A">#CS61A</button>
-            
-          </div>
-        </div>
-        
-      </a>
-    </article>
-    
-    <article class="card" data-tags="CS61A " data-folder="posts/courses/cs61a" data-date="2023-07-17">
-      
-      <a class="card-link" href="../posts/courses/cs61a/cs61a-disc01.html">
-        <div class="card-body">
-          <div class="card-meta">
-            <time datetime="2023-07-17">2023-07-17</time>
-            
-            
-            
-            <span class="card-folder" title="点击目录片段筛选">
-              <button class="folder-part" type="button" data-folder="posts">posts</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/courses">courses</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/courses/cs61a">cs61a</button>
-            </span>
-            
-          </div>
-          <h3 class="card-title">CS61A disc01 “迭代与抽象”</h3>
-          
-          <div class="card-preview">Discussion 1 | CS 61A Summer 2024 eg. <code>race(3, 4)</code> 以下先考虑前10min中构造无限循环。 第一个条件显然不符合我们的需要。 因为第二个条件是 <code>tortoise - hare</code> ，若其为负值、则仍可以继续循环。 0-4min 由于<code>y&gt;x</code>，<code>hare=my &gt; tortoise=mx</code>，不可能追上。 5-9min 此时 <code>hare=5y</code> ，`tortoise=mx, m = 6,…</div>
           
           <div class="card-tags">
             
@@ -945,6 +957,17 @@
         
       
             </ul>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/notes/mathqwen-0.6b-agentic-rl">
+            <a class="tree-row" href="../posts/notes/mathqwen-0.6b-agentic-rl.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="../img/pixel-file.svg" alt="file">
+              <span class="tree-name">用双卡 5090 训练 Qwen3-0.6B：从数学推理到 Agentic RL 的完整实验</span>
+              <span class="tree-date">2026-08-07</span>
+            </a>
           </li>
           
         

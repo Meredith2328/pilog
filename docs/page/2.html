@@ -103,17 +103,27 @@
     <input id="filter-more-search" type="search" placeholder="搜索标签…">
     <div class="filter-more-list" id="filter-more-list">
       
+      <button class="tag-chip" type="button" data-tag="Agent">#Agent</button>
+      
       <button class="tag-chip" type="button" data-tag="CS61A">#CS61A</button>
       
       <button class="tag-chip" type="button" data-tag="CSAPP">#CSAPP</button>
+      
+      <button class="tag-chip" type="button" data-tag="GRPO">#GRPO</button>
+      
+      <button class="tag-chip" type="button" data-tag="LLM">#LLM</button>
       
       <button class="tag-chip" type="button" data-tag="meta">#meta</button>
       
       <button class="tag-chip" type="button" data-tag="pilog">#pilog</button>
       
+      <button class="tag-chip" type="button" data-tag="RL">#RL</button>
+      
       <button class="tag-chip" type="button" data-tag="奇怪的东西">#奇怪的东西</button>
       
       <button class="tag-chip" type="button" data-tag="数据结构与算法">#数据结构与算法</button>
+      
+      <button class="tag-chip" type="button" data-tag="训练">#训练</button>
       
     </div>
   </div>
@@ -125,6 +135,36 @@
   </div>
 
   <div class="card-grid" id="card-grid">
+    
+    <article class="card" data-tags="" data-folder="posts/notes/ml" data-date="2026-03-03">
+      
+      <a class="card-link" href="../posts/notes/ml/LLMestimate.html">
+        <div class="card-body">
+          <div class="card-meta">
+            <time datetime="2026-03-03">2026-03-03</time>
+            
+            
+            
+            <span class="card-folder" title="点击目录片段筛选">
+              <button class="folder-part" type="button" data-folder="posts">posts</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/notes">notes</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/notes/ml">ml</button>
+            </span>
+            
+          </div>
+          <h3 class="card-title">怎么估算LLM的参数量和训练FLOPs？推一推、测一测</h3>
+          
+          <div class="card-preview">本Blog适合于知道 Transformer 基础结构、但没有尝试推导过参数量和FLOPs的朋友。 省流： <span class="arithmatex">\(P ≈ 12Nd^2 + Vd\)</span>  本文的LLM基于Transformer Decoder结构，以 GPT2-XL 为例。它有以下超参数设置： 实测得到的可训练参数量为 <code>1,557,611,200</code> = 1.56B。 以下是使用HuggingFace…</div>
+          
+          <div class="card-tags">
+            
+          </div>
+        </div>
+        
+        <div class="card-thumb">
+          <img src="../posts/migrated/post-images/20260303103200.png" alt="" loading="lazy">
+        </div>
+        
+      </a>
+    </article>
     
     <article class="card" data-tags="数据结构与算法 " data-folder="posts/notes/algo" data-date="2026-03-02">
       
@@ -459,36 +499,6 @@
             <button class="tag-chip" type="button" data-tag="CS61A">#CS61A</button>
             
             <button class="tag-chip" type="button" data-tag="CSAPP">#CSAPP</button>
-            
-          </div>
-        </div>
-        
-      </a>
-    </article>
-    
-    <article class="card is-cover" data-tags="奇怪的东西 " data-folder="posts/toy" data-date="2024-08-26">
-      
-      <span class="card-cover" style="background-image:url('../posts/migrated/post-images/freshdan-xin-sheng-wiki-xiang-mu.png')"></span>
-      
-      <a class="card-link" href="../posts/toy/freshdan.html">
-        <div class="card-body">
-          <div class="card-meta">
-            <time datetime="2024-08-26">2024-08-26</time>
-            
-            
-            
-            <span class="card-folder" title="点击目录片段筛选">
-              <button class="folder-part" type="button" data-folder="posts">posts</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/toy">toy</button>
-            </span>
-            
-          </div>
-          <h3 class="card-title">freshdan 新生wiki项目</h3>
-          
-          <div class="card-preview">已发布至 freshdan  假期内跟 @Jingyijun 老师聊天时画了这个饼，和 @CodingMizore 激烈交流、以及参考了 @Cameudis…</div>
-          
-          <div class="card-tags">
-            
-            <button class="tag-chip" type="button" data-tag="奇怪的东西">#奇怪的东西</button>
             
           </div>
         </div>
@@ -961,6 +971,17 @@
         
       
             </ul>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/notes/mathqwen-0.6b-agentic-rl">
+            <a class="tree-row" href="../posts/notes/mathqwen-0.6b-agentic-rl.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="../img/pixel-file.svg" alt="file">
+              <span class="tree-name">用双卡 5090 训练 Qwen3-0.6B：从数学推理到 Agentic RL 的完整实验</span>
+              <span class="tree-date">2026-08-07</span>
+            </a>
           </li>
           
         
