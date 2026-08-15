@@ -54,8 +54,17 @@ jobs:
           git commit -m "site: auto build $(date -u +%Y-%m-%dT%H:%M:%SZ)" || echo "no changes to commit"
           DEPLOY_REPO=$(python -c "import json;print(json.load(open('config.json'))['publish']['repo'])")
           DEPLOY_BRANCH=$(python -c "import json;print(json.load(open('config.json'))['publish']['branch'])")
-          # actions/checkout 会把 GITHUB_TOKEN 以 http.https://github.com/.extraheader
-          # 写入全局配置并覆盖 URL 里的 PAT（403 denied to github-actions[bot]），
-          # 这里显式清掉该配置项，再推送
-          git config --unset-all http.https://github.com/.extraheader || true
-          git push "https://x-access-token:${TOKEN}@github.com/${DEPLOY_REPO}.git" "HEAD:${DEPLOY_BRANCH}"
+          # 独立操作部署仓库：clone 其当前 HEAD，只同步 docs/ 后提交推送。
+          # 这样提交的 diff 只含站点内容，不会把源码仓库的 .github/workflows 推过去
+          # （否则 PAT 需要 workflow scope 才能碰 workflow 文件）。
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -rf /tmp/site-deploy
+          git clone --depth 1 --branch "$DEPLOY_BRANCH" \
+            "https://x-access-token:${TOKEN}@github.com/${DEPLOY_REPO}.git" /tmp/site-deploy
+          rm -rf /tmp/site-deploy/docs
+          cp -r docs /tmp/site-deploy/docs
+          cd /tmp/site-deploy
+          git add -A docs
+          git commit -m "site: auto build $(date -u +%Y-%m-%dT%H:%M:%SZ)" || echo "no changes to commit"
+          git push origin "$DEPLOY_BRANCH"
