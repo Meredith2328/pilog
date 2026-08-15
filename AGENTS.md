@@ -6,5 +6,6 @@
 - API / 配置项文档：posts/toy/pilog-blog（内容保持克制；新增 API 或配置项时直接追加到已有表格行之后）
 - 构建：`python pilog.py build`；本地预览：`python pilog.py serve --watch`
 - 测试：改动构建或渲染后至少运行 `python tests/test_dom.py` 与 `python tests/test_features.py`
-- 提交：`git add -A && git commit`；发布：`python pilog.py publish -m "..."`（令牌只放本地 `.publish-token*`，绝不可提交）
-- 用户说「推上去 / 推到远端」= 同时做两件事：`git push origin pilog`（代码/构建产物进源码仓库）+ `python pilog.py publish -m "..."`（构建并发布到部署仓库 `meredith2328.github.io`），站点才会更新；只 push 不 publish 时远端站点看不到改动
+- 提交：`git add -A && git commit`；令牌只放本地 `.publish-token*`，绝不可提交
+- 发布已自动化：push 到 `pilog` 分支会触发 GitHub Actions（`.github/workflows/deploy.yml`）自动构建、测试并把 `docs/` 推到部署仓库 `meredith2328.github.io` 的 `pilog` 分支，无需再手动执行 `python pilog.py publish`
+- 用户说「推上去 / 推到远端」= `git push origin pilog`，然后用 `gh run list --workflow deploy.yml` 确认部署成功；`python pilog.py publish` 仅作本地手动兜底
