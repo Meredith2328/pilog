@@ -54,6 +54,8 @@ jobs:
           git commit -m "site: auto build $(date -u +%Y-%m-%dT%H:%M:%SZ)" || echo "no changes to commit"
           DEPLOY_REPO=$(python -c "import json;print(json.load(open('config.json'))['publish']['repo'])")
           DEPLOY_BRANCH=$(python -c "import json;print(json.load(open('config.json'))['publish']['branch'])")
-          # -c http.extraheader= 清掉 actions/checkout 注入的 GITHUB_TOKEN 认证头，
-          # 否则它会覆盖 URL 里的 PAT，导致 403 denied to github-actions[bot]
-          git -c http.extraheader= push "https://x-access-token:${TOKEN}@github.com/${DEPLOY_REPO}.git" "HEAD:${DEPLOY_BRANCH}"
+          # actions/checkout 会把 GITHUB_TOKEN 以 http.https://github.com/.extraheader
+          # 写入全局配置并覆盖 URL 里的 PAT（403 denied to github-actions[bot]），
+          # 这里显式清掉该配置项，再推送
+          git config --unset-all http.https://github.com/.extraheader || true
+          git push "https://x-access-token:${TOKEN}@github.com/${DEPLOY_REPO}.git" "HEAD:${DEPLOY_BRANCH}"
