@@ -119,6 +119,7 @@ feature: true
 ### 发布与评论
 
 - `publish` 使用 fine-grained token（只需 Contents: Read and write），只做 add / commit / push，绝不执行删除操作；令牌只保存在本地 gitignore 的文件里，不会进仓库；
+- 自动部署：`push` 到 `pilog` 分支时，`.github/workflows/deploy.yml` 会自动构建并推送到部署仓库（需在源码仓库配置 `PILOG_TOKEN` secret，见 README「自动部署」）；
 - 评论由 giscus 驱动（GitHub Discussions），配置 `giscus` 段即可；
 - 自动生成 RSS。
 

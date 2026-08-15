@@ -202,6 +202,17 @@ python publish.py -m "发布说明"    # 自定义提交信息
 
 不需要 Actions、Workflows、Administration、Pages 等权限——推送后仓库自带的 GitHub Actions 会用它自己的 `GITHUB_TOKEN` 完成 Pages 部署；fine-grained token 本身也无法删除仓库。
 
+### 自动部署（GitHub Actions）
+
+`push` 到 `pilog` 分支时会自动触发 `.github/workflows/deploy.yml`：在 CI 里安装依赖、`python build.py` 构建、跑 `tests/test_features.py`，然后把 `docs/` 提交并推送到部署仓库（`config.json` 的 `publish.repo` / `publish.branch`），GitHub Pages 随即更新。**推代码即上线，无需本地跑 publish。**
+
+只需要一次性配置：
+
+1. 在 GitHub → Settings → Developer settings 创建 **fine-grained PAT**，Repository access 勾选**部署仓库**（如 `meredith2328.github.io`），权限开 **Contents: Read and write**（+自动带上的 Metadata: Read）；
+2. 把令牌加到**源码仓库**的 Settings → Secrets and variables → Actions，命名为 `PILOG_TOKEN`（与 `publish.py` 读取的环境变量同名）。
+
+未配置 `PILOG_TOKEN` 时工作流会失败并在日志里提示原因，不会误推。本地 `publish.py` 不受影响，仍可在无 CI 或需要手动发布时使用。
+
 ### giscus 评论
 
 giscus 是**客户端**评论系统（GitHub Discussions 驱动），博客侧不需要任何令牌。需要两步仓库级设置：

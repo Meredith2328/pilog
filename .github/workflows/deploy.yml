@@ -1,0 +1,57 @@
+# 自动部署：push 到 pilog 分支时，构建站点并推送到部署仓库
+# （与本地 `python pilog.py publish` 行为一致，但无需手动执行）
+#
+# 需要仓库 Actions secret：PILOG_TOKEN
+#   一个对部署仓库（config.json 的 publish.repo，如 Meredith2328/meredith2328.github.io）
+#   有 Contents: Read and write 权限的 fine-grained PAT。
+#   设置入口：https://github.com/<owner>/<repo>/settings/secrets/actions
+#
+# 若 secret 未配置，本工作流会标记为失败并在日志中提示，不会误推空仓库。
+
+name: deploy
+
+on:
+  push:
+    branches: [pilog]
+  workflow_dispatch: # 允许手动触发
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Build site
+        run: python build.py
+
+      - name: Run tests
+        run: python tests/test_features.py
+
+      - name: Publish to deploy repo
+        env:
+          TOKEN: ${{ secrets.PILOG_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::error::缺少 PILOG_TOKEN secret：请创建对部署仓库有 Contents: write 权限的 PAT，加到仓库 Actions secrets（名称 PILOG_TOKEN）"
+            exit 1
+          fi
+          # 与 publish.py 相同：把构建产物 docs/ 提交并推送到部署仓库的 branch
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A docs
+          git commit -m "site: auto build $(date -u +%Y-%m-%dT%H:%M:%SZ)" || echo "no changes to commit"
+          DEPLOY_REPO=$(python -c "import json;print(json.load(open('config.json'))['publish']['repo'])")
+          DEPLOY_BRANCH=$(python -c "import json;print(json.load(open('config.json'))['publish']['branch'])")
+          git push "https://x-access-token:${TOKEN}@github.com/${DEPLOY_REPO}.git" "HEAD:${DEPLOY_BRANCH}"

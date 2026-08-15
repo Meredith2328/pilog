@@ -111,7 +111,7 @@
     <h1 class="post-title">用 pilog 搭建像素风博客</h1>
     <div class="post-meta">
       <time datetime="2026-07-30T00:00:00">2026-07-30</time>
-      <span class="post-stats">3254 字 · 约 8 分钟</span>
+      <span class="post-stats">3365 字 · 约 8 分钟</span>
       
       <a class="tag-chip" href="../../index.html#tag=%E9%A1%B9%E7%9B%AE">#项目</a>
       
@@ -334,6 +334,7 @@
 <h3 id="发布与评论">发布与评论</h3>
 <ul>
 <li><code>publish</code> 使用 fine-grained token（只需 Contents: Read and write），只做 add / commit / push，绝不执行删除操作；令牌只保存在本地 gitignore 的文件里，不会进仓库；</li>
+<li>自动部署：<code>push</code> 到 <code>pilog</code> 分支时，<code>.github/workflows/deploy.yml</code> 会自动构建并推送到部署仓库（需在源码仓库配置 <code>PILOG_TOKEN</code> secret，见 README「自动部署」）；</li>
 <li>评论由 giscus 驱动（GitHub Discussions），配置 <code>giscus</code> 段即可；</li>
 <li>自动生成 RSS。</li>
 </ul>
