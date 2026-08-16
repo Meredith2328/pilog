@@ -259,6 +259,31 @@ def make_og_default(root: Path, out: Path) -> None:
         log(f"warning: cannot make og default card: {exc}")
 
 
+def _check_og_images(out_root: Path, site_url: str) -> list:
+    """Return [(html_page, og_url), ...] for every og:image whose target file
+    is missing from the build output. Prevents shipping a site where sharing
+    cards 404 (e.g. og-default.png generation silently failed)."""
+    import re
+
+    missing = []
+    seen = set()
+    for html in sorted(out_root.rglob("*.html")):
+        if "assets" in html.parts:
+            continue
+        for url in re.findall(
+            r'property="og:image"[^>]*content="([^"]+)"',
+            html.read_text(encoding="utf-8"),
+        ):
+            key = (url, str(html))
+            if key in seen:
+                continue
+            seen.add(key)
+            path = url.replace(site_url, "").lstrip("/")
+            if path and not (out_root / path).exists():
+                missing.append((str(html.relative_to(out_root)), url))
+    return missing
+
+
 def render_nav(page_url: str, ctx: MarkdownContext) -> str:
     nav_file = ctx.blog_root / "nav.md"
     if not nav_file.exists():
@@ -843,6 +868,12 @@ def build_site(
         log("warnings:")
         for w in ctx.warnings[:20]:
             log(f"  ! {w}")
+
+    missing_og = _check_og_images(out_root, cfg.site_url)
+    if missing_og:
+        for page, url in missing_og[:20]:
+            log(f"error: og:image 引用的文件缺失: {page} -> {url}")
+        raise SystemExit(1)
 
     log(
         f"done: {len(posts)} posts, {len(tree)} top nodes, "
