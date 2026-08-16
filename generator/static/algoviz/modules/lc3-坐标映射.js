@@ -1,7 +1,7 @@
 (function (global) {
   global.AlgoVizModules = global.AlgoVizModules || {};
 
-  global.AlgoVizModules["lc3-坐标映射很像pytorch的tensor-函数参数使用的坐标是1-16-为了把它映射到行号和列号-需要先映射到0-15-然后使用整除-和取模-本质是移位和位与-而块号可以由行号和列号映射得到-当然也可以直接用原始坐标求得-见下"] = {
+  global.AlgoVizModules["lc3-坐标映射"] = {
     title: "3 坐标映射很像PyTorch的Tensor。函数参数使用的坐标是1~16，为了把它映射到行号和列号，需要先映射到0~15，然后使用整除`/`和取模`%`（本质是移位和位与）。而块号可以由行号和列号映射得到。当然也可以直接用原始坐标求得，见下。",
     language: "python",
     code: [
