@@ -40,6 +40,50 @@ def img_stats(path: Path):
     return round(stat.stddev[0], 1), img.size
 
 
+def expected_card_titles():
+    """Expected homepage card order derived from blog front matter, mirroring
+    generator.content.sorted_for_cards: pinned first, then manual `order`
+    ascending, then newest first. Hidden posts (hidden/hideInList) are skipped.
+    Keeps the assertions below in sync when posts are added or dated."""
+    import datetime as dt
+    import re
+
+    posts_dir = ROOT / "blogs" / "posts"
+    items = []
+    for md in posts_dir.rglob("*.md"):
+        parts = md.read_text(encoding="utf-8", errors="replace").split("---", 2)
+        if len(parts) < 3:
+            continue
+        meta = parts[1]
+
+        def field(name):
+            m = re.search(rf"^{name}:\s*(.*)$", meta, re.M)
+            return m.group(1).strip() if m else ""
+
+        if field("hidden") == "true" or field("hideInList") == "true":
+            continue
+        title, date_s = field("title"), field("date")
+        if not title or not date_s:
+            continue
+        order_s = field("order")
+        items.append(
+            {
+                "title": title,
+                "date": dt.datetime.fromisoformat(date_s),
+                "order": float(order_s) if order_s not in ("", "null") else None,
+                "pin": field("pin") == "true",
+                "rel": md.relative_to(posts_dir).as_posix(),
+            }
+        )
+
+    def key(p):
+        return (p["order"] if p["order"] is not None else float("inf"), -p["date"].timestamp())
+
+    pinned = sorted((p for p in items if p["pin"]), key=key)
+    rest = sorted((p for p in items if not p["pin"]), key=key)
+    return pinned + rest
+
+
 def main() -> None:
     srv = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
@@ -62,8 +106,9 @@ def main() -> None:
                     page.evaluate("window.PILOG_DEFAULT_VIEW") == "cards")
         first_title = page.locator(".card-title").first.inner_text()
         ok &= check("pinned index card first", "十派的玩具箱" in first_title, first_title[:30])
+        expected_cards = expected_card_titles()
         second_title = page.locator(".card-title").nth(1).inner_text()
-        ok &= check("newest post follows pin", "科学理论" in second_title and "翻译" in second_title,
+        ok &= check("newest post follows pin", second_title == expected_cards[1]["title"],
                     second_title[:40])
         ok &= check("highlight card shown", page.locator(".card.is-highlight").count() >= 1)
         body_font = page.evaluate("getComputedStyle(document.body).fontFamily")
@@ -114,7 +159,8 @@ def main() -> None:
         ok &= check("folder chip replaced",
                     "posts/notes" in page.locator(".sel-chip.sel-folder").first.inner_text())
         vis = page.locator(".card:visible").count()
-        ok &= check("folder filter switched", vis == 18, str(vis))
+        expected_notes = sum(1 for c in expected_cards if c["rel"].startswith("notes/"))
+        ok &= check("folder filter switched", vis == expected_notes, str(vis))
         page.evaluate("window.pilogFilters.selectFolder('posts/notes')")
         page.wait_for_timeout(200)
         ok &= check("same folder keeps condition",
