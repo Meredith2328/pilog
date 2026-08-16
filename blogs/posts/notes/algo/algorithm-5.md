@@ -415,6 +415,7 @@ class Solution:
 
 时间复杂度：$O(\log n)$ ，空间复杂度：$O(1)$
 
+<div class="algoviz" data-module="lc74-搜索二维矩阵-v2" data-title="74 搜索二维矩阵 · 步骤可视化"></div>
 ```python
 class Solution:
     def searchRange(self, nums: List[int], target: int) -> List[int]:
