@@ -32,6 +32,7 @@ chapters_per_page: 1
 
 回溯模板：结束条件，遍历选择，做出选择。
 
+<div class="algoviz" data-module="lc46-全排列" data-title="46 全排列 · 步骤可视化"></div>
 ```
 class Solution:
     def permute(self, nums: List[int]) -> List[List[int]]:
@@ -59,6 +60,7 @@ class Solution:
 
 回溯需要考虑当前start时可以做哪些选择。
 
+<div class="algoviz" data-module="lc78-子集" data-title="78 子集 · 步骤可视化"></div>
 ```
 class Solution:
     def subsets(self, nums: List[int]) -> List[List[int]]:
@@ -78,6 +80,7 @@ class Solution:
 
 回溯需要考虑当前位置可以做出哪些选择。
 
+<div class="algoviz" data-module="lc17-电话号码的字母组合" data-title="17 电话号码的字母组合 · 步骤可视化"></div>
 ```
 class Solution:
     def letterCombinations(self, digits: str) -> List[str]:
@@ -103,6 +106,7 @@ class Solution:
 
 重复使用通过传入相同的i实现。
 
+<div class="algoviz" data-module="lc39-组合总和" data-title="39 组合总和 · 步骤可视化"></div>
 ```
 class Solution:
     def combinationSum(self, candidates: List[int], target: int) -> List[List[int]]:
@@ -131,6 +135,7 @@ class Solution:
 
 关键：只能使用一次通过传入i+1实现，不同位置可能有相同元素通过排序后连续元素剪枝实现。
 
+<div class="algoviz" data-module="lc39-组合总和-v2" data-title="39 组合总和 · 步骤可视化"></div>
 ```
 class Solution:
     def combinationSum2(self, candidates: List[int], target: int) -> List[List[int]]:
@@ -158,6 +163,7 @@ class Solution:
 
 回溯选择：如果左括号数量不到n，则可以加左括号；如果右括号数量少于左括号（当然也不到n），则可以加右括号。
 
+<div class="algoviz" data-module="lc22-括号生成" data-title="22 括号生成 · 步骤可视化"></div>
 ```
 class Solution:
     def generateParenthesis(self, n: int) -> List[str]:
@@ -227,6 +233,7 @@ class Solution:
 
 131 分割回文串
 
+<div class="algoviz" data-module="lc131-分割回文串" data-title="131 分割回文串 · 步骤可视化"></div>
 ```
 class Solution:
     def partition(self, s: str) -> List[List[str]]:
@@ -253,6 +260,7 @@ class Solution:
 
 N皇后的行条件自动保证，列条件有n个（通过col是否存在确定），主对角线有2n-1个（row - col的取值范围是从-(n-1)到(n-1)），副对角线有2n-1个（row + col的取值范围是从2到2n）。通过set是否存在即可。
 
+<div class="algoviz" data-module="lc51-n皇后" data-title="51 N皇后 · 步骤可视化"></div>
 ```
 class Solution:
     def solveNQueens(self, n: int) -> List[List[str]]:
@@ -292,6 +300,7 @@ class Solution:
 
 堆通过heapq包对heap数组进行处理，两个方法分别叫做heapq.heappush和heapq.heappop。
 
+<div class="algoviz" data-module="lc239-滑动窗口最大值-v2" data-title="239 滑动窗口最大值 · 步骤可视化"></div>
 ```
 class Solution:
     def maxSlidingWindow(self, nums: List[int], k: int) -> List[int]:
@@ -320,6 +329,7 @@ class Solution:
 
 （单调队列一般就是这种移除队尾的小元素的写法用法，然后因为这里有窗口的要求、还需要移除队头不在窗口内的元素。）
 
+<div class="algoviz" data-module="lc239-滑动窗口最大值-v3" data-title="239 滑动窗口最大值 · 步骤可视化"></div>
 ```
 class Solution:
     def maxSlidingWindow(self, nums: List[int], k: int) -> List[int]:
@@ -349,7 +359,7 @@ class Solution:
 >
 > 如果要找的元素可能不存在，可以使用**左闭右开区间**：`left = 0` ，`right = n` ，循环条件是 `left < right` 。
 >
-> 我个人喜欢使用左闭右开的写法，十分统一干净~~并且符合 [Dijkstra的论述](https://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD831.html)~~ 。
+> ~~左闭右开的写法比较符合 [Dijkstra的论述](https://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD831.html)，但是~~ 左闭右闭的写法会强迫你思考哪些元素被取到和排除。
 
 | 写法         | 搜索区间        | 循环条件        | left 更新        | right 更新        | 返回值        | 典型场景   |
 | :----------- | :-------------- | :-------------- | :--------------- | :---------------- | :------------ | :--------- |
@@ -366,6 +376,7 @@ bisect的两个函数分别叫bisect_left和bisect_right。
 
 如果元素已存在，则left返回已存在元素的第一个位置，right返回已存在元素的最后一个位置的下一个位置。
 
+<div class="algoviz" data-module="lc35-搜索插入位置" data-title="35 搜索插入位置 · 步骤可视化"></div>
 ```
 class Solution:
     def searchInsert(self, nums: List[int], target: int) -> int:
@@ -378,6 +389,7 @@ class Solution:
 
 需要注意的是，很有可能返回的下标为n（未找到，且待寻找元素比该行都要大），所以顺手加个条件。
 
+<div class="algoviz" data-module="lc74-搜索二维矩阵" data-title="74 搜索二维矩阵 · 步骤可视化"></div>
 ```
 class Solution:
     def searchMatrix(self, matrix: List[List[int]], target: int) -> bool:
@@ -389,17 +401,40 @@ class Solution:
         return False
 ```
 
-34 在排序数组中查找元素的第一个和最后一个位置
 
-```
+
+[34. 在排序数组中查找元素的第一个和最后一个位置](https://leetcode.cn/problems/find-first-and-last-position-of-element-in-sorted-array/)
+
+我特别喜欢下面这个板子，因为它把找上、下界的方式用**闭区间的二分查找**写得特别清楚，完全不容易写错。
+
+> 闭区间的二分查找的最好板子：
+>
+> 利用 `pos` 数组记录返回值。所有更新都使用 `mid - 1` 和 `mid + 1` 。
+>
+> ps. `left` 和 `right` 初始化构成的**范围是有含义的**。这道题我们是要在下标 `0` 到 `n-1` 范围内搜索。如果以后搜索的是个数，可能就是最少个数和最多个数了。一定要仔细想清楚这里的范围，不要闭着眼睛乱写。
+
+时间复杂度：$O(\log n)$ ，空间复杂度：$O(1)$
+
+```python
 class Solution:
     def searchRange(self, nums: List[int], target: int) -> List[int]:
-        n = len(nums)
-        l = bisect.bisect_left(nums, target)
-        if l >= n or nums[l] != target:
-            return [-1, -1]
-        r = bisect.bisect_right(nums, target) - 1
-        return [l, r]
+        def find_boundary(is_left: bool):
+            left, right = 0, len(nums) - 1
+            pos = -1 # 精华
+            while left <= right:
+                mid = (left + right) // 2
+                if nums[mid] == target:
+                    pos = mid # 精华
+                    if is_left:
+                        right = mid - 1
+                    else:
+                        left = mid + 1
+                elif nums[mid] < target:
+                    left = mid + 1
+                else:
+                    right = mid - 1
+            return pos
+        return [find_boundary(True), find_boundary(False)]
 ```
 
 
@@ -412,29 +447,29 @@ class Solution:
 
 然后关于各种边界条件怎么记忆：
 
-- 我使用的是左闭右开写法，所以初始化和循环条件如下。注意 `right` 不能用于数组访问，要用 `right - 1` 哦。
-- 优先判断 `nums[mid] == target` ，之后 `mid` 一定会从区间里排除，所以对应地给 `target` 条件里面用到 `nums[mid]` 的都写成小于号，而另外半边使用小于等于。
+- 优先判断 `nums[mid] == target` ，之后 `mid` 一定会从区间里排除，所以对应地给 `target` 条件里面用到 `nums[mid]` 的**都写成小于号**，而另外半边使用小于等于。
+- 我使用了我最喜欢的左闭右闭写法，所以到处都很干净。我喜欢这个板子。
 
 时间复杂度：$O(\log n)$ ，空间复杂度：$O(1)$
 
 ```python
 class Solution:
     def search(self, nums: List[int], target: int) -> int:
-        left, right = 0, len(nums)
-        while left < right:
+        left, right = 0, len(nums) - 1
+        while left <= right:
             mid = (left + right) // 2
             if nums[mid] == target:
                 return mid
-            if nums[left] <= nums[mid]: # 为了用下述条件判断target, 我们必须先找到有序区间
-                if nums[left] <= target < nums[mid]:      # mid已排除
-                    right = mid                           # mid已排除
+            if nums[left] <= nums[mid]: # 为了能用有序区间的条件判断, 我们需要先确定有序区间
+                if nums[left] <= target < nums[mid]:  # mid已排除
+                    right = mid - 1                   # mid已排除
                 else:
-                    left = mid + 1                        # mid已排除
+                    left = mid + 1                    # mid已排除
             else:
-                if nums[mid] < target <= nums[right - 1]: # mid已排除
-                    left = mid + 1                        # mid已排除
+                if nums[mid] < target <= nums[right]: # mid已排除
+                    left = mid + 1                    # mid已排除
                 else:
-                    right = mid                           # mid已排除
+                    right = mid - 1                   # mid已排除
         return -1
 ```
 
@@ -444,6 +479,7 @@ class Solution:
 
 还是一样的道理，旋转排序数组通过判断哪半段区间是有序的，来解决问题。另外那一半无序的区间只需要通过移动端点逼近处理即可。
 
+<div class="algoviz" data-module="lc153-寻找旋转排序数组中的最小值" data-title="153 寻找旋转排序数组中的最小值 · 步骤可视化"></div>
 ```
 class Solution:
     def findMin(self, nums: List[int]) -> int:
@@ -464,50 +500,53 @@ class Solution:
         return minVal
 ```
 
-4 寻找两个正序数组的中位数
 
-这个的思想是，找到给两个数组切开的位置，使得切痕左边的整体，小于等于切痕右边的整体。并且，这两段整体大小相同。
 
-实现方法是，将nums1左边的元素数量（切痕位置）作为二分查找的变量，然后通过左边整体的个数（两个数组总数的一半，向上取整）减去这个数量得到nums2左边的元素数量。
+[4. 寻找两个正序数组的中位数](https://leetcode.cn/problems/median-of-two-sorted-arrays/)
 
-在二分基础上，加上了上取整、数组越界等细节。
+找到给两个数组切开的位置，使得切痕左边的两段数组整体值，小于等于切痕右边整体值。并且，这两个整体大小基本相同。
 
-```
+实际是左边整体比右边整体多0个（偶数）或1个（奇数）元素，所以用了 `(m + n + 1) // 2` 这样的上取整写法。
+
+这个板子真难背啊。为了让它好背一点，一定要理解最关键的三行：
+
+- `i = (left + right) // 2` ，意味着**数组 `nums1` 左边一段有 `i` 个元素**
+- `j = total_left - i` ，意味着数组 `nums2` 左边一段有 `j` 个元素
+- `left, right = 0, m` ，意味着数组 `nums1` 左边一段**可以有 `0` 到 `m` 个元素**（注意绝对不能写成 `0` 到 `m-1` ！）
+
+其余所有代码都是服务于这三行的。
+
+当然，还有中位数的返回方式：如果是奇数个，左边两段多出的那一个最大元素就是中位数；如果是偶数个，左边两段的最大元素和右边两段的最小元素的均值就是中位数。
+
+时间复杂度：$O(\log (\min \{m, n\}))$ ，空间复杂度：$O(1)$
+
+```python
 class Solution:
     def findMedianSortedArrays(self, nums1: List[int], nums2: List[int]) -> float:
-        # 在nums1某处切一刀, nums2某处切一刀
-        # 使得两刀左边整体都比右边整体小.
-
-        # 二分查找确定nums1要取的元素个数i, 然后左半部分元素个数应该恰好均分, 从而确定nums2要取的元素个数j.
-        # 假如数组长度是5+6，则左半总共6个.
-        # 假如数组长度是5+5, 则左半总共5个.
         if len(nums1) > len(nums2):
             nums1, nums2 = nums2, nums1
         m, n = len(nums1), len(nums2)
-        # 左半的元素总数, 上取整, 从而使得中位数基本上落入左半边
-        total_left = (m + n + 1) // 2
+        total_left = (m + n + 1) // 2 # 左半比右半多一个元素
 
-        l, r = 0, m # i最少取0个, 最多取m个, 要确定所取个数
-        while l <= r:
-            i = (l + r) // 2
+        left, right = 0, m # 关键!
+        # 这里的i搜索的是"分割点左边的数量"而不是"下标", 所以不是闭着眼睛用0, m-1初始化, 而是0, m才正确!
+        while left <= right:
+            i = (left + right) // 2  # 两行最关键的代码
             j = total_left - i
-            lmax_1 = float('-inf') if i == 0 else nums1[i - 1]
-            rmin_1 = float('inf') if i == m else nums1[i]
-            lmax_2 = float('-inf') if j == 0 else nums2[j - 1]
-            rmin_2 = float('inf') if j == n else nums2[j]
-
-            if lmax_1 <= rmin_2 and lmax_2 <= rmin_1: # 已找到
-                if not (m + n) % 2:
-                    return (max(lmax_1, lmax_2) + min(rmin_1, rmin_2)) / 2
+            nums1_left_max = float('-inf') if i == 0 else nums1[i - 1]
+            nums1_right_min = float('inf') if i == m else nums1[i]
+            nums2_left_max = float('-inf') if j == 0 else nums2[j - 1]
+            nums2_right_min = float('inf') if j == n else nums2[j]
+            if nums1_left_max <= nums2_right_min and nums2_left_max <= nums1_right_min:
+                if (m + n) % 2 == 1:
+                    return max(nums1_left_max, nums2_left_max)
                 else:
-                    return max(lmax_1, lmax_2)
-
-            elif lmax_1 > rmin_2:
-                r = i - 1
+                    return (max(nums1_left_max, nums2_left_max) + min(nums1_right_min, nums2_right_min)) / 2.0
+            elif nums1_left_max > nums2_right_min:
+                right = i - 1
             else:
-                l = i + 1
-
-        return 0
+                left = i + 1
+        return -1
 ```
 
 ### 专题12 栈
@@ -546,6 +585,7 @@ class Solution:
 
 如果要有额外的功能，则添加额外的数据结构。
 
+<div class="algoviz" data-module="lc155-最小栈" data-title="155 最小栈 · 步骤可视化"></div>
 ```
 class MinStack:
 
@@ -601,6 +641,7 @@ class MinStack:
 
 每当读到 `]` 时，就可以把栈中存的前面某一段给拼进来。
 
+<div class="algoviz" data-module="lc394-字符串解码" data-title="394 字符串解码 · 步骤可视化"></div>
 ```
 class Solution:
     def decodeString(self, s: str) -> str:
@@ -632,6 +673,7 @@ class Solution:
 
 当当前温度高于栈顶的一系列温度时，取出它们的下标，将相应下标位置置为下标差。
 
+<div class="algoviz" data-module="lc739-每日温度" data-title="739 每日温度 · 步骤可视化"></div>
 ```
 class Solution:
     def dailyTemperatures(self, temperatures: List[int]) -> List[int]:
@@ -669,6 +711,7 @@ class Solution:
 就像2,1,5,6,2,3这样的情况中的面积应为1,5,6,2围出的10，右边界是通过6,2得到的逆序，左边界是通过1,2得到的不再逆序。  
 在完成一次右边界判断后，右边界加入栈中，则5和6不再对以后的最大面积有意义，因此在这个过程中也是弹出的。
 
+<div class="algoviz" data-module="lc84-柱状图中最大的矩形" data-title="84 柱状图中最大的矩形 · 步骤可视化"></div>
 ```
 class Solution:
     def largestRectangleArea(self, heights: List[int]) -> int:
@@ -693,8 +736,45 @@ class Solution:
 
 ### 专题13 堆
 
+[253 会议室 II](https://neetcode.io/problems/meeting-schedule-ii/question)
+
+十分经典的会议安排问题，这次问你至少需要多少个会议室。
+
+它需要先把会议**按照开始时间排序**（$O(n \log n)$），然后建立一个结束时间的**小根堆**（`heapq` 默认是小根堆，如果需要大根堆则存负值、使用时再取负即可）：
+
+遍历会议，**如果开始时间不早于结束最早的会议室，则可以复用该会议室**（从堆中删除，然后把新结束时间加入堆中）。每次堆操作是 $O(\log n)$ 的，总计 $n$ 次操作。
+
+时间复杂度：$O(n \log n)$ ，空间复杂度：$O(n)$ 。
+
+>  [安排最少的会议室](https://leetcode.cn/problems/meeting-rooms-ii/description/) 按照开始时间排序，[安排最多的会议室](https://leetcode.cn/problems/non-overlapping-intervals/) 按照结束时间排序。
+
+```python
+"""
+Definition of Interval:
+class Interval(object):
+    def __init__(self, start, end):
+        self.start = start
+        self.end = end
+"""
+
+class Solution:
+    def minMeetingRooms(self, intervals: List[Interval]) -> int:
+        if not intervals:
+            return 0
+        intervals.sort(key=lambda x: x.start)
+        heap = [intervals[0].end] # heap存当前正在进行的会议的end
+        for i in range(1, len(intervals)):
+            if intervals[i].start >= heap[0]:
+                heapq.heappop(heap)
+            heapq.heappush(heap, intervals[i].end)
+        return len(heap)
+```
+
+
+
 215 数组中的第K个最大元素
 
+<div class="algoviz" data-module="lc215-数组中的第k个最大元素" data-title="215 数组中的第K个最大元素 · 步骤可视化"></div>
 ```
 class Solution:
     def findKthLargest(self, nums: List[int], k: int) -> int:
@@ -704,6 +784,7 @@ class Solution:
 
 建堆是O(n)的，这事一眼看到还是有一点反直觉的。
 
+<div class="algoviz" data-module="lc215-数组中的第k个最大元素-v2" data-title="215 数组中的第K个最大元素 · 步骤可视化"></div>
 ```
 class Solution:
     def findKthLargest(self, nums: List[int], k: int) -> int:
@@ -732,6 +813,7 @@ class Solution:
 
 当然也可以拿堆去做。
 
+<div class="algoviz" data-module="lc347-前k个高频元素-v2" data-title="347 前K个高频元素 · 步骤可视化"></div>
 ```
 class Solution:
     def topKFrequent(self, nums: List[int], k: int) -> List[int]:
@@ -834,6 +916,7 @@ class Solution:
 
 感觉这两道题与其说是贪心，不如说是维护一个最值。
 
+<div class="algoviz" data-module="lc55-跳跃游戏" data-title="55 跳跃游戏 · 步骤可视化"></div>
 ```
 class Solution:
     def canJump(self, nums: List[int]) -> bool:
@@ -851,6 +934,7 @@ class Solution:
 
 写了一个不好的dp，维护从某个下标跳跃到最后一个下标的最小步数。
 
+<div class="algoviz" data-module="lc45-跳跃游戏-ii" data-title="45 跳跃游戏 II · 步骤可视化"></div>
 ```
 class Solution:
     def jump(self, nums: List[int]) -> int:
@@ -867,6 +951,7 @@ class Solution:
 
 贪心策略是，cur_end维护当前jumps数能够跳到的最远位置。
 
+<div class="algoviz" data-module="lc45-跳跃游戏-ii-v2" data-title="45 跳跃游戏 II · 步骤可视化"></div>
 ```
 class Solution:
     def jump(self, nums: List[int]) -> int:
@@ -893,6 +978,7 @@ class Solution:
 
 在遍历到每个字母时，更新当前字母的最远位置。如果当前位置已经达到最远位置，则划分成一段。
 
+<div class="algoviz" data-module="lc763-划分字母区间" data-title="763 划分字母区间 · 步骤可视化"></div>
 ```
 class Solution:
     def partitionLabels(self, s: str) -> List[int]:
@@ -980,6 +1066,7 @@ class Solution:
 
 70 爬楼梯
 
+<div class="algoviz" data-module="lc70-爬楼梯" data-title="70 爬楼梯 · 步骤可视化"></div>
 ```
 class Solution:
     def climbStairs(self, n: int) -> int:
@@ -993,6 +1080,7 @@ class Solution:
 
 118 杨辉三角
 
+<div class="algoviz" data-module="lc118-杨辉三角" data-title="118 杨辉三角 · 步骤可视化"></div>
 ```
 class Solution:
     def generate(self, numRows: int) -> List[List[int]]:
@@ -1012,6 +1100,7 @@ class Solution:
 
 198 打家劫舍
 
+<div class="algoviz" data-module="lc198-打家劫舍" data-title="198 打家劫舍 · 步骤可视化"></div>
 ```
 class Solution:
     def rob(self, nums: List[int]) -> int:
@@ -1027,6 +1116,7 @@ class Solution:
 
 由于只依赖于上两个状态，因此可以只用两个变量滚动，实现空间的简化。
 
+<div class="algoviz" data-module="lc198-打家劫舍-v2" data-title="198 打家劫舍 · 步骤可视化"></div>
 ```
 class Solution:
     def rob(self, nums: List[int]) -> int:
@@ -1046,6 +1136,7 @@ class Solution:
 
 递推做法。
 
+<div class="algoviz" data-module="lc279-完全平方数" data-title="279 完全平方数 · 步骤可视化"></div>
 ```
 class Solution:
     def numSquares(self, n: int) -> int:
@@ -1061,6 +1152,7 @@ class Solution:
 
 这道题递归不如递推，因为从0到n的状态一定都需要计算（每个数至少可以减1*1），没有可以剪枝的状态。
 
+<div class="algoviz" data-module="lc279-完全平方数-v2" data-title="279 完全平方数 · 步骤可视化"></div>
 ```
 class Solution:
     def numSquares(self, n: int) -> int:
@@ -1083,6 +1175,7 @@ class Solution:
 
 先来一个不带cache的递归，当然TLE过不了。
 
+<div class="algoviz" data-module="lc322-零钱兑换" data-title="322 零钱兑换 · 步骤可视化"></div>
 ```
 class Solution:
     def coinChange(self, coins: List[int], amount: int) -> int:
@@ -1104,6 +1197,7 @@ class Solution:
 
 接下来给这个递归加个cache就能过了，只是慢一点。
 
+<div class="algoviz" data-module="lc322-零钱兑换-v2" data-title="322 零钱兑换 · 步骤可视化"></div>
 ```
 class Solution:
     def coinChange(self, coins: List[int], amount: int) -> int:
@@ -1159,6 +1253,7 @@ class Solution:
 
 那么对于某个特定的同构实体，我们只需要遍历它所有可能的拆分点、看是否有拆分点前半部分是同构实体，后半部分在字典中即可。
 
+<div class="algoviz" data-module="lc139-单词拆分" data-title="139 单词拆分 · 步骤可视化"></div>
 ```
 class Solution:
     def wordBreak(self, s: str, wordDict: List[str]) -> bool:
@@ -1183,6 +1278,7 @@ class Solution:
 
 到i的乘积最大值，可能由最大值、最小值或不选，三种情况转移得到。容易漏解。
 
+<div class="algoviz" data-module="lc152-乘积最大子数组" data-title="152 乘积最大子数组 · 步骤可视化"></div>
 ```
 class Solution:
     def maxProduct(self, nums: List[int]) -> int:
@@ -1203,6 +1299,7 @@ class Solution:
 
 将分割等和子集，转化成在集合中选取一些元素，使得它们的和恰好等于总和的二分之一。这样的约束问题恰好是0-1背包的变种，可以设置dp为“前i个元素是否能够得到和为j”。
 
+<div class="algoviz" data-module="lc416-分割等和子集" data-title="416 分割等和子集 · 步骤可视化"></div>
 ```
 class Solution:
     def canPartition(self, nums: List[int]) -> bool:
@@ -1241,6 +1338,7 @@ class Solution:
 1. 二维01背包，内层循环正着倒着遍历都行。
 2. 优化为一维01背包后，内层循环只能倒着遍历。
 
+<div class="algoviz" data-module="lc2-优化为一维01背包后-内层循环只能倒着遍历" data-title="2 优化为一维01背包后，内层循环只能倒着遍历。 · 步骤可视化"></div>
 ```
 class Solution:
     def canPartition(self, nums: List[int]) -> bool:
@@ -1267,53 +1365,161 @@ class Solution:
         return dp[target]
 ```
 
-32 最长有效括号
 
-栈解法存入所有左括号的坐标。
 
-每当遇到右括号时，将它与左括号匹配，根据栈顶指示的位置更新最大长度跨度。否则如果是孤立右括号，作为哨兵填入。
+[32. 最长有效括号](https://leetcode.cn/problems/longest-valid-parentheses/)
 
-这里的stk初值取-1是应对 '()' 这样的情况，在弹出时返回值应为2、此时i=1，所以初值应取-1。（栈顶值应为最长匹配括号的前一个位置）
+方法二：**计数器**
 
+一段子串是有效括号串，当且仅当以下两个条件：
+
+- 它的任意前缀中 `'(' >= ')'`（从左到右不会出现右括号过多）
+
+- 它的任意后缀中 `')' >= '('`（从右到左不会出现左括号过多）
+
+所以可以从前往后遍历一遍、从后往前遍历一遍，各自使用计数器计数。
+
+记得在第二次遍历之前把计数器清空哦。
+
+时间复杂度：$O(n)$ ，空间复杂度：$O(1)$
+
+```python
+class Solution:
+    def longestValidParentheses(self, s: str) -> int:
+        max_len = 0
+        left = right = 0 # 计数器
+        for ch in s:
+            if ch == '(':
+                left += 1
+            else:
+                right += 1
+            if left == right:
+                max_len = max(max_len, left * 2)
+            elif left < right: # 不满足前缀条件
+                left = right = 0
+
+        left = right = 0 # 第二次遍历之前一定要重置!
+        for ch in reversed(s):
+            if ch == '(':
+                left += 1
+            else:
+                right += 1
+            if left == right:
+                max_len = max(max_len, left * 2)
+            elif left > right: # 不满足后缀条件
+                left = right = 0
+        
+        return max_len
 ```
+
+方法一：**栈**
+
+栈里面存入最后一个未被匹配的括号位置。
+
+栈里面默认存入的 `-1` 是为了特殊情况，不能改成其他值。
+
+例如 `s = '()'` ，则此时应该返回的长度为2，因此 `i = 1` 时应将 `res` 更新为2，即此时 `1 - stk[-1] = 2` ，故 `stk[-1] = -1` 。
+
+时间复杂度：$O(n)$，空间复杂度：$O(n)$
+
+```python
 class Solution:
     def longestValidParentheses(self, s: str) -> int:
         stk = [-1]
-        maxlen = 0
+        res = 0
         for i, ch in enumerate(s):
             if ch == '(':
                 stk.append(i)
             else:
                 stk.pop()
-                if not stk: # stk已为空
+                if not stk:
                     stk.append(i)
-                else:
-                    maxlen = max(maxlen, i - stk[-1])
-        return maxlen
+                res = max(res, i - stk[-1])
+        return res
 ```
 
 ### 专题16 多维动态规划
 
-62 不同路径
+[62. 不同路径](https://leetcode.cn/problems/unique-paths/)
 
-完全模拟了题目要求的形状。注意一下从右下往左上转移的顺序就行。
+方法三：**组合数**
 
-```
+机器人总共需要走 $m + n - 2$ 步，其中 $m - 1$ 步往下走、$n - 1$ 步往右走。所以答案为组合数 $C_{m+n-2}^{m-1}$ 。
+
+时间复杂度：$O(\min \{m, n\})$ ，空间复杂度：$O(1)$ 。
+
+```python
 class Solution:
     def uniquePaths(self, m: int, n: int) -> int:
-        dp = [[0] * n for _ in range(m)]
-        for j in range(n):
-            dp[m - 1][j] = 1
-        for i in range(m):
-            dp[i][n - 1] = 1
-        for i in range(m - 2, -1, -1):
-            for j in range(n - 2, -1, -1):
-                dp[i][j] = dp[i + 1][j] + dp[i][j + 1]
-        return dp[0][0]
+        return math.comb(m + n - 2, min(m, n) - 1)
 ```
+
+方法二：**滚动数组优化DP**
+
+由于 `dp[i][j] = dp[i - 1][j] + dp[i][j - 1]` 这一式子中**第 `i` 行的值只与第 `i - 1` 行和第 `i` 行的值有关**，符合条件，可以使用滚动数组优化空间复杂度到 $O(n)$ 。
+
+注意：**滚动数组仅仅是优化了空间复杂度的技巧**。而这道题的DP解法需要遍历所有位置这件事的时间复杂度是降不下来的。
+
+时间复杂度：$O(mn)$ ，空间复杂度：$O(n)$
+
+> 我们可以想象一下滚动数组的直觉：
+>
+> 刚刚开始处理第 `i` 行时，**滚动数组保存着第 `i - 1` 行的状态**，天生方便复用第 `i - 1` 行的值。
+>
+> 那么问题来了：我们处理**第 `j` 列时还对第 `j - 1` 列有依赖**呢，这个怎么办呀？
+>
+> 答案就在谜面上。如果我们在遍历 `j` 时是**从左往右遍历**，则位置 `[i][j - 1]` 的状态同样已经更新好了。
+>
+> 总结：
+>
+> 滚动数组去掉了所有的 `[i]` 下标，然后根据 `j` 的依赖关系确定遍历 `j` 时是从左往右还是从右往左。
+>
+> 这是优化空间复杂度的技巧，而对时间复杂度没有任何助益。（我们仍然是做了 $mn$ 次操作，只是复用了 $n$ 个格子！）
+>
+> 备注：
+>
+> 如果第 `j` 列依赖第 `j + 1` 列，则内层循环需要改成从右往左遍历。如朴素背包问题。
+
+```python
+class Solution:
+    def uniquePaths(self, m: int, n: int) -> int:
+        dp = [1] * n
+
+        for i in range(1, m):
+            for j in range(1, n):
+                dp[j] += dp[j - 1]
+        return dp[n - 1]
+```
+
+方法一：**朴素DP**
+
+首先，我们知道第0行和第0列都只有一条路径，所以这些位置初始化为1。
+
+然后有 `dp[i][j] = dp[i - 1][j] + dp[i][j - 1]` 。可以写出如下的优化前DP代码。
+
+时间复杂度：$O(mn)$ ，空间复杂度：$O(mn)$ 。
+
+```python
+class Solution:
+    def uniquePaths(self, m: int, n: int) -> int:
+        # 初始化第0行和第0列为全1
+        dp = [[1] * n] + [[0] * n for _ in range(m - 1)]
+        for i in range(1, m):
+            dp[i][0] = 1
+
+        for i in range(1, m):
+            for j in range(1, n):
+                dp[i][j] = dp[i - 1][j] + dp[i][j - 1]
+        return dp[m - 1][n - 1]
+```
+
+
+
+
 
 64 最小路径和
 
+<div class="algoviz" data-module="lc64-最小路径和" data-title="64 最小路径和 · 步骤可视化"></div>
 ```
 class Solution:
     def minPathSum(self, grid: List[List[int]]) -> int:
@@ -1344,6 +1550,7 @@ class Solution:
 
 (2) 最大的子串应为 s[0:n]，此时i = 0，length = n，所以有外层 length < n + 1。
 
+<div class="algoviz" data-module="lc5-最长回文子串" data-title="5 最长回文子串 · 步骤可视化"></div>
 ```
 class Solution:
     def longestPalindrome(self, s: str) -> str:
@@ -1398,6 +1605,7 @@ class Solution:
 
 不要被题目吓到。其实就是最长公共子序列那种感觉。题目的三种方式只是三种转移。
 
+<div class="algoviz" data-module="lc72-编辑距离" data-title="72 编辑距离 · 步骤可视化"></div>
 ```
 class Solution:
     def minDistance(self, word1: str, word2: str) -> int:
@@ -1433,6 +1641,7 @@ class Solution:
 
 时间复杂度：$O(n^3)$ 。空间复杂度：$O(n^2)$ 。
 
+<div class="algoviz" data-module="lc72-编辑距离-v2" data-title="72 编辑距离 · 步骤可视化"></div>
 ```python
 class Solution:
     def maxCoins(self, nums: List[int]) -> int:
@@ -1455,6 +1664,7 @@ class Solution:
 
 把出现偶数次的用异或消除掉。
 
+<div class="algoviz" data-module="lc136-只出现一次的数字" data-title="136 只出现一次的数字 · 步骤可视化"></div>
 ```
 class Solution:
     def singleNumber(self, nums: List[int]) -> int:
@@ -1468,6 +1678,7 @@ class Solution:
 
 寻找众数的方法。通过投票，赞同当前提议则投正面票，反对当前提议则投负面票，最后留下的就是众数。
 
+<div class="algoviz" data-module="lc169-多数元素" data-title="169 多数元素 · 步骤可视化"></div>
 ```
 class Solution:
     def majorityElement(self, nums: List[int]) -> int:
@@ -1501,6 +1712,7 @@ class Solution:
 
 一开始：r指针指向的未处理，cur指针与它交换后，r指针指向的已处理，但是cur指针指向的元素没有处理。所以cur不移动。
 
+<div class="algoviz" data-module="lc75-颜色分类" data-title="75 颜色分类 · 步骤可视化"></div>
 ```
 class Solution:
     def sortColors(self, nums: List[int]) -> None:
@@ -1533,6 +1745,7 @@ class Solution:
 
 交换 `nums[i]` 和最小元素后把 `i`右侧翻转。
 
+<div class="algoviz" data-module="lc31-下一个排列" data-title="31 下一个排列 · 步骤可视化"></div>
 ```
 class Solution:
     def reverseNums(self, nums, i, j):

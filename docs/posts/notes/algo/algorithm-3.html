@@ -120,7 +120,7 @@
     <h1 class="post-title">数据结构与算法 · 03 · 基础数据结构与算法模板整理</h1>
     <div class="post-meta">
       <time datetime="2026-01-18T00:00:00">2026-01-18</time>
-      <span class="post-stats">18746 字 · 约 42 分钟</span>
+      <span class="post-stats">19043 字 · 约 43 分钟</span>
       
       <a class="tag-chip" href="../../../index.html#tag=%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95">#数据结构与算法</a>
       
@@ -1540,6 +1540,7 @@ ps. lower_bound(a, a+n, val + 1)等价于upper_bound(a, a+n, val).
 <li>坐标映射很像PyTorch的Tensor。函数参数使用的坐标是1~16，为了把它映射到行号和列号，需要先映射到0~15，然后使用整除<code>/</code>和取模<code>%</code>（本质是移位和位与）。而块号可以由行号和列号映射得到。当然也可以直接用原始坐标求得，见下。</li>
 </ol>
 <p>这里提供一个位运算直接求得块号的过程，仅限1~16。</p>
+<div class="algoviz" data-module="lc3-坐标映射很像pytorch的tensor-函数参数使用的坐标是1-16-为了把它映射到行号和列号-需要先映射到0-15-然后使用整除-和取模-本质是移位和位与-而块号可以由行号和列号映射得到-当然也可以直接用原始坐标求得-见下" data-title="3 坐标映射很像PyTorch的Tensor。函数参数使用的坐标是1~16，为了把它映射到行号和列号，需要先映射到0~15，然后使用整除`/`和取模`%`（本质是移位和位与）。而块号可以由行号和列号映射得到。当然也可以直接用原始坐标求得，见下。 · 步骤可视化"></div>
 <div class="highlight"><pre data-lang="python"><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">map_number</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">'''将n: 1~16映射到00110011 22332233.'''</span>
 
@@ -4216,6 +4217,11 @@ bfs：注意bfs中的vis是指是否入队，所以<strong>vis要在入队前标
 <script src="../../../js/lightbox.js" defer></script>
 
 <script src="../../../js/giscus.js" defer></script>
+
+
+<link rel="stylesheet" href="../../../algoviz/algoviz.css">
+<script src="../../../algoviz/algoviz.js" defer
+        onload="AlgoViz.mountAll(document, {base: '../../../algoviz/'})"></script>
 
 
 </body>
