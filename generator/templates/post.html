@@ -114,8 +114,8 @@
 <script src="{{ root }}js/giscus.js" defer></script>
 {% endif %}
 {% if 'algoviz' in post.html %}
-<link rel="stylesheet" href="{{ root }}algoviz/algoviz.css">
-<script src="{{ root }}algoviz/algoviz.js" defer
-        onload="AlgoViz.mountAll(document, {base: '{{ root }}algoviz/'})"></script>
+<link rel="stylesheet" href="{{ root }}algoviz-player/algoviz.css">
+<script src="{{ root }}algoviz-player/algoviz.js" defer
+        onload="AlgoViz.mountAll(document, {base: '{{ root }}algoviz-player/'})"></script>
 {% endif %}
 {% endblock %}
