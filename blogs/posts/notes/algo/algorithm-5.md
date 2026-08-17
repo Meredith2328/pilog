@@ -13,10 +13,6 @@ chapters_per_page: 1
 
 <!-- more -->
 
-大致目的是完整地、成体系地过，
-然后对关键点仔细地、反复地揣摩把握，
-最终目标是任意抽出一道、均能有很好的理解。
-
 专题10 回溯
 专题11 二分查找
 专题12 栈
@@ -300,7 +296,7 @@ class Solution:
 
 堆通过heapq包对heap数组进行处理，两个方法分别叫做heapq.heappush和heapq.heappop。
 
-<div class="algoviz" data-module="lc239-滑动窗口最大值-v2" data-title="239 滑动窗口最大值 · 步骤可视化"></div>
+<div class="algoviz" data-module="lc239-滑动窗口最大值" data-title="239 滑动窗口最大值 · 步骤可视化"></div>
 ```
 class Solution:
     def maxSlidingWindow(self, nums: List[int], k: int) -> List[int]:
@@ -329,7 +325,7 @@ class Solution:
 
 （单调队列一般就是这种移除队尾的小元素的写法用法，然后因为这里有窗口的要求、还需要移除队头不在窗口内的元素。）
 
-<div class="algoviz" data-module="lc239-滑动窗口最大值-v3" data-title="239 滑动窗口最大值 · 步骤可视化"></div>
+<div class="algoviz" data-module="lc239-滑动窗口最大值-v2" data-title="239 滑动窗口最大值 · 步骤可视化"></div>
 ```
 class Solution:
     def maxSlidingWindow(self, nums: List[int], k: int) -> List[int]:
@@ -688,50 +684,88 @@ class Solution:
         return res
 ```
 
-84 柱状图中最大的矩形
+[84. 柱状图中最大的矩形](https://leetcode.cn/problems/largest-rectangle-in-histogram/)
 
 这个单调栈问题如果有一些直观直觉，会好把握一点。
 
 ![](posts/migrated/post-images/20260302113916.png)
 
-例如图上 `[2,1,5,6,2,3]` 的情况，我们可以有直观直觉：两边很矮，然后中间连着有几个高的，这样会有比较大的矩形。
+直觉：我们考虑以当前柱子为高度的矩形，则它最多可以延伸到左右两边第一个低于它的柱子。
 
-单调栈正是为了实现这个直觉，比如中间连着的几个高的不再会用在以后的大矩形中（因为有右边的矮高度隔开）。
+这两个柱子确定了最大宽度，当前柱子确定高度。
 
-而左边的矮的不会用在现在的大矩形中，而是用在以后的长条矩形中，所以作为左边界、在栈里面存着。
+其他高度的矩形，当前柱子不关心。
 
-如果高度为升序则直接存入，
+故使用一个单调递增栈，当遇到一个比栈顶更矮的柱子时，就意味着找到了**栈顶柱子**的右边界，可以立刻弹出并计算以其为高度的最大矩形。（此时栈顶和两侧矮柱子形成“**低高低**”关系，可以立即结算这个高柱子）
 
-一旦有逆序则i即为右边界，
+为了解决边界问题，我们往两侧添加高度为0的“柱子”。
 
-通过弹出直到找到左边界（不再逆序）来确定面积。
+> 这道题与[42. 接雨水](https://leetcode.cn/problems/trapping-rain-water/)十分相似，二者可以说是有对偶关系：一个处理低高低这样“凸”的形状，一个处理高低高这样“凹”的形状。使用单调栈的解法，时空复杂度均为$O(n)$。
+>
+> 对于低高低（这道题），矩形宽度取决于两侧第一个低于当前矩形的高度，所以维护单调递增栈，栈顶即对应“当前矩形”。
+>
+> 对于高低高（接雨水），雨水量取决于两侧第一个高于当前高度的更低者，所以维护单调递减栈，栈顶即对应“当前凹槽”。（虽然这个单调栈解法不是最优、空间复杂度不如双指针，但考虑到对称性，值得提一下）
+>
+> （更深刻地，它们结构特别像、所以都可以用单调栈。但是接雨水中的“最小者”这个关系可以传递，所以还可以用双指针；而柱状图中最大的矩形的“最近者”这个关系对应的宽度信息不可以传递，所以不可以用双指针）
 
-至于为什么是升序：  
-首先一开始是宽度为1、高度为最高（单调栈栈顶），  
-随着宽度扩大，高度只会慢慢变低，我们不能直接由宽度和高度同时变大或变小来确定面积肯定变大或变小，因此只遍历判断这些情况是效率最高的。  
-就像2,1,5,6,2,3这样的情况中的面积应为1,5,6,2围出的10，右边界是通过6,2得到的逆序，左边界是通过1,2得到的不再逆序。  
-在完成一次右边界判断后，右边界加入栈中，则5和6不再对以后的最大面积有意义，因此在这个过程中也是弹出的。
+时间复杂度：$O(n)$，空间复杂度：$O(n)$
 
-<div class="algoviz" data-module="lc84-柱状图中最大的矩形" data-title="84 柱状图中最大的矩形 · 步骤可视化"></div>
-```
+（相比起来，暴力寻找两边第一个小于当前高度的解法，时间复杂度为$O(n^2)$，空间复杂度为$O(1)$）
+
+```python
 class Solution:
     def largestRectangleArea(self, heights: List[int]) -> int:
         heights = [0] + heights + [0]
-        stack = []
-        # 如果高度为升序则直接存入
-        # 一旦有逆序即找到右边界
-        # 通过弹出直到找到左边界来确定面积
+        stk = [] # 存储索引, 单调递增栈
         max_area = 0
-
-        for i in range(len(heights)):
-            # 满足栈顶大于nums[i]时, i即为右边界
-            # 满足栈中指向的某个元素小于nums[i]时, 该元素即为左边界
-            while stack and heights[i] < heights[stack[-1]]:
-                height = heights[stack.pop()]
-                width = i - stack[-1] - 1
+        for i, h in enumerate(heights):
+            # 结算栈顶高度, 并且同一个h有可能连续结算好多个!
+            while stk and heights[stk[-1]] > h: # 关键: 我们找到的是**栈顶高度**的**两侧矮于它的高度**!
+                height = heights[stk.pop()]
+                width = i - stk[-1] - 1
                 max_area = max(max_area, height * width)
-            stack.append(i)
+            stk.append(i)
+        return max_area
+```
 
+[85. 最大矩形](https://leetcode.cn/problems/maximal-rectangle/)
+
+这道题可以化归为[84. 柱状图中最大的矩形](https://leetcode.cn/problems/largest-rectangle-in-histogram/)。关键是，我们如果以每一行为底，则它及上面的部分恰好构成一个“柱状图”。
+
+这个柱状图的巧妙之处在于，如果底当前列的元素为1，则高度是递推过来的；如果为0，则断开，高度为0。
+
+~~写一遍权当复习84了，默写着默写着发现自己84的 `while` 循环没想到，谢谢85~~
+
+时间复杂度：$O(mn)$，空间复杂度：$O(n)$
+
+```python
+class Solution:
+    def maximalRectangle(self, matrix: List[List[str]]) -> int:
+        if not matrix or not matrix[0]:
+            return 0
+        m, n = len(matrix), len(matrix[0])
+        heights = [0] * n
+        max_area = 0
+        for i in range(m):
+            # 重要: 对当前行进行条形图统计时, 如果遇到0, 则"断开"
+            for j in range(n):
+                if matrix[i][j] == '1':
+                    heights[j] += 1
+                else:
+                    heights[j] = 0
+            max_area = max(max_area, self.largestRectangleArea(heights))
+        return max_area
+    
+    def largestRectangleArea(self, heights):
+        heights = [0] + heights + [0]
+        stk = []
+        max_area = 0
+        for i, h in enumerate(heights):
+            while stk and heights[stk[-1]] > h:
+                height = heights[stk.pop()]
+                width = i - stk[-1] - 1
+                max_area = max(max_area, height * width)
+            stk.append(i)
         return max_area
 ```
 
@@ -775,15 +809,29 @@ class Solution:
 
 215 数组中的第K个最大元素
 
+解法一：**最小堆**
+
+维护大小保持为 $k$ 个的最小堆，如果长度超出时把**最小元素**逐出，从而最后在堆中留下的就是前K个最大元素，其中最小的就是堆顶。
+
+时间复杂度：$O(n \log k)$，空间复杂度：$O(k)$
+
 <div class="algoviz" data-module="lc215-数组中的第k个最大元素" data-title="215 数组中的第K个最大元素 · 步骤可视化"></div>
-```
+```python
 class Solution:
     def findKthLargest(self, nums: List[int], k: int) -> int:
-        nums.sort()
-        return nums[-k]
+        heap = [] # 最小堆解法
+        for num in nums:
+            heapq.heappush(heap, num)
+            if len(heap) > k:
+                heapq.heappop(heap)
+        return heap[0]
 ```
 
-建堆是O(n)的，这事一眼看到还是有一点反直觉的。
+解法二：**最大堆**
+
+对全部元素建堆（$O(n)$），然后 `pop` $k$ 次（$O(k \log n)$）。
+
+时间复杂度：$O(n + k \log n)$，空间复杂度：$O(n)$
 
 <div class="algoviz" data-module="lc215-数组中的第k个最大元素-v2" data-title="215 数组中的第K个最大元素 · 步骤可视化"></div>
 ```
@@ -1602,29 +1650,76 @@ class Solution:
         return dp[m][n]
 ```
 
-72 编辑距离
+[72. 编辑距离](https://leetcode.cn/problems/edit-distance/)
+
+方法二：**滚动数组优化空间**
+
+这玩意一口气依赖了三个元素（事实上是对角线形式的依赖），但是仍然可以用滚动数组优化空间复杂度。
+
+其关键是找到并维护好这些关系：
+
+- **用一个 `prev` 变量存储 `[i - 1][j - 1]` 位置的元素。**
+- `dp[i][j - 1]` 元素当前的存储是 `dp[j - 1]` 。
+- `dp[i - 1][j]` 元素当前的存储是 `dp[j]` 。
+
+为了维护：
+
+在设置 `dp[j]` 的值之前，需要把 `dp[j]` 的值保存下来（相当于 `dp[i - 1][j - 1]`）。
+
+（想一下二维数组就好想了）`dp[i][0]` 直接保存给 `prev` ，再设置 `dp[i][0]` 的值为 `i` ；
+
+在循环中因为 `prev` 要使用，所以保存给 `tmp` ，等用完 `prev` 了再传给它。
+
+时间复杂度：$O(mn)$，空间复杂度：$O(n)$
+
+```python
+class Solution:
+    def minDistance(self, word1: str, word2: str) -> int:
+        # 关键: 使用右边界, 所以需要多开一个, 而且判断时需要用-1
+        m, n = len(word1), len(word2)
+        # dp[i][j] 代表将word1[:i]转化成word2[:j]的最小操作数
+        dp = [j for j in range(n + 1)]
+
+        for i in range(1, m + 1):
+            prev = dp[0]
+            dp[0] = i # 用来存储当前行的dp初值
+            for j in range(1, n + 1):
+                tmp = dp[j]
+                if word1[i - 1] == word2[j - 1]:
+                    dp[j] = prev
+                else:
+                    dp[j] = 1 + min(dp[j], dp[j - 1], prev)
+                prev = tmp
+        return dp[n]
+```
+
+
+
+方法一：**朴素动态规划**
 
 不要被题目吓到。其实就是最长公共子序列那种感觉。题目的三种方式只是三种转移。
 
-<div class="algoviz" data-module="lc72-编辑距离" data-title="72 编辑距离 · 步骤可视化"></div>
-```
+十分经典的题目，从CS61A的练习题里就出现过。
+
+时间复杂度：$O(mn)$，空间复杂度：$O(mn)$
+
+```python
 class Solution:
     def minDistance(self, word1: str, word2: str) -> int:
+        # 关键: 使用右边界, 所以需要多开一个, 而且判断时需要用-1
         m, n = len(word1), len(word2)
-        # 将word1[0:i]转化为word2[0:j]的最少操作数
+        # dp[i][j] 代表将word1[:i]转化成word2[:j]的最小操作数
         dp = [[0] * (n + 1) for _ in range(m + 1)]
         for i in range(m + 1):
             dp[i][0] = i
         for j in range(n + 1):
             dp[0][j] = j
-
         for i in range(1, m + 1):
             for j in range(1, n + 1):
                 if word1[i - 1] == word2[j - 1]:
                     dp[i][j] = dp[i - 1][j - 1]
                 else:
-                    dp[i][j] = min(dp[i - 1][j - 1], dp[i - 1][j], dp[i][j - 1]) + 1
-
+                    dp[i][j] = 1 + min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1])
         return dp[m][n]
 ```
 
@@ -1642,7 +1737,6 @@ class Solution:
 
 时间复杂度：$O(n^3)$ 。空间复杂度：$O(n^2)$ 。
 
-<div class="algoviz" data-module="lc72-编辑距离-v2" data-title="72 编辑距离 · 步骤可视化"></div>
 ```python
 class Solution:
     def maxCoins(self, nums: List[int]) -> int:
@@ -1852,5 +1946,15 @@ class Solution:
                 l = mid + 1
         return l
 ```
+
+> 写到这里，突然有所感慨。
+>
+> HOT 100是我前后刷了三次往上的题单：
+>
+> - 第一遍是为了学Python、数据结构与算法。囫囵吞枣，只是对一小部分题目和书写结构留下一个模模糊糊的印象。像是抄了一遍书，为之后多多少少留下了一点熟悉感。
+> - 第二遍则正儿八经地尝试去理解每一处细节。这一遍是按照LeetCode HOT 100的分类一类一类刷的。这一遍刷得很慢，完全是推着自己硬要写下去才能写得下去。一天可能看个几道就开始大脑过载，记下来的东西也不知道哪些是重点、哪些不是重点——仿佛这些笔记自己不会再看一样。事实也如此，这些笔记之后一次也没有看过。可是留下的熟悉感竟然要多一些。
+> - 第三遍就是出于实习面试的功利目的，需要快、需要熟，那么不就只能背了！这一遍是随机从HOT 100抽的（当然重点抽了Hard和Medium）。这时候已经认真完整学过王道的数据结构体系、学过算法导论的体系、还学过一遍洛谷基础篇的体系，似乎那些东西拿到手边都能看懂，只是随便给我一个题，我还是不敢写。不敢写、不敢写，万事万物就卡在一个不敢上面。反正结果上，随便抽一道、能如同“渐进式披露”一般摸个大概出来，也许有些细节还是得调一下、补一下、不一定能一遍AC。但至少现在抽一道题过来，至少是敢动笔了，也多多少少记得DFS、BFS、回溯、单调栈什么的，大概是什么样子。
+> - 也许有些关口总是要有什么推一把的吧。人的可塑性还是太好了——我一个完全不会钢琴的、以前也只打过2k和4k的玩家，打打osu!打多了，也能打点新手入门7k谱了。**人的无限性总是被世界的有限性给约束住**，然后或许会因此以为人是有限的——
+> - 于是，下一首乐曲即将奏响。
 
 上一篇：[[algorithm-4|04 HOT 100（前 50）]]

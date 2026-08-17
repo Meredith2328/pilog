@@ -120,7 +120,7 @@
     <h1 class="post-title">数据结构与算法 · 04 · LeetCode HOT 100 in Python（前50）</h1>
     <div class="post-meta">
       <time datetime="2026-03-02T00:00:00">2026-03-02</time>
-      <span class="post-stats">14490 字 · 约 33 分钟</span>
+      <span class="post-stats">14258 字 · 约 32 分钟</span>
       
       <a class="tag-chip" href="../../../index.html#tag=%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95">#数据结构与算法</a>
       
@@ -336,9 +336,9 @@
 <p>还可以更进一步思考：</p>
 <p>某个位置中的水量，取决于它自己的高度、和小的那个最高高度。所以只需要每次迭代确定好这两个值就可以了。</p>
 <p><img alt="" src="../../migrated/post-images/20260302113945.png"/></p>
-<div class="algoviz" data-module="lc42-接雨水" data-title="42 接雨水 · 步骤可视化"></div>
 <p>方法一：<strong>动态规划</strong></p>
 <p>时间复杂度：<span class="arithmatex">\(O(n)\)</span> ，空间复杂度：<span class="arithmatex">\(O(n)\)</span></p>
+<div class="algoviz" data-module="lc42-接雨水" data-title="42 接雨水 · 步骤可视化"></div>
 <div class="highlight"><pre data-lang="python"><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Solution</span><span class="p">:</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">trap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">height</span><span class="p">)</span>
@@ -362,7 +362,6 @@
 <p>方法二：<strong>双指针</strong></p>
 <p>我们可以从两边往中间收缩计入雨水量。</p>
 <p>时间复杂度：<span class="arithmatex">\(O(n)\)</span>，空间复杂度：<span class="arithmatex">\(O(1)\)</span></p>
-<div class="algoviz" data-module="lc42-接雨水-v2" data-title="42 接雨水 · 步骤可视化"></div>
 <div class="highlight"><pre data-lang="python"><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Solution</span><span class="p">:</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">trap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">height</span><span class="p">:</span>
@@ -559,7 +558,6 @@
 <li>为了维护单调递减，每当<strong>队列右端与当前元素出现“升序”关系</strong>时，将队列右端相应的元素清除后，再加入当前元素。</li>
 </ul>
 </blockquote>
-<div class="algoviz" data-module="lc239-滑动窗口最大值" data-title="239 滑动窗口最大值 · 步骤可视化"></div>
 <div class="highlight"><pre data-lang="python"><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Solution</span><span class="p">:</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">maxSlidingWindow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nums</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
         <span class="c1"># 单调队列保持单调递减, 则最大值始终在[0]位置</span>
@@ -655,7 +653,6 @@
 <p>时间复杂度：<span class="arithmatex">\(O(n \log n)\)</span>，空间复杂度：<span class="arithmatex">\(O(1)\)</span></p>
 <p>（空间复杂度：假如我们不考虑输出数组的空间复杂度。</p>
 <p>对于<span class="arithmatex">\(O(n \log n)\)</span>的排序，有快速排序、归并排序、堆排序等，其中堆排序因为是在输出数组上直接构造的，我们可以说它没有开辟额外的空间。对于下述Python使用的 <code>.sort()</code>方法，事实上是TimSort，这种排序方式空间复杂度是<span class="arithmatex">\(O(n)\)</span>的）</p>
-<div class="algoviz" data-module="lc56-合并区间" data-title="56 合并区间 · 步骤可视化"></div>
 <div class="highlight"><pre data-lang="python"><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Solution</span><span class="p">:</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">merge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">intervals</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">intervals</span><span class="p">:</span>
@@ -1575,7 +1572,7 @@ class Solution:
 <p>我们可以通过记录层数，按照层数构造结果列表；</p>
 <p>也可以每次都处理完当前层的所有节点，整成一个列表、添加到结果中。</p>
 <p>时间复杂度：<span class="arithmatex">\(O(n)\)</span>，空间复杂度：<span class="arithmatex">\(O(n)\)</span> （极端情况下层数可以与节点数相同）</p>
-<div class="algoviz" data-module="lc102-二叉树的层序遍历" data-title="102 二叉树的层序遍历 · 步骤可视化"></div>
+<div class="algoviz" data-module="lc543-二叉树的直径-v2" data-title="543 二叉树的直径 · 步骤可视化"></div>
 <div class="highlight"><pre data-lang="python"><span></span><code><span class="c1"># Definition for a binary tree node.</span>
 <span class="c1"># class TreeNode:</span>
 <span class="c1">#     def __init__(self, val=0, left=None, right=None):</span>
@@ -2346,7 +2343,7 @@ class Solution:
 <script src="../../../js/pager.js" defer></script>
 
 <script src="../../../js/toc.js" defer></script>
-<script src="../../../js/code-copy.js" defer></script>
+<script src="../../../js/code-copy.js?v=2" defer></script>
 <script src="../../../js/img-loading.js" defer></script>
 <script src="../../../js/lightbox.js" defer></script>
 
@@ -2356,6 +2353,7 @@ class Solution:
 <link rel="stylesheet" href="../../../algoviz-player/algoviz.css">
 <script src="../../../algoviz-player/algoviz.js" defer
         onload="AlgoViz.mountAll(document, {base: '../../../algoviz-player/'})"></script>
+
 
 
 </body>

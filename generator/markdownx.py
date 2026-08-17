@@ -636,8 +636,11 @@ def render_markdown(text: str, src_file: Path, page_url: str,
             div.insert_after(tail)
 
     # keep each fence's language / file label on the <pre> so the front end
-    # can show a small tag in the code block header
-    for pre, lang in zip(soup.find_all("pre"), _collect_code_langs(text)):
+    # can show a small tag in the code block header. Only codehilite output
+    # (a <pre> containing <code>) is matched — raw <pre> passthrough from
+    # post HTML (e.g. interactive diagrams) would shift the alignment.
+    code_pres = [p for p in soup.find_all("pre") if p.find("code") is not None]
+    for pre, lang in zip(code_pres, _collect_code_langs(text)):
         if lang:
             pre["data-lang"] = lang
 

@@ -17,11 +17,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="generator" content="pilog">
   <title>数据结构与算法 · 05 · LeetCode HOT 100 in Python（后50） · 10PI&#39;S BLOG丨十派的玩具箱</title>
-  <meta name="description" content="回溯、二分查找、栈、堆、贪心、动态规划、多维动态规划、技巧。 大致目的是完整地、成体系地过， 然后对关键点仔细地、反复地揣摩把握， 最终目标是任意抽出一道、均能有很好的理解。 专题11 二分查找 专题">
+  <meta name="description" content="回溯、二分查找、栈、堆、贪心、动态规划、多维动态规划、技巧。 专题11 二分查找 专题15 动态规划 专题16 多维动态规划 回溯模板：结束条件，遍历选择，做出选择。 回溯需要考虑当前start时可以">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="10PI&#39;S BLOG丨十派的玩具箱">
   <meta property="og:title" content="数据结构与算法 · 05 · LeetCode HOT 100 in Python（后50）">
-  <meta property="og:description" content="回溯、二分查找、栈、堆、贪心、动态规划、多维动态规划、技巧。 大致目的是完整地、成体系地过， 然后对关键点仔细地、反复地揣摩把握， 最终目标是任意抽出一道、均能有很好的理解。 专题11 二分查找 专题">
+  <meta property="og:description" content="回溯、二分查找、栈、堆、贪心、动态规划、多维动态规划、技巧。 专题11 二分查找 专题15 动态规划 专题16 多维动态规划 回溯模板：结束条件，遍历选择，做出选择。 回溯需要考虑当前start时可以">
   <link rel="canonical" href="https://meredith2328.github.io/posts/notes/algo/algorithm-5.html">
   
   
@@ -120,7 +120,7 @@
     <h1 class="post-title">数据结构与算法 · 05 · LeetCode HOT 100 in Python（后50）</h1>
     <div class="post-meta">
       <time datetime="2026-03-02T00:00:00">2026-03-02</time>
-      <span class="post-stats">14816 字 · 约 33 分钟</span>
+      <span class="post-stats">15313 字 · 约 35 分钟</span>
       
       <a class="tag-chip" href="../../../index.html#tag=%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95">#数据结构与算法</a>
       
@@ -148,9 +148,6 @@
   <div class="post-body markdown-body" data-chapters="9" data-per-page="1">
     <div class="post-chapter" data-ch="1"><p>回溯、二分查找、栈、堆、贪心、动态规划、多维动态规划、技巧。</p>
 <!-- more -->
-<p>大致目的是完整地、成体系地过，
-然后对关键点仔细地、反复地揣摩把握，
-最终目标是任意抽出一道、均能有很好的理解。</p>
 <p>专题10 回溯
 专题11 二分查找
 专题12 栈
@@ -384,7 +381,7 @@
 <p>发现之前有一道滑动窗口的题忘了做了。</p>
 <p>首先挨个元素推入最大堆。在最大堆中元素足够多时，将不在窗口的全部pop出来，则剩下的就是在窗口内、且值最大的元素。</p>
 <p>堆通过heapq包对heap数组进行处理，两个方法分别叫做heapq.heappush和heapq.heappop。</p>
-<div class="algoviz" data-module="lc239-滑动窗口最大值-v2" data-title="239 滑动窗口最大值 · 步骤可视化"></div>
+<div class="algoviz" data-module="lc239-滑动窗口最大值" data-title="239 滑动窗口最大值 · 步骤可视化"></div>
 <div class="highlight"><pre><span></span><code>class Solution:
     def maxSlidingWindow(self, nums: List[int], k: int) -&gt; List[int]:
         # 最大堆, 所以存储 (-num, i)
@@ -406,7 +403,7 @@
 <p>每次加入新元素前，将队尾小于新元素的全部移除。（不可能成为最大值）</p>
 <p>加入后、添加res前，将队头不在窗口内的全部移除。</p>
 <p>（单调队列一般就是这种移除队尾的小元素的写法用法，然后因为这里有窗口的要求、还需要移除队头不在窗口内的元素。）</p>
-<div class="algoviz" data-module="lc239-滑动窗口最大值-v3" data-title="239 滑动窗口最大值 · 步骤可视化"></div>
+<div class="algoviz" data-module="lc239-滑动窗口最大值-v2" data-title="239 滑动窗口最大值 · 步骤可视化"></div>
 <div class="highlight"><pre><span></span><code>class Solution:
     def maxSlidingWindow(self, nums: List[int], k: int) -&gt; List[int]:
         # 维护单调队列
@@ -733,7 +730,6 @@
 </blockquote>
 <p>时间复杂度：<span class="arithmatex">\(O(n)\)</span>，空间复杂度：<span class="arithmatex">\(O(n)\)</span></p>
 <p>（相比起来，暴力寻找两边第一个小于当前高度的解法，时间复杂度为<span class="arithmatex">\(O(n^2)\)</span>，空间复杂度为<span class="arithmatex">\(O(1)\)</span>）</p>
-<div class="algoviz" data-module="lc84-柱状图中最大的矩形" data-title="84 柱状图中最大的矩形 · 步骤可视化"></div>
 <div class="highlight"><pre data-lang="python"><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Solution</span><span class="p">:</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">largestRectangleArea</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">heights</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="n">heights</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">heights</span> <span class="o">+</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -815,6 +811,7 @@
 <p>解法一：<strong>最小堆</strong></p>
 <p>维护大小保持为 <span class="arithmatex">\(k\)</span> 个的最小堆，如果长度超出时把<strong>最小元素</strong>逐出，从而最后在堆中留下的就是前K个最大元素，其中最小的就是堆顶。</p>
 <p>时间复杂度：<span class="arithmatex">\(O(n \log k)\)</span>，空间复杂度：<span class="arithmatex">\(O(k)\)</span></p>
+<div class="algoviz" data-module="lc215-数组中的第k个最大元素" data-title="215 数组中的第K个最大元素 · 步骤可视化"></div>
 <div class="highlight"><pre data-lang="python"><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Solution</span><span class="p">:</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">findKthLargest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nums</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="n">heap</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># 最小堆解法</span>
@@ -1502,7 +1499,6 @@
 <p>不要被题目吓到。其实就是最长公共子序列那种感觉。题目的三种方式只是三种转移。</p>
 <p>十分经典的题目，从CS61A的练习题里就出现过。</p>
 <p>时间复杂度：<span class="arithmatex">\(O(mn)\)</span>，空间复杂度：<span class="arithmatex">\(O(mn)\)</span></p>
-<div class="algoviz" data-module="lc72-编辑距离" data-title="72 编辑距离 · 步骤可视化"></div>
 <div class="highlight"><pre data-lang="python"><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Solution</span><span class="p">:</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">minDistance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">word1</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">word2</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="c1"># 关键: 使用右边界, 所以需要多开一个, 而且判断时需要用-1</span>
@@ -1529,7 +1525,6 @@
 <p>区间遍历的写法：最外层遍历长度、内层循环遍历起始点。</p>
 </blockquote>
 <p>时间复杂度：<span class="arithmatex">\(O(n^3)\)</span> 。空间复杂度：<span class="arithmatex">\(O(n^2)\)</span> 。</p>
-<div class="algoviz" data-module="lc72-编辑距离-v2" data-title="72 编辑距离 · 步骤可视化"></div>
 <div class="highlight"><pre data-lang="python"><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Solution</span><span class="p">:</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">maxCoins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nums</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="n">points</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">nums</span> <span class="o">+</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
@@ -1695,6 +1690,17 @@
                 l = mid + 1
         return l
 </code></pre></div>
+<blockquote>
+<p>写到这里，突然有所感慨。</p>
+<p>HOT 100是我前后刷了三次往上的题单：</p>
+<ul>
+<li>第一遍是为了学Python、数据结构与算法。囫囵吞枣，只是对一小部分题目和书写结构留下一个模模糊糊的印象。像是抄了一遍书，为之后多多少少留下了一点熟悉感。</li>
+<li>第二遍则正儿八经地尝试去理解每一处细节。这一遍是按照LeetCode HOT 100的分类一类一类刷的。这一遍刷得很慢，完全是推着自己硬要写下去才能写得下去。一天可能看个几道就开始大脑过载，记下来的东西也不知道哪些是重点、哪些不是重点——仿佛这些笔记自己不会再看一样。事实也如此，这些笔记之后一次也没有看过。可是留下的熟悉感竟然要多一些。</li>
+<li>第三遍就是出于实习面试的功利目的，需要快、需要熟，那么不就只能背了！这一遍是随机从HOT 100抽的（当然重点抽了Hard和Medium）。这时候已经认真完整学过王道的数据结构体系、学过算法导论的体系、还学过一遍洛谷基础篇的体系，似乎那些东西拿到手边都能看懂，只是随便给我一个题，我还是不敢写。不敢写、不敢写，万事万物就卡在一个不敢上面。反正结果上，随便抽一道、能如同“渐进式披露”一般摸个大概出来，也许有些细节还是得调一下、补一下、不一定能一遍AC。但至少现在抽一道题过来，至少是敢动笔了，也多多少少记得DFS、BFS、回溯、单调栈什么的，大概是什么样子。</li>
+<li>也许有些关口总是要有什么推一把的吧。人的可塑性还是太好了——我一个完全不会钢琴的、以前也只打过2k和4k的玩家，打打osu!打多了，也能打点新手入门7k谱了。<strong>人的无限性总是被世界的有限性给约束住</strong>，然后或许会因此以为人是有限的——</li>
+<li>于是，下一首乐曲即将奏响。</li>
+</ul>
+</blockquote>
 </div><aside class="post-rel is-series"><span class="post-rel-label">系列导航</span><div class="post-rel-items"><a class="post-rel-link" href="algorithm-4.html" title="上一篇">← 04 HOT 100（前 50）</a></div></aside>
   </div>
 
@@ -1797,7 +1803,7 @@
 <script src="../../../js/pager.js" defer></script>
 
 <script src="../../../js/toc.js" defer></script>
-<script src="../../../js/code-copy.js" defer></script>
+<script src="../../../js/code-copy.js?v=2" defer></script>
 <script src="../../../js/img-loading.js" defer></script>
 <script src="../../../js/lightbox.js" defer></script>
 
@@ -1807,6 +1813,7 @@
 <link rel="stylesheet" href="../../../algoviz-player/algoviz.css">
 <script src="../../../algoviz-player/algoviz.js" defer
         onload="AlgoViz.mountAll(document, {base: '../../../algoviz-player/'})"></script>
+
 
 
 </body>

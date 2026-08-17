@@ -249,10 +249,30 @@ class Solution:
 
 42 接雨水
 
+~~十分有名的字节面试题~~
+
+根本的一个直觉观察是：**一个位置的水量，取决于它左边的墙最高高度、和右边的墙最高高度，二者的最小值。**
+
+所谓“短板效应”，看图就能想到了。
+
+因此，要么用动态规划一次性算出所有位置的左边/右边墙最高高度，
+
+要么更进一步优化成双指针、“**每次计算某个位置的水量时使用最高高度中小的那个**”：
+
+**把这句话反过来就变成了双指针写法！每次取最高高度中小的那个用于计算某个位置中的水量，然后更新小的那一边的最高高度。**
+
+还可以更进一步思考：
+
+某个位置中的水量，取决于它自己的高度、和小的那个最高高度。所以只需要每次迭代确定好这两个值就可以了。
+
 ![](posts/migrated/post-images/20260302113945.png)
 
+方法一：**动态规划**
+
+时间复杂度：$O(n)$ ，空间复杂度：$O(n)$
+
 <div class="algoviz" data-module="lc42-接雨水" data-title="42 接雨水 · 步骤可视化"></div>
-```
+```python
 class Solution:
     def trap(self, height: List[int]) -> int:
         n = len(height)
@@ -274,28 +294,66 @@ class Solution:
         return res
 ```
 
-这个dp可以优化为双指针，从两边往中间收缩，只使用常数空间边遍历边累加结果。
+方法二：**双指针**
 
-<div class="algoviz" data-module="lc42-接雨水-v2" data-title="42 接雨水 · 步骤可视化"></div>
-```
+我们可以从两边往中间收缩计入雨水量。
+
+时间复杂度：$O(n)$，空间复杂度：$O(1)$
+
+```python
 class Solution:
     def trap(self, height: List[int]) -> int:
-        ans = 0
+        if not height:
+            return 0
+        
         left, right = 0, len(height) - 1
-        leftMax = rightMax = 0
-
+        left_max = height[left] # 最左边最右边一定没有water
+        right_max = height[right]
+        water = 0
+        
         while left < right:
-            leftMax = max(leftMax, height[left])
-            rightMax = max(rightMax, height[right])
-            if height[left] < height[right]:
-                ans += leftMax - height[left]
+            if left_max < right_max: # 双指针: 哪边**最高高度**低, 哪边"决定"水量, 从而"投入使用": 用于计算水量
                 left += 1
+                # 这里有一点点绕, 其实是两个值用于判断水量,
+                # 一个是移动前的left_max (已有的最高墙), 另一个是更新后的height[left] (当前墙高度)。
+                left_max = max(left_max, height[left])
+                water += left_max - height[left]
             else:
-                ans += rightMax - height[right]
                 right -= 1
-
-        return ans
+                right_max = max(right_max, height[right])
+                water += right_max - height[right]
+        
+        return water
 ```
+
+方法三：**单调递减栈**
+
+其实这个方法空间复杂度不如双指针。但由于它与[84. 柱状图中最大的矩形](https://leetcode.cn/problems/largest-rectangle-in-histogram/)的解法特别对偶，所以顺便补在这里。
+
+我们要找到“**高低高**”这样的关系。每次遇到这样的关系，都可以结算栈顶高度（对应“低”），因为找到了低于栈顶高度的两者。
+
+时间复杂度：$O(n)$，空间复杂度：$O(n)$
+
+```python
+def trap(height):
+    stack = []  # 存储索引，保持递减
+    water = 0
+    
+    for i, h in enumerate(height):
+        # 当前柱子高于栈顶，形成凹槽
+        while stack and height[stack[-1]] < h:
+            bottom = stack.pop()  # 凹槽底部
+            if not stack:
+                break
+            left = stack[-1]      # 左边界
+            width = i - left - 1
+            water += (min(height[left], h) - height[bottom]) * width
+        stack.append(i)
+    
+    return water
+```
+
+
 
 ### 专题三 滑动窗口
 
@@ -485,25 +543,33 @@ class Solution:
         return res
 ```
 
-239 滑动窗口最大值
+[239. 滑动窗口最大值](https://leetcode.cn/problems/sliding-window-maximum/)
 
-方法一当然是模拟。然后方法二再考虑处理窗口差分。
+这道题的最优解法称作“**单调队列**”。不要被名字唬住，其实只是一个存储下标的双端队列，并且存储的下标对应的元素始终保持单调递减。从而最大值始终位于 `[0]` 位置。
 
-<div class="algoviz" data-module="lc239-滑动窗口最大值" data-title="239 滑动窗口最大值 · 步骤可视化"></div>
-```
+> 这道题的单调队列是双端队列，它存储的下标对应的元素始终保持单调递减。
+>
+> 为了维护这个效果，我们需要做到：
+>
+> - 为了维护滑动窗口，我们需要把过期的左端元素从队列中清除。
+> - 为了维护单调递减，每当**队列右端与当前元素出现“升序”关系**时，将队列右端相应的元素清除后，再加入当前元素。
+
+```python
 class Solution:
     def maxSlidingWindow(self, nums: List[int], k: int) -> List[int]:
-        # 方法一当然是模拟.
-        res, n = [], len(nums)
-        for i in range(n):
-            j = i + k
-            if j > n:
-                break
-            res.append(max(nums[i:j]))
+        # 单调队列保持单调递减, 则最大值始终在[0]位置
+        queue = deque([]) # 存储索引, 对应的元素单调递减
+        res = []
+        for i, num in enumerate(nums):
+            while queue and queue[0] < i - k + 1:
+                queue.popleft()
+            while queue and nums[queue[-1]] < num:
+                queue.pop()
+            queue.append(i)
+            if i >= k - 1:
+                res.append(nums[queue[0]])
         return res
 ```
-
-TODO
 
 76 最小覆盖子串
 
@@ -599,31 +665,30 @@ class Solution:
         return maxval
 ```
 
-56 合并区间
+[56. 合并区间](https://leetcode.cn/problems/merge-intervals/)
 
-当我们按照左端点排序后，
+当我们按照左端点排序后，可以合并的区间一定是连续的。
 
-可以合并的区间一定是连续的。
+如果重合，就把右端点更新为最大者（注意是最大，不是默认更新为最新哦）。
 
-从而可以方便地通过遍历确定合并还是添加。
+时间复杂度：$O(n \log n)$，空间复杂度：$O(1)$
 
-<div class="algoviz" data-module="lc56-合并区间" data-title="56 合并区间 · 步骤可视化"></div>
-```
+（空间复杂度：假如我们不考虑输出数组的空间复杂度。
+
+对于$O(n \log n)$的排序，有快速排序、归并排序、堆排序等，其中堆排序因为是在输出数组上直接构造的，我们可以说它没有开辟额外的空间。对于下述Python使用的 `.sort()`方法，事实上是TimSort，这种排序方式空间复杂度是$O(n)$的）
+
+```python
 class Solution:
     def merge(self, intervals: List[List[int]]) -> List[List[int]]:
-        intervals.sort(key=lambda x: x[0])
-        res = []
-        l, r = intervals[0][0], intervals[0][1]
-        for i in range(1, len(intervals)):
-            if intervals[i][0] > r:
-                # 无法合并, 更新为新区间
-                res.append([l, r])
-                l, r = intervals[i][0], intervals[i][1]
+        if not intervals:
+            return []
+        intervals.sort()
+        res = [intervals[0]]
+        for start, end in intervals[1:]:
+            if start <= res[-1][1]: # 可合并
+                res[-1][1] = max(res[-1][1], end)
             else:
-                # 可以合并, 更新右端点
-                r = max(r, intervals[i][1])
-        if [l,r] not in res:
-            res.append([l,r])
+                res.append([start, end])
         return res
 ```
 
@@ -1229,9 +1294,9 @@ class Solution:
 >
 > head和tail从来不会被改变。所以我们需要front和cur作为循环使用的变量。
 >
-> while循环里第一行是为了在改变指针前保存信息。这四行的写法恰好是首尾相接的（数据搬运环环相扣），干净得令人叹服。
+> while循环里第一行是为了在改变指针前保存信息。这四行的写法恰好是首尾相接的（数据搬运环环相扣），干净漂亮得令人叹服。
 
-对于第二层，我们的答案是：每次维护 `prev` ， `head` ，`tail` ，`nxt` 四个指针。
+对于第二层，我们的答案是：**每次维护 `prev` ， `head` ，`tail` ，`nxt` 四个指针，它们的关系是从左往右。**
 
 对 `[head, tail]` 这一段执行 `reverse` 函数，然后把这一段连回整个链表、并切换到下一段。
 
@@ -1327,11 +1392,147 @@ class Solution:
         return dummy.next
 ```
 
-23 合并k个升序链表
+[23. 合并 K 个升序链表](https://leetcode.cn/problems/merge-k-sorted-lists/)
+
+解法二：**堆**
+
+~~这个解法似乎常常出现在面试，比如我面的时候就被拷打了，大家记得顺便熟练一下手写堆的写法~~
+
+我们可以利用小根堆来进行链表排序。这里有个微妙的点是，**堆并不需要把所有节点都存进去**，而是只需要同时维护K个最小的节点就可以了。
+
+时间复杂度： $O(nK \log K)$ ，空间复杂度：$O(K)$
+
+其中时间复杂度的 $n$ 是链表的平均长度。也可以设所有节点总个数为 $N$ 写为 $O(N \log K)$ 。
+
+```python
+# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+class Solution:
+    def mergeKLists(self, lists: List[Optional[ListNode]]) -> Optional[ListNode]:
+        heap = []
+        for i, node in enumerate(lists):
+            if node:
+                heapq.heappush(heap, (node.val, i, node)) # 多存一个i是为了避免比较时比较到node
+        dummy = ListNode()
+        cur = dummy
+        while heap:
+            val, i, node = heapq.heappop(heap)
+            cur.next = node
+            cur = cur.next
+            if node.next:
+                heapq.heappush(heap, (node.next.val, i, node.next))
+        return dummy.next
+```
+
+接下来顺便补充一下**手写堆**的写法，以及使用手写堆的解法。
+
+注意这里手写堆的 `(n - 1) // 2` 和 `2 * n + 1` 、`2 * n + 2` 与数据结构课程讲述的有所不同，但是只要通过下标去推理一下（例如想象一个三个节点的完全二叉树，它的下标分别是0、1、2），可以很快地推出相同的数学关系。
+
+另外注意要根据我们的需要自定义 `compare` 函数，这里我们需要最小堆、按照原始节点的 `val` 值（第0个元素）进行比较。
+
+```python
+# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+class MinHeap:
+    def __init__(self):
+        self.heap = []
+    
+    def push(self, node):
+        """插入节点，上浮调整"""
+        self.heap.append(node)
+        self._sift_up(len(self.heap) - 1)
+    
+    def pop(self):
+        """弹出最小节点，下沉调整"""
+        if not self.heap:
+            return None
+        if len(self.heap) == 1:
+            return self.heap.pop()
+        
+        # 交换堆顶和最后一个元素
+        self._swap(0, len(self.heap) - 1)
+        min_node = self.heap.pop()
+        self._sift_down(0)
+        return min_node
+    
+    def _sift_up(self, idx):
+        """上浮：用于 push"""
+        parent = (idx - 1) // 2
+        while idx > 0 and self._compare(idx, parent):
+            self._swap(idx, parent)
+            idx = parent
+            parent = (idx - 1) // 2
+    
+    def _sift_down(self, idx):
+        """下沉：用于 pop"""
+        n = len(self.heap)
+        while True:
+            left = 2 * idx + 1
+            right = 2 * idx + 2
+            smallest = idx
+            
+            if left < n and self._compare(left, smallest):
+                smallest = left
+            if right < n and self._compare(right, smallest):
+                smallest = right
+            
+            if smallest == idx:
+                break
+            
+            self._swap(idx, smallest)
+            idx = smallest
+    
+    def _compare(self, i, j):
+        """比较两个节点，返回 i 是否小于 j"""
+        # 按 val 比较，val 相同比较 idx（避免比较 ListNode）
+        return self.heap[i][0] < self.heap[j][0]
+    
+    def _swap(self, i, j):
+        self.heap[i], self.heap[j] = self.heap[j], self.heap[i]
+    
+    def __len__(self):
+        return len(self.heap)
+
+class Solution:
+    def mergeKLists(self, lists: List[Optional[ListNode]]) -> Optional[ListNode]:
+        heap = MinHeap()
+        
+        # 初始化堆
+        for idx, node in enumerate(lists):
+            if node:
+                heap.push((node.val, idx, node))  # 用 (值, 索引, 节点) 元组
+        
+        dummy = ListNode(0)
+        curr = dummy
+        
+        while len(heap) > 0:
+            val, idx, node = heap.pop()
+            curr.next = node
+            curr = curr.next
+            
+            if node.next:
+                heap.push((node.next.val, idx, node.next))
+        
+        return dummy.next
+```
+
+解法一：**分治**
 
 搞一个合并两个升序链表，然后归并。
 
-```
+时间复杂度： $O(nK \log K)$ ，空间复杂度：$O(\log K)$
+
+其中时间复杂度的 $n$ 是链表的平均长度。也可以设所有节点总个数为 $N$ 写为 $O(N \log K)$ 。
+
+空间复杂度是因为分治的递归栈取决于树的深度，而我们这个分治方法的树是完全二叉树，比较平衡。
+
+```python
 # Definition for singly-linked list.
 # class ListNode:
 #     def __init__(self, val=0, next=None):
@@ -1575,14 +1776,16 @@ class Solution:
         return self.ans - 1 # 转化回长度
 ```
 
-102 二叉树的层序遍历
+[102. 二叉树的层序遍历](https://leetcode.cn/problems/binary-tree-level-order-traversal/)
 
-本来如果只是单纯层序列表的话直接入队出队就行，
+我们可以通过记录层数，按照层数构造结果列表；
 
-但现在需要把同一层的放在一个子列表里，因此考虑添加深度信息和缓冲区，当前深度全部放完后再加入。
+也可以每次都处理完当前层的所有节点，整成一个列表、添加到结果中。
 
-<div class="algoviz" data-module="lc102-二叉树的层序遍历" data-title="102 二叉树的层序遍历 · 步骤可视化"></div>
-```
+时间复杂度：$O(n)$，空间复杂度：$O(n)$ （极端情况下层数可以与节点数相同）
+
+<div class="algoviz" data-module="lc543-二叉树的直径-v2" data-title="543 二叉树的直径 · 步骤可视化"></div>
+```python
 # Definition for a binary tree node.
 # class TreeNode:
 #     def __init__(self, val=0, left=None, right=None):
@@ -1591,26 +1794,21 @@ class Solution:
 #         self.right = right
 class Solution:
     def levelOrder(self, root: Optional[TreeNode]) -> List[List[int]]:
-        res, cur_res = list(), list()
-        q = deque([(root, 1)])
-        cur = 1
-
-        while q:
-            node, node_dep = q.popleft()
-            if not node:
-                continue
-            elif node_dep > cur:
-                # 清空缓冲区, 再添加新元素
-                res.append(cur_res)
-                cur_res = list()
-                cur += 1
-
-            cur_res.append(node.val)
-            q.append((node.left, node_dep + 1))
-            q.append((node.right, node_dep + 1))
-
-        if cur_res:
-            res.append(cur_res)
+        if not root:
+            return []
+        res = []
+        queue = deque([root])
+        while queue:
+            cur_layer = []
+            layer_size = len(queue)
+            for _ in range(layer_size):
+                node = queue.popleft()
+                cur_layer.append(node.val)
+                if node.left:
+                    queue.append(node.left)
+                if node.right:
+                    queue.append(node.right)
+            res.append(cur_layer)
         return res
 ```
 
