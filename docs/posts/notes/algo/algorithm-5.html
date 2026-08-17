@@ -120,7 +120,7 @@
     <h1 class="post-title">数据结构与算法 · 05 · LeetCode HOT 100 in Python（后50）</h1>
     <div class="post-meta">
       <time datetime="2026-03-02T00:00:00">2026-03-02</time>
-      <span class="post-stats">13662 字 · 约 31 分钟</span>
+      <span class="post-stats">14816 字 · 约 33 分钟</span>
       
       <a class="tag-chip" href="../../../index.html#tag=%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95">#数据结构与算法</a>
       
@@ -717,40 +717,70 @@
             stk.append((i, temp))
         return res
 </code></pre></div>
-<p>84 柱状图中最大的矩形</p>
+<p><a href="https://leetcode.cn/problems/largest-rectangle-in-histogram/">84. 柱状图中最大的矩形</a></p>
 <p>这个单调栈问题如果有一些直观直觉，会好把握一点。</p>
 <p><img alt="" src="../../migrated/post-images/20260302113916.png"/></p>
-<p>例如图上 <code>[2,1,5,6,2,3]</code> 的情况，我们可以有直观直觉：两边很矮，然后中间连着有几个高的，这样会有比较大的矩形。</p>
-<p>单调栈正是为了实现这个直觉，比如中间连着的几个高的不再会用在以后的大矩形中（因为有右边的矮高度隔开）。</p>
-<p>而左边的矮的不会用在现在的大矩形中，而是用在以后的长条矩形中，所以作为左边界、在栈里面存着。</p>
-<p>如果高度为升序则直接存入，</p>
-<p>一旦有逆序则i即为右边界，</p>
-<p>通过弹出直到找到左边界（不再逆序）来确定面积。</p>
-<p>至于为什么是升序：<br/>
-首先一开始是宽度为1、高度为最高（单调栈栈顶），<br/>
-随着宽度扩大，高度只会慢慢变低，我们不能直接由宽度和高度同时变大或变小来确定面积肯定变大或变小，因此只遍历判断这些情况是效率最高的。<br/>
-就像2,1,5,6,2,3这样的情况中的面积应为1,5,6,2围出的10，右边界是通过6,2得到的逆序，左边界是通过1,2得到的不再逆序。<br/>
-在完成一次右边界判断后，右边界加入栈中，则5和6不再对以后的最大面积有意义，因此在这个过程中也是弹出的。</p>
+<p>直觉：我们考虑以当前柱子为高度的矩形，则它最多可以延伸到左右两边第一个低于它的柱子。</p>
+<p>这两个柱子确定了最大宽度，当前柱子确定高度。</p>
+<p>其他高度的矩形，当前柱子不关心。</p>
+<p>故使用一个单调递增栈，当遇到一个比栈顶更矮的柱子时，就意味着找到了<strong>栈顶柱子</strong>的右边界，可以立刻弹出并计算以其为高度的最大矩形。（此时栈顶和两侧矮柱子形成“<strong>低高低</strong>”关系，可以立即结算这个高柱子）</p>
+<p>为了解决边界问题，我们往两侧添加高度为0的“柱子”。</p>
+<blockquote>
+<p>这道题与<a href="https://leetcode.cn/problems/trapping-rain-water/">42. 接雨水</a>十分相似，二者可以说是有对偶关系：一个处理低高低这样“凸”的形状，一个处理高低高这样“凹”的形状。使用单调栈的解法，时空复杂度均为<span class="arithmatex">\(O(n)\)</span>。</p>
+<p>对于低高低（这道题），矩形宽度取决于两侧第一个低于当前矩形的高度，所以维护单调递增栈，栈顶即对应“当前矩形”。</p>
+<p>对于高低高（接雨水），雨水量取决于两侧第一个高于当前高度的更低者，所以维护单调递减栈，栈顶即对应“当前凹槽”。（虽然这个单调栈解法不是最优、空间复杂度不如双指针，但考虑到对称性，值得提一下）</p>
+<p>（更深刻地，它们结构特别像、所以都可以用单调栈。但是接雨水中的“最小者”这个关系可以传递，所以还可以用双指针；而柱状图中最大的矩形的“最近者”这个关系对应的宽度信息不可以传递，所以不可以用双指针）</p>
+</blockquote>
+<p>时间复杂度：<span class="arithmatex">\(O(n)\)</span>，空间复杂度：<span class="arithmatex">\(O(n)\)</span></p>
+<p>（相比起来，暴力寻找两边第一个小于当前高度的解法，时间复杂度为<span class="arithmatex">\(O(n^2)\)</span>，空间复杂度为<span class="arithmatex">\(O(1)\)</span>）</p>
 <div class="algoviz" data-module="lc84-柱状图中最大的矩形" data-title="84 柱状图中最大的矩形 · 步骤可视化"></div>
-<div class="highlight"><pre><span></span><code>class Solution:
-    def largestRectangleArea(self, heights: List[int]) -&gt; int:
-        heights = [0] + heights + [0]
-        stack = []
-        # 如果高度为升序则直接存入
-        # 一旦有逆序即找到右边界
-        # 通过弹出直到找到左边界来确定面积
-        max_area = 0
+<div class="highlight"><pre data-lang="python"><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Solution</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">largestRectangleArea</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">heights</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">heights</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">heights</span> <span class="o">+</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">stk</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># 存储索引, 单调递增栈</span>
+        <span class="n">max_area</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">h</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">heights</span><span class="p">):</span>
+            <span class="c1"># 结算栈顶高度, 并且同一个h有可能连续结算好多个!</span>
+            <span class="k">while</span> <span class="n">stk</span> <span class="ow">and</span> <span class="n">heights</span><span class="p">[</span><span class="n">stk</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">&gt;</span> <span class="n">h</span><span class="p">:</span> <span class="c1"># 关键: 我们找到的是**栈顶高度**的**两侧矮于它的高度**!</span>
+                <span class="n">height</span> <span class="o">=</span> <span class="n">heights</span><span class="p">[</span><span class="n">stk</span><span class="o">.</span><span class="n">pop</span><span class="p">()]</span>
+                <span class="n">width</span> <span class="o">=</span> <span class="n">i</span> <span class="o">-</span> <span class="n">stk</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
+                <span class="n">max_area</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_area</span><span class="p">,</span> <span class="n">height</span> <span class="o">*</span> <span class="n">width</span><span class="p">)</span>
+            <span class="n">stk</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">max_area</span>
+</code></pre></div>
+<p><a href="https://leetcode.cn/problems/maximal-rectangle/">85. 最大矩形</a></p>
+<p>这道题可以化归为<a href="https://leetcode.cn/problems/largest-rectangle-in-histogram/">84. 柱状图中最大的矩形</a>。关键是，我们如果以每一行为底，则它及上面的部分恰好构成一个“柱状图”。</p>
+<p>这个柱状图的巧妙之处在于，如果底当前列的元素为1，则高度是递推过来的；如果为0，则断开，高度为0。</p>
+<p><del>写一遍权当复习84了，默写着默写着发现自己84的 <code>while</code> 循环没想到，谢谢85</del></p>
+<p>时间复杂度：<span class="arithmatex">\(O(mn)\)</span>，空间复杂度：<span class="arithmatex">\(O(n)\)</span></p>
+<div class="highlight"><pre data-lang="python"><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Solution</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">maximalRectangle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">matrix</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">matrix</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+        <span class="n">m</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">matrix</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">heights</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">n</span>
+        <span class="n">max_area</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+            <span class="c1"># 重要: 对当前行进行条形图统计时, 如果遇到0, 则"断开"</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">matrix</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'1'</span><span class="p">:</span>
+                    <span class="n">heights</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">heights</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">max_area</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_area</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">largestRectangleArea</span><span class="p">(</span><span class="n">heights</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">max_area</span>
 
-        for i in range(len(heights)):
-            # 满足栈顶大于nums[i]时, i即为右边界
-            # 满足栈中指向的某个元素小于nums[i]时, 该元素即为左边界
-            while stack and heights[i] &lt; heights[stack[-1]]:
-                height = heights[stack.pop()]
-                width = i - stack[-1] - 1
-                max_area = max(max_area, height * width)
-            stack.append(i)
-
-        return max_area
+    <span class="k">def</span><span class="w"> </span><span class="nf">largestRectangleArea</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">heights</span><span class="p">):</span>
+        <span class="n">heights</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">heights</span> <span class="o">+</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">stk</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">max_area</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">h</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">heights</span><span class="p">):</span>
+            <span class="k">while</span> <span class="n">stk</span> <span class="ow">and</span> <span class="n">heights</span><span class="p">[</span><span class="n">stk</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">&gt;</span> <span class="n">h</span><span class="p">:</span>
+                <span class="n">height</span> <span class="o">=</span> <span class="n">heights</span><span class="p">[</span><span class="n">stk</span><span class="o">.</span><span class="n">pop</span><span class="p">()]</span>
+                <span class="n">width</span> <span class="o">=</span> <span class="n">i</span> <span class="o">-</span> <span class="n">stk</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
+                <span class="n">max_area</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_area</span><span class="p">,</span> <span class="n">height</span> <span class="o">*</span> <span class="n">width</span><span class="p">)</span>
+            <span class="n">stk</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">max_area</span>
 </code></pre></div>
 </div><div class="post-chapter" data-ch="5" data-title="专题13 堆"><h3 id="专题13-堆">专题13 堆</h3>
 <p><a href="https://neetcode.io/problems/meeting-schedule-ii/question">253 会议室 II</a></p>
@@ -782,13 +812,21 @@
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">heap</span><span class="p">)</span>
 </code></pre></div>
 <p>215 数组中的第K个最大元素</p>
-<div class="algoviz" data-module="lc215-数组中的第k个最大元素" data-title="215 数组中的第K个最大元素 · 步骤可视化"></div>
-<div class="highlight"><pre><span></span><code>class Solution:
-    def findKthLargest(self, nums: List[int], k: int) -&gt; int:
-        nums.sort()
-        return nums[-k]
+<p>解法一：<strong>最小堆</strong></p>
+<p>维护大小保持为 <span class="arithmatex">\(k\)</span> 个的最小堆，如果长度超出时把<strong>最小元素</strong>逐出，从而最后在堆中留下的就是前K个最大元素，其中最小的就是堆顶。</p>
+<p>时间复杂度：<span class="arithmatex">\(O(n \log k)\)</span>，空间复杂度：<span class="arithmatex">\(O(k)\)</span></p>
+<div class="highlight"><pre data-lang="python"><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Solution</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">findKthLargest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nums</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">heap</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># 最小堆解法</span>
+        <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="n">nums</span><span class="p">:</span>
+            <span class="n">heapq</span><span class="o">.</span><span class="n">heappush</span><span class="p">(</span><span class="n">heap</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">heap</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">k</span><span class="p">:</span>
+                <span class="n">heapq</span><span class="o">.</span><span class="n">heappop</span><span class="p">(</span><span class="n">heap</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">heap</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 </code></pre></div>
-<p>建堆是O(n)的，这事一眼看到还是有一点反直觉的。</p>
+<p>解法二：<strong>最大堆</strong></p>
+<p>对全部元素建堆（<span class="arithmatex">\(O(n)\)</span>），然后 <code>pop</code> <span class="arithmatex">\(k\)</span> 次（<span class="arithmatex">\(O(k \log n)\)</span>）。</p>
+<p>时间复杂度：<span class="arithmatex">\(O(n + k \log n)\)</span>，空间复杂度：<span class="arithmatex">\(O(n)\)</span></p>
 <div class="algoviz" data-module="lc215-数组中的第k个最大元素-v2" data-title="215 数组中的第K个最大元素 · 步骤可视化"></div>
 <div class="highlight"><pre><span></span><code>class Solution:
     def findKthLargest(self, nums: List[int], k: int) -&gt; int:
@@ -1427,27 +1465,61 @@
                 dp[i][j] = dp[i - 1][j - 1] + 1 if text1[i - 1] == text2[j - 1] else max(dp[i - 1][j], dp[i][j - 1])
         return dp[m][n]
 </code></pre></div>
-<p>72 编辑距离</p>
+<p><a href="https://leetcode.cn/problems/edit-distance/">72. 编辑距离</a></p>
+<p>方法二：<strong>滚动数组优化空间</strong></p>
+<p>这玩意一口气依赖了三个元素（事实上是对角线形式的依赖），但是仍然可以用滚动数组优化空间复杂度。</p>
+<p>其关键是找到并维护好这些关系：</p>
+<ul>
+<li><strong>用一个 <code>prev</code> 变量存储 <code>[i - 1][j - 1]</code> 位置的元素。</strong></li>
+<li><code>dp[i][j - 1]</code> 元素当前的存储是 <code>dp[j - 1]</code> 。</li>
+<li><code>dp[i - 1][j]</code> 元素当前的存储是 <code>dp[j]</code> 。</li>
+</ul>
+<p>为了维护：</p>
+<p>在设置 <code>dp[j]</code> 的值之前，需要把 <code>dp[j]</code> 的值保存下来（相当于 <code>dp[i - 1][j - 1]</code>）。</p>
+<p>（想一下二维数组就好想了）<code>dp[i][0]</code> 直接保存给 <code>prev</code> ，再设置 <code>dp[i][0]</code> 的值为 <code>i</code> ；</p>
+<p>在循环中因为 <code>prev</code> 要使用，所以保存给 <code>tmp</code> ，等用完 <code>prev</code> 了再传给它。</p>
+<p>时间复杂度：<span class="arithmatex">\(O(mn)\)</span>，空间复杂度：<span class="arithmatex">\(O(n)\)</span></p>
+<div class="highlight"><pre data-lang="python"><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Solution</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">minDistance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">word1</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">word2</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="c1"># 关键: 使用右边界, 所以需要多开一个, 而且判断时需要用-1</span>
+        <span class="n">m</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">word1</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">word2</span><span class="p">)</span>
+        <span class="c1"># dp[i][j] 代表将word1[:i]转化成word2[:j]的最小操作数</span>
+        <span class="n">dp</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">m</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">prev</span> <span class="o">=</span> <span class="n">dp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">dp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span> <span class="c1"># 用来存储当前行的dp初值</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">tmp</span> <span class="o">=</span> <span class="n">dp</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">word1</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">word2</span><span class="p">[</span><span class="n">j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]:</span>
+                    <span class="n">dp</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">prev</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">dp</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="nb">min</span><span class="p">(</span><span class="n">dp</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">dp</span><span class="p">[</span><span class="n">j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span> <span class="n">prev</span><span class="p">)</span>
+                <span class="n">prev</span> <span class="o">=</span> <span class="n">tmp</span>
+        <span class="k">return</span> <span class="n">dp</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>
+</code></pre></div>
+<p>方法一：<strong>朴素动态规划</strong></p>
 <p>不要被题目吓到。其实就是最长公共子序列那种感觉。题目的三种方式只是三种转移。</p>
+<p>十分经典的题目，从CS61A的练习题里就出现过。</p>
+<p>时间复杂度：<span class="arithmatex">\(O(mn)\)</span>，空间复杂度：<span class="arithmatex">\(O(mn)\)</span></p>
 <div class="algoviz" data-module="lc72-编辑距离" data-title="72 编辑距离 · 步骤可视化"></div>
-<div class="highlight"><pre><span></span><code>class Solution:
-    def minDistance(self, word1: str, word2: str) -&gt; int:
-        m, n = len(word1), len(word2)
-        # 将word1[0:i]转化为word2[0:j]的最少操作数
-        dp = [[0] * (n + 1) for _ in range(m + 1)]
-        for i in range(m + 1):
-            dp[i][0] = i
-        for j in range(n + 1):
-            dp[0][j] = j
-
-        for i in range(1, m + 1):
-            for j in range(1, n + 1):
-                if word1[i - 1] == word2[j - 1]:
-                    dp[i][j] = dp[i - 1][j - 1]
-                else:
-                    dp[i][j] = min(dp[i - 1][j - 1], dp[i - 1][j], dp[i][j - 1]) + 1
-
-        return dp[m][n]
+<div class="highlight"><pre data-lang="python"><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Solution</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">minDistance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">word1</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">word2</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="c1"># 关键: 使用右边界, 所以需要多开一个, 而且判断时需要用-1</span>
+        <span class="n">m</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">word1</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">word2</span><span class="p">)</span>
+        <span class="c1"># dp[i][j] 代表将word1[:i]转化成word2[:j]的最小操作数</span>
+        <span class="n">dp</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">dp</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">dp</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">j</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">m</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">word1</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">word2</span><span class="p">[</span><span class="n">j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]:</span>
+                    <span class="n">dp</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">dp</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="n">j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">dp</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="nb">min</span><span class="p">(</span><span class="n">dp</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="n">j</span><span class="p">],</span> <span class="n">dp</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span> <span class="n">dp</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="n">j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">dp</span><span class="p">[</span><span class="n">m</span><span class="p">][</span><span class="n">n</span><span class="p">]</span>
 </code></pre></div>
 <p><a href="https://leetcode.cn/problems/burst-balloons/">312. 戳气球</a></p>
 <p>十分经典的一道题目，其关键是把戳气球问题，转化为<strong>开区间 <code>(i, j)</code> 的遍历问题</strong>。</p>
