@@ -204,7 +204,7 @@ def main() -> None:
                 break
         except Exception:
             break
-    for p in [ROOT / "blogs" / "assets" / "logo.png", imported]:
+    for p in [imported]:
         if p.exists():
             p.unlink()
     import shutil
