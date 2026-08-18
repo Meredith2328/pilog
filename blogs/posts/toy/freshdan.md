@@ -8,6 +8,7 @@ published: true
 hideInList: false
 feature: posts/migrated/post-images/freshdan-xin-sheng-wiki-xiang-mu.png
 isTop: false
+preview: 已发布至 [freshdan](https://meredith2328.github.io/freshdan/#/), 希望能给复旦新生一些微小的帮助！
 ---
 已发布至 [freshdan](https://meredith2328.github.io/freshdan/#/)
 

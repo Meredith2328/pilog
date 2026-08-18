@@ -253,7 +253,7 @@ async function runLoop(session: Session, provider: Provider) {
 }
 ```
 
-而 pi 的真实实现（`agent-session.js`，编译产物的函数名保真）是这个形状——先 `prompt()` 起一轮，然后靠一个"善后函数"的返回值决定要不要 `continue()`：
+而 pi 的真实实现分布在三个层次上：外层的 `agent-session.js`（会话编排：重试、压缩、扩展事件）、中间的 `pi-agent-core` 包（Agent 类和真正的循环 `runLoop`）、以及底层的 `pi-ai`（流式 HTTP 与协议适配）。先看最外层的骨架——`_runAgentPrompt` 先 `prompt()` 起一轮，然后靠一个"善后函数"的返回值决定要不要 `continue()`：
 
 ```typescript
 async _runAgentPrompt(messages) {
@@ -271,7 +271,7 @@ async _runAgentPrompt(messages) {
 }
 ```
 
-`_handlePostAgentRun` 是整个循环的"方向盘"，它按优先级处理四种情况：可重试的错误（准备重试后返回 true 继续跑）、重试次数耗尽的错误（发出 `auto_retry_end` 事件收尾）、需要压缩（返回 true，下一轮 `continue()` 前先压缩）、以及 agent 队列里还有排队的消息：
+`_handlePostAgentRun` 是外层的"方向盘"，按优先级处理四种情况：可重试的错误、重试次数耗尽、需要压缩、agent 队列里还有排队的消息：
 
 ```typescript
 async _handlePostAgentRun() {
@@ -296,9 +296,274 @@ async _handlePostAgentRun() {
 }
 ```
 
-和教学版的差异值得咀嚼：教学版把"继续与否"内联在 `if (calls.length === 0) return` 一个判断里，pi 则把它拆成了独立函数，因为真实的"要不要继续"要同时看错误、重试计数、压缩阈值和消息队列——每个都是一个策略点。另一个差异是工具调用的执行方式：我的教学版用 `Promise.all` 并发执行同一回复里的多个 toolCall，而 pi 从 `AgentSession` 层看是逐个顺序处理的（源码里没有并发调度的痕迹，`beforeToolCall`/`afterToolCall` 钩子和 `tool_execution_start`/`end` 事件都按 `toolCallId` 逐个走）。顺序执行牺牲一点速度，换来的是 tool_use/tool_result 的严格配对顺序不会被并发打乱——recordBashResult 里那条注释说的就是这个："If agent is streaming, defer adding to avoid breaking tool_use/tool_result ordering"。
+中间层 `pi-agent-core` 才是循环本体。`Agent.prompt()` 只做归一化和启动，真正的引擎是 `runAgentLoop` → `runLoop`；`continue()` 在最后一条消息是 assistant 时优先消费 steering/follow-up 队列。整个引擎的心脏（内层 while 循环）长这样，每一行都值得对着图看：
 
-朴素的同步实现能跑，但很快你会发现什么都做不了：想按 ESC 中断？想边生成边流式显示？想在模型跑工具的半路上插一句话？这些都需要把"发生了一件事"和"如何呈现这件事"解耦。pi 的解法是事件总线（`event-bus.js`）——有意思的是它的实现朴素到只有几十行：直接包了一个 Node.js 的 `EventEmitter`，`emit` 同步分发，唯一加的料是把每个 handler 包进 try/catch，保证一个订阅者抛错不会炸掉整个进程：
+```javascript
+while (hasMoreToolCalls || pendingMessages.length > 0) {
+    if (!firstTurn) { await emit({ type: "turn_start" }); }
+    else { firstTurn = false; }
+
+    // 注入排队中的 steering 消息（用户在模型干活时说的话）
+    if (pendingMessages.length > 0) {
+        for (const message of pendingMessages) {
+            await emit({ type: "message_start", message });
+            await emit({ type: "message_end", message });
+            currentContext.messages.push(message);
+            newMessages.push(message);
+        }
+        pendingMessages = [];
+    }
+
+    // 流式拿一条 assistant 回复（message_start/update/end 事件都从这里发）
+    const message = await streamAssistantResponse(
+        currentContext, config, signal, emit, streamFunction);
+    newMessages.push(message);
+
+    // 错误/中断：turn 收尾、整个 agent 结束
+    if (message.stopReason === "error" || message.stopReason === "aborted") {
+        await emit({ type: "turn_end", message, toolResults: [] });
+        await emit({ type: "agent_end", messages: newMessages });
+        return;
+    }
+
+    const toolCalls = message.content.filter((c) => c.type === "toolCall");
+    const toolResults = [];
+    hasMoreToolCalls = false;
+    if (toolCalls.length > 0) {
+        const executedToolBatch = message.stopReason === "length"
+            ? await failToolCallsFromTruncatedMessage(toolCalls, emit)
+            : await executeToolCalls(currentContext, message, config, signal, emit);
+        toolResults.push(...executedToolBatch.messages);
+        hasMoreToolCalls = !executedToolBatch.terminate;   // 决定还要不要再来一圈
+        for (const result of toolResults) {
+            currentContext.messages.push(result);
+            newMessages.push(result);
+        }
+    }
+
+    await emit({ type: "turn_end", message, toolResults });
+    // ...prepareNextTurn / shouldStopAfterTurn 钩子...
+
+    // turn 间隙再捞一次 steering（就是这里让"半路插话"成为可能）
+    pendingMessages = (await config.getSteeringMessages?.()) || [];
+}
+```
+
+要澄清一个我早先版本的错误判断，也是这张图最重要的修正：**pi 的工具调用默认是并行的**，不是串行。`executeToolCalls` 内部有一个明确的分岔——只有配置指定 `toolExecution: "sequential"`、或这批调用里存在标记了 `executionMode === "sequential"` 的工具时才走串行路径，否则默认 `Promise.all` 并行，而且并行完成后**按 assistant 消息里 toolCall 的原始顺序**回填结果（`orderedFinalizedCalls`），保证 tool_use/tool_result 配对顺序稳定：
+
+```javascript
+const hasSequentialToolCall = toolCalls.some((tc) =>
+    currentContext.tools?.find((t) => t.name === tc.name)
+        ?.executionMode === "sequential");
+if (config.toolExecution === "sequential" || hasSequentialToolCall) {
+    return executeToolCallsSequential(currentContext, assistantMessage,
+                                      toolCalls, config, signal, emit);
+}
+return executeToolCallsParallel(currentContext, assistantMessage,
+                                toolCalls, config, signal, emit);
+```
+
+```javascript
+// 并行执行，但结果按 toolCall 原始顺序回填
+const orderedFinalizedCalls = await Promise.all(
+    finalizedCalls.map((entry) =>
+        typeof entry === "function" ? entry() : Promise.resolve(entry)));
+const messages = [];
+for (const finalized of orderedFinalizedCalls) {
+    const toolResultMessage = createToolResultMessage(finalized);
+    await emitToolResultMessage(toolResultMessage, emit);
+    messages.push(toolResultMessage);
+}
+```
+
+abort（ESC 中断）的实现位置也值得注意：内层 while 本身**不检查** `signal.aborted`，signal 一路传给 `streamAssistantResponse`（打断流式请求）和工具执行器；工具准备阶段每次 `beforeToolCall` 钩子回来都查一次，串行路径每个工具跑完查一次。中断不是"循环顶部的 if"，而是"每个 await 点上的合作式检查"。
+
+上面这些代码串起来就是下面两张图。第一张按抽象层拆：Agent 会话层（队列与生命周期）叠在 Turn 循环层上，Turn 层又叠在 Message 流式层和 Tool 执行层上——右侧的层按钮可以单独点亮某一层，其余层会变暗但连线仍在，方便看清层与层怎么咬合：
+
+<div class="archviz">
+  <div class="av-head"><span class="av-tag">架构图</span><span class="av-title">主循环分层状态机：pi-agent-core 的四层结构（点右侧按钮聚焦某一层）</span></div>
+  <div class="av-body">
+    <div class="av2">
+      <div class="av2-main">
+        <div class="av2-lane" data-av2-lane="agent">
+          <div class="av2-lane-head"><span class="av2-lane-tag">L1 Agent 会话层</span><span class="av2-lane-sub">agent-session.js · Agent 类：一次用户提交到 agent_settled</span></div>
+          <div class="av2-node" data-av2-layer="agent">
+            <div class="av-name">prompt() / continue()</div>
+            <div class="av-sub">prompt 归一化输入并启动；continue 在 assistant 结尾时优先 drain 队列</div>
+            <details class="av-fold"><summary>continue() 的队列优先级</summary><div class="av-fold-body"><pre>async continue() {
+    if (this.activeRun) throw new Error("Agent is already processing...");
+    const lastMessage = this._state.messages[
+        this._state.messages.length - 1];
+    if (lastMessage.role === "assistant") {
+        const queuedSteering = this.steeringQueue.drain();
+        if (queuedSteering.length > 0) {
+            await this.runPromptMessages(queuedSteering,
+                { skipInitialSteeringPoll: true });
+            return;
+        }
+        const queuedFollowUps = this.followUpQueue.drain();
+        if (queuedFollowUps.length > 0) {
+            await this.runPromptMessages(queuedFollowUps);
+            return;
+        }
+        throw new Error("Cannot continue from message role: assistant");
+    }
+    await this.runContinuation();
+}</pre>注意 <code>skipInitialSteeringPoll: true</code>——刚 drain 过就别在循环开头再捞一次，避免同一条消息被注入两遍。</div></details>
+          </div>
+          <div class="av-down"></div>
+          <div class="av2-node" data-av2-layer="agent">
+            <div class="av-name">_handlePostAgentRun（外层方向盘）</div>
+            <div class="av-sub">重试 → 压缩 → 队列检查，返回 false 才真正停</div>
+          </div>
+        </div>
+        <div class="av2-lane" data-av2-lane="turn">
+          <div class="av2-lane-head"><span class="av2-lane-tag">L2 Turn 循环层</span><span class="av2-lane-sub">agent-loop.js · runLoop：一次 LLM 调用 + 它的工具批次 = 一个 turn</span></div>
+          <div class="av2-node" data-av2-layer="turn">
+            <div class="av-name">while (hasMoreToolCalls || pending)</div>
+            <div class="av-sub">turn_start → 流式回复 → 工具批次 → turn_end → 捞 steering → 循环</div>
+            <details class="av-fold"><summary>内层循环骨架</summary><div class="av-fold-body"><pre>while (hasMoreToolCalls || pendingMessages.length > 0) {
+    if (!firstTurn) await emit({ type: "turn_start" });
+    // 注入 steering → streamAssistantResponse →
+    // stopReason 分支 → executeToolCalls → turn_end →
+    pendingMessages = (await config
+        .getSteeringMessages?.()) || [];
+}</pre>退出条件是"没有更多工具调用且没有 pending steering"，退出后才进入外层的 follow-up 检查。</div></details>
+          </div>
+          <div class="av-down"></div>
+          <div class="av2-node" data-av2-layer="turn">
+            <div class="av-name">三个 agent_end 出口</div>
+            <div class="av-sub">error/aborted 立即结束 · shouldStopAfterTurn 钩子叫停 · follow-up 耗尽自然退出</div>
+          </div>
+        </div>
+        <div class="av2-lane" data-av2-lane="msg">
+          <div class="av2-lane-head"><span class="av2-lane-tag">L3 Message 流式层</span><span class="av2-lane-sub">streamAssistantResponse：一条 assistant 消息的诞生</span></div>
+          <div class="av2-node" data-av2-layer="msg">
+            <div class="av-name">streamAssistantResponse</div>
+            <div class="av-sub">消费 pi-ai 的 AssistantMessageEvent 流：start → text_delta / thinking_delta / toolcall_delta → done</div>
+            <details class="av-fold"><summary>为什么这层没有循环</summary><div class="av-fold-body">它只是把流事件转成 <code>message_start / message_update / message_end</code> 转发出去并拼出最终 AssistantMessage。循环属于上层；这层是纯翻译。</div></details>
+          </div>
+        </div>
+        <div class="av2-lane" data-av2-lane="tool">
+          <div class="av2-lane-head"><span class="av2-lane-tag">L4 Tool 执行层</span><span class="av2-lane-sub">executeToolCalls：一个工具批次的两种执行策略</span></div>
+          <div class="av2-node" data-av2-layer="tool">
+            <div class="av-name">并行（默认）vs 串行（显式）</div>
+            <div class="av-sub">Promise.all 并行执行，按 toolCall 原始顺序回填结果</div>
+            <details class="av-fold"><summary>策略分岔代码</summary><div class="av-fold-body"><pre>const hasSequentialToolCall = toolCalls.some((tc) =>
+    currentContext.tools?.find((t) => t.name === tc.name)
+        ?.executionMode === "sequential");
+if (config.toolExecution === "sequential" ||
+    hasSequentialToolCall) {
+    return executeToolCallsSequential(...);
+}
+return executeToolCallsParallel(...);</pre>并行版本里 <code>finalizedCalls.map(entry =&gt; entry())</code> 同时启动全部执行，<code>Promise.all</code> 收齐后按原顺序生成 toolResult 消息。串行路径每个工具跑完检查一次 <code>signal.aborted</code>，可随时停。</div></details>
+          </div>
+          <div class="av-down"></div>
+          <div class="av2-node" data-av2-layer="tool">
+            <div class="av-name">beforeToolCall 拦截点</div>
+            <div class="av-sub">每个工具执行前过一遍扩展钩子（权限确认就挂这里）；钩子返回后立即查 abort</div>
+          </div>
+        </div>
+      </div>
+      <div class="av2-rail">
+        <div class="av2-rail-title">层聚焦</div>
+        <button type="button" class="av2-lbtn" data-av2-layer="agent">L1 会话</button>
+        <button type="button" class="av2-lbtn" data-av2-layer="turn">L2 循环</button>
+        <button type="button" class="av2-lbtn" data-av2-layer="msg">L3 流式</button>
+        <button type="button" class="av2-lbtn" data-av2-layer="tool">L4 工具</button>
+      </div>
+    </div>
+  </div>
+  <div class="av-foot">层与层靠 emit() 事件和 await 调用串起来：上层 await 下层的返回值，下层 emit 事件给上层的订阅者。再点一次按钮取消聚焦。</div>
+</div>
+
+第二张图按"目的"演进：假如你只想做消息问答，引擎只需要什么？加上工具调用要多哪些件？错误处理和 steering 又是叠在哪里的？每个阶段的虚线框就是相对上一阶段的新增件：
+
+<div class="archviz">
+  <div class="av-head"><span class="av-tag">架构图</span><span class="av-title">按目的演进：从纯问答到完整 agent，每步加什么</span></div>
+  <div class="av-body">
+    <div class="av3-stages">
+      <button type="button" class="av3-tab" data-av3-stage="qa">① 纯消息问答</button>
+      <button type="button" class="av3-tab" data-av3-stage="tools">② ＋工具调用</button>
+      <button type="button" class="av3-tab" data-av3-stage="full">③ ＋错误处理 · steering · 压缩</button>
+    </div>
+
+    <div class="av3-pane" data-av3-stage="qa">
+      <div class="av3-note">只做问答：一个 turn 就够——发出去、流式收回、结束。连 while 循环都可以省掉，因为 stopReason 永远是 stop。</div>
+      <div class="av-flow">
+        <div class="av-stage av-node k-core">
+          <div class="av-name">streamAssistantResponse</div>
+          <div class="av-sub">唯一必需的部件：拼 system + messages，消费事件流，返回 AssistantMessage</div>
+        </div>
+        <div class="av-down"></div>
+        <div class="av-stage av-node k-end">
+          <div class="av-name">stopReason === "stop" → 结束</div>
+          <div class="av-sub">emit turn_end / agent_end，把消息 push 进历史，完事</div>
+        </div>
+      </div>
+      <details class="av-fold"><summary>这一步的最小代码</summary><div class="av-fold-body"><pre>const message = await streamAssistantResponse(
+    context, config, signal, emit, streamFn);
+newMessages.push(message);
+// 没有 toolCall → hasMoreToolCalls = false
+// → while 条件为假，循环根本不转</pre></div></details>
+    </div>
+
+    <div class="av3-pane" data-av3-stage="tools">
+      <div class="av3-note">加工具调用：while 循环开始真正干活。新增三件——toolCall 过滤、executeToolCalls（默认并行、顺序回填）、结果回填进上下文。</div>
+      <div class="av-flow">
+        <div class="av-stage av-node k-core">
+          <div class="av-name">streamAssistantResponse</div>
+          <div class="av-sub">同①，但现在 stopReason 可能是 toolUse</div>
+        </div>
+        <div class="av-down is-accent"><span class="av-alabel">toolUse</span></div>
+        <div class="av-stage av-node av3-delta">
+          <div class="av-name">filter(toolCall) + executeToolCalls</div>
+          <div class="av-sub">并行 Promise.all；sequential 工具时走串行路径</div>
+          <details class="av-fold"><summary>新增的核心几行</summary><div class="av-fold-body"><pre>const toolCalls = message.content
+    .filter((c) => c.type === "toolCall");
+const executedToolBatch = await executeToolCalls(
+    currentContext, message, config, signal, emit);
+hasMoreToolCalls = !executedToolBatch.terminate;
+for (const result of executedToolBatch.messages) {
+    currentContext.messages.push(result);
+    newMessages.push(result);
+}</pre><code>terminate</code> 标志位是关键：某个工具可以宣告"终止整个 agent"（比如自定义的 exit 工具），循环就此收敛。</div></details>
+        </div>
+        <div class="av-down is-green"><span class="av-alabel">结果回填</span></div>
+        <div class="av-stage av-node k-data">
+          <div class="av-name">messages + toolResults</div>
+          <div class="av-sub">下一圈 while：带着工具结果的上下文再调一次 LLM</div>
+        </div>
+        <div class="av-rail"><span class="av-rlabel">TOOL RESULT 回环</span></div>
+      </div>
+    </div>
+
+    <div class="av3-pane" data-av3-stage="full">
+      <div class="av3-note">加错误处理、steering、压缩：全部是在②的骨架上"加挂件"，循环本体一行不改。错误处理加在 stopReason 分支，steering 加在 turn 间隙，压缩和重试加在最外层。</div>
+      <div class="av-layers">
+        <div class="av-layer l-core">
+          <div class="av-l-head"><span class="av-l-name">外层挂件</span><span class="av-badge">＋新增</span></div>
+          <div class="av-l-desc">_handlePostAgentRun：可重试错误 → _prepareRetry（2s/4s/8s 退避）；_checkCompaction（阈值触发摘要）；hasQueuedMessages（follow-up 续跑）。</div>
+        </div>
+        <div class="av-l-arrow"><span class="av-alabel">continue()</span></div>
+        <div class="av-layer l-bus">
+          <div class="av-l-head"><span class="av-l-name">turn 间隙挂件</span><span class="av-badge">＋新增</span></div>
+          <div class="av-l-desc">turn_end 之后 <code>pendingMessages = getSteeringMessages()</code>——用户半路插的话在这里进上下文，不打断当前工具批次。</div>
+          <details class="av-fold"><summary>steering 的完整路径</summary><div class="av-fold-body">入队：<code>AgentSession._queueSteer → agent.steer() → steeringQueue.enqueue()</code>。消费：runLoop 每个 turn 结束时 <code>drain()</code>，在下个 turn 开头作为 user 消息 emit 并 push。UI 侧：_steeringMessages 数组跟踪"还没送达的"消息，message_start 事件确认送达后移除。</div></details>
+        </div>
+        <div class="av-l-arrow"><span class="av-alabel">进入下个 turn 前</span></div>
+        <div class="av-layer l-infra">
+          <div class="av-l-head"><span class="av-l-name">stopReason 分支挂件</span><span class="av-badge">＋新增</span></div>
+          <div class="av-l-desc">error/aborted → 立即 turn_end + agent_end（内层返回）；length（截断）→ <code>failToolCallsFromTruncatedMessage</code> 把残缺的 toolCall 全部转成错误结果，不执行。</div>
+          <details class="av-fold"><summary>为什么 length 要特殊处理</summary><div class="av-fold-body">输出被 max_tokens 截断时，toolCall 的 JSON 可能只剩半截。pi 不猜参数，直接把整批 toolCall 标记为失败结果喂回去，让模型看到"你的调用被截断了"自己重发。</div></details>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="av-foot">演进的关键认识：①→②动的是循环条件（toolResult 驱动回环），②→③动的全是挂载点——pi 把可扩展性做成了"在固定位置挂钩子"，而不是改循环本身。</div>
+</div>
+
+朴素的同步实现能跑，但很快你会发现什么都做不了：想按 ESC 中断？想边生成边流式显示？想在模型跑工具的半路上插一句话？这些都需要把"发生了一件事"和"如何呈现这件事"解耦。pi 的解法是事件总线（`event-bus.js`）——它的实现朴素到只有几十行：直接包了一个 Node.js 的 `EventEmitter`，`emit` 同步分发，唯一加的料是把每个 handler 包进 try/catch，保证一个订阅者抛错不会炸掉整个进程：
 
 ```javascript
 on: (channel, handler) => {
@@ -315,28 +580,6 @@ on: (channel, handler) => {
 ```
 
 事件名没有枚举约束，就是字符串 channel；但生命周期事件的命名是稳定的：`agent_start` →（`turn_start` → `message_start`/`message_update`/`message_end` → `tool_execution_start`/`tool_execution_end` → `turn_end`）× N → `agent_end` → `agent_settled`。TUI、日志、扩展系统全部订阅这一条流，所以同一个核心能配四种完全不同的前端（交互式 TUI、`pi -p` 脚本打印、RPC 进程集成、SDK 嵌入），核心一行不改。
-
-事件驱动还支撑着一个很实用的机制：steering（转向）。用户在模型干活时输入的内容不是粗暴打断，而是进了 `_steeringMessages` 数组排队，经 `agent.steer()` 塞进消息队列；等当前这轮跑完，它作为新的 user 消息出现，`_handleAgentEvent` 在 `message_start` 时比对文本、把它从队列里删掉：
-
-```typescript
-async _queueSteer(text, images) {
-    this._steeringMessages.push(text);
-    this._emitQueueUpdate();
-    const content = [{ type: "text", text }];
-    if (images) content.push(...images);
-    this.agent.steer({ role: "user", content, timestamp: Date.now() });
-}
-
-// 消费端：新 user 消息出现时，确认它已送达，移出队列
-if (event.type === "message_start" && event.message.role === "user") {
-    const messageText = contentText(event.message.content, "");
-    const steeringIndex = this._steeringMessages.indexOf(messageText);
-    if (steeringIndex !== -1) {
-        this._steeringMessages.splice(steeringIndex, 1);
-        this._emitQueueUpdate();
-    }
-}
-```
 
 上一节那条真实的 bash 报错记录其实展示了同一个哲学——杀掉一个跑了一半的任务常常比让它带着错误信息跑完更贵，把纠错机会留给模型自己往往更划算。
 
