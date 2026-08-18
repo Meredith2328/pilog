@@ -24,11 +24,11 @@ hideInList: false
 
 第二，是**工具层**。工具是模型的手和脚，每个工具本质上就是三样东西：一个 JSON Schema 参数声明（给模型看的说明书）、一个执行函数、一段给 system prompt 用的使用说明。对 coding agent 来说，`read`/`bash`/`edit`/`write` 四个就够干活了，其中 bash 是灵魂——任何你没做成专用工具的能力，模型都能通过 bash 完成，它的通用性正是它的价值。
 
-第三，是**Provider 层**。内部只使用你自己的统一消息格式，由各个 provider 负责把它翻译成不同模型 API 的请求、再把流式响应拼回来。主循环不应该知道自己面前坐着的是哪个模型。这层还藏着两个容易被低估的东西：模型元数据注册表（上下文窗口、最大输出），和 HTTP 层的超时、限流重试、断流重连——自己从零写 agent 时最先被真实世界教育的地方就在这里。
+第三，是**Provider 层**。内部只使用你自己的统一消息格式，由各个 provider 负责把它翻译成不同模型 API 的请求、再把流式响应拼回来。主循环不应该知道自己面前坐着的是哪个模型。这层还藏着两个容易被低估的东西：模型元数据注册表（上下文窗口、最大输出、每模型的兼容性开关），和重试策略——哪些错误该重试、退避多久、什么时候该把失败交还给用户，自己从零写 agent 时最先被真实世界教育的地方就在这里。
 
 第四，是**会话管理与上下文经营**。会话要落盘（append-only JSONL 是被验证过的好格式）、要能恢复、要在逼近上下文窗口时压缩。尤其是压缩：例如可以把前面的历史总结成摘要替换掉旧消息，本质是在"会话续航"和"细节永久丢失"之间做交易，摘要保留关键事实比泛泛经过描述重要得多。
 
-第五，是**System Prompt 与权限安全**。前者决定模型"是谁"：工作环境、工具惯例、项目级指令（AGENTS.md）都从这里注入，而且前缀保持稳定才能命中 prompt caching。后者不是可选项：一个能随意执行 shell 命令的程序，需要目录信任、工具确认、输出防护三层防线，还要防文件内容里藏的提示注入。
+第五，是**System Prompt 与权限安全**。前者决定模型"是谁"：工作环境、工具惯例、项目级指令（AGENTS.md）都从这里注入，而且前缀保持稳定才能命中 prompt caching。后者不是可选项：一个能随意执行 shell 命令的程序，需要目录信任、工具拦截点这两道防线加输出截断这半个防线，还要防文件内容里藏的提示注入。
 
 把这五块拼起来，就是一个完整的、最小的、能用的 coding agent。下面这张分层图是全文的地图，每一层都能点开看细节，后面两节还会用同样风格的图拆开消息模型和主循环。
 
@@ -188,45 +188,7 @@ hideInList: false
 
 ## 二、主循环：整个 agent 的心脏
 
-有了消息模型，主循环就是几十行的事。数据在循环里怎么流的，一张图看清楚——注意右侧那条蓝色的回环，它就是"agent"和"一次性问答"的全部区别：
-
-<div class="archviz">
-  <div class="av-head"><span class="av-tag">架构图</span><span class="av-title">主循环数据流：一圈 = 一轮工具调用</span></div>
-  <div class="av-body">
-    <div class="av-flow">
-      <div class="av-stage av-node k-core">
-        <div class="av-name">组装请求<span class="av-pi">system + messages + tools</span></div>
-        <div class="av-sub">System prompt（含 AGENTS.md）+ 全部历史 + 工具 schema 注册表</div>
-      </div>
-      <div class="av-down is-accent"><span class="av-alabel">HTTP（流式）</span></div>
-      <div class="av-stage av-node">
-        <div class="av-name">Provider 调用<span class="av-pi">model-registry · http-dispatcher</span></div>
-        <div class="av-sub">统一格式 → 目标协议；重试 / 限流 / 断流重连都在这层</div>
-        <details class="av-fold"><summary>流式响应怎么回来</summary><div class="av-fold-body">增量 token 边到边拼：先 thinking 块，再 text 块，最后 toolCall 块；拼完整条 assistant 消息才追加进历史。<code>stopReason</code> 决定循环走向。</div></details>
-      </div>
-      <div class="av-down"><span class="av-alabel">解析 blocks</span></div>
-      <div class="av-stage av-node k-dec">
-        <div class="av-name">判断 stopReason</div>
-        <div class="av-sub">有 toolCall → 继续；没有 → 本轮结束，输出文本</div>
-      </div>
-      <div class="av-down is-green"><span class="av-alabel">并行执行</span></div>
-      <div class="av-stage av-node k-tool">
-        <div class="av-name">工具执行器<span class="av-pi">bash-executor · output-guard</span></div>
-        <div class="av-sub">权限确认 → 执行 → 截断输出；失败也照常返回（isError）</div>
-        <details class="av-fold"><summary>每个工具长什么样</summary><div class="av-fold-body">三件套：JSON Schema（给模型）、执行函数（给循环）、使用说明（进 system prompt）。read / bash / edit / write 四个就够干活。</div></details>
-      </div>
-      <div class="av-down"><span class="av-alabel">追加消息</span></div>
-      <div class="av-stage av-node k-data">
-        <div class="av-name">消息数组 + JSONL 落盘<span class="av-pi">session-manager</span></div>
-        <div class="av-sub">toolResult 逐条 append；逼近上下文窗口时触发 compaction</div>
-      </div>
-      <div class="av-rail"><span class="av-rlabel">TOOL RESULT 回环</span></div>
-    </div>
-  </div>
-  <div class="av-foot">蓝 = 模型边界，绿 = 工具边界；事件总线在每一站旁路发出事件，前端只听不做。</div>
-</div>
-
-教学版几十行就能写出来（下面这段是我按同样的结构写的简化版）：
+有了消息模型，主循环就是几十行的事。下面是我按同样结构写的教学版——它也是接下来读 pi 源码的对照基准，正文里那几条“教学版与真实实现的差异”都源于它：
 
 ```typescript
 async function runLoop(session: Session, provider: Provider) {
