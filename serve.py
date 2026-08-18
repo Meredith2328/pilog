@@ -48,6 +48,12 @@ MANAGER_HTML = ROOT / "tools" / "manager.html"
 _dirty = False
 _mutex = threading.Lock()
 
+# rebuild coordination: only one build at a time; concurrent callers wait for
+# the in-flight build instead of starting a second one
+_rebuild_cond = threading.Condition()
+_building = False
+_last_rebuild_duration = 0.0
+
 # undo / redo stacks: {"before": [(Path, bytes|None)...], "after": [...]}
 _undo: list = []
 _redo: list = []
@@ -61,6 +67,42 @@ def rebuild(clean: bool = False) -> float:
     t0 = time.perf_counter()
     build_site(CONFIG_PATH, clean=clean)
     return time.perf_counter() - t0
+
+
+def _run_rebuild() -> dict:
+    """Run one rebuild at a time.
+
+    If another rebuild is already in flight, wait for it and report that build's
+    result instead of starting a second, potentially conflicting build.
+    """
+    global _building, _last_rebuild_duration
+    with _rebuild_cond:
+        if _building:
+            _rebuild_cond.wait()
+            return {
+                "ok": True,
+                "rebuilt": True,
+                "duration": _last_rebuild_duration,
+                "waited": True,
+            }
+        _building = True
+    try:
+        duration = rebuild()
+    except Exception:
+        with _rebuild_cond:
+            _building = False
+            _rebuild_cond.notify_all()
+        raise
+    with _rebuild_cond:
+        _building = False
+        _last_rebuild_duration = duration
+        _rebuild_cond.notify_all()
+    return {
+        "ok": True,
+        "rebuilt": True,
+        "duration": round(duration, 2),
+        "waited": False,
+    }
 
 
 def fingerprint() -> str:
@@ -271,6 +313,33 @@ class Handler(SimpleHTTPRequestHandler):
             return False
         return True
 
+    def _graph_is_stale(self) -> bool:
+        """Whether graph.json should be regenerated before showing the graph.
+
+        Only sources that actually feed the graph are considered: post markdown,
+        config, and the graph/markdown/content generator modules. Asset uploads
+        (e.g. logo/header) do not make the graph stale.
+        """
+        graph_file = self.out_root / "data" / "graph.json"
+        if not graph_file.is_file():
+            return True
+        latest = graph_file.stat().st_mtime
+        candidates = [
+            CONFIG_PATH,
+            ROOT / "generator" / "graph.py",
+            ROOT / "generator" / "markdownx.py",
+            ROOT / "generator" / "content.py",
+            ROOT / "generator" / "config.py",
+        ]
+        for p in candidates:
+            if p.is_file() and p.stat().st_mtime > latest:
+                return True
+        if self.blog_root.is_dir():
+            for p in self.blog_root.rglob("*.md"):
+                if p.is_file() and p.stat().st_mtime > latest:
+                    return True
+        return False
+
     # ---------- routing ----------
 
     def do_GET(self):
@@ -454,8 +523,23 @@ class Handler(SimpleHTTPRequestHandler):
             self._api_brand_upload()
             return
         if path == "/api/rebuild":
-            duration = rebuild()
-            self._send_json({"ok": True, "duration": round(duration, 2)})
+            self._send_json(_run_rebuild())
+            return
+        if path == "/api/rebuild/if-stale":
+            with _rebuild_cond:
+                if _building:
+                    _rebuild_cond.wait()
+                    self._send_json({
+                        "ok": True,
+                        "rebuilt": True,
+                        "duration": _last_rebuild_duration,
+                        "waited": True,
+                    })
+                    return
+            if not self._graph_is_stale():
+                self._send_json({"ok": True, "rebuilt": False, "duration": 0})
+                return
+            self._send_json(_run_rebuild())
             return
         if path == "/api/upload":
             self._api_upload()
