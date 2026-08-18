@@ -274,7 +274,7 @@ a{color:var(--accent)}
         <div class="pv-graph-loading" id="graph-loading">正在准备图谱…</div>
       </div>
       <script type="application/json" id="graph-data" data-root="/" data-collapse="25"></script>
-      <p class="hint">图谱数据来自最近一次构建；切换到本视图时会自动重新构建以反映最新内容。</p>
+      <p class="hint">图谱数据来自最近一次构建；如需反映最新内容，请点击顶部「重新构建」。</p>
     </div>
     <div class="pv-footer" id="pv-footer"></div>
   </div>
@@ -1310,7 +1310,15 @@ async function loadGraphPreview() {
   if (graphLoaded) return;
   $("#graph-loading").style.display = "flex";
   try {
-    await api("/api/rebuild", { method: "POST" });
+    // The graph reflects the last build. Don't run a full rebuild here:
+    // it can take tens of seconds with many posts/assets and would block the
+    // preview. Only rebuild when no graph data has been generated yet.
+    let hasGraphData = false;
+    try {
+      const r = await fetch("/data/graph.json");
+      hasGraphData = r.ok;
+    } catch (e) { /* treat missing data as needing a build */ }
+    if (!hasGraphData) await api("/api/rebuild", { method: "POST" });
     const script = document.createElement("script");
     script.src = "/js/graph.js";
     script.onload = () => {
