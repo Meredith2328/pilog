@@ -1784,7 +1784,7 @@ class Solution:
 
 时间复杂度：$O(n)$，空间复杂度：$O(n)$ （极端情况下层数可以与节点数相同）
 
-<div class="algoviz" data-module="lc543-二叉树的直径-v2" data-title="543 二叉树的直径 · 步骤可视化"></div>
+<div class="algoviz" data-module="lc102-二叉树的层序遍历-v2" data-title="102 二叉树的层序遍历 · 步骤可视化"></div>
 ```python
 # Definition for a binary tree node.
 # class TreeNode:
