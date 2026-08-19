@@ -53,6 +53,8 @@ _mutex = threading.Lock()
 _rebuild_cond = threading.Condition()
 _building = False
 _last_rebuild_duration = 0.0
+_last_rebuild_ok = True
+_last_rebuild_error = ""
 
 # undo / redo stacks: {"before": [(Path, bytes|None)...], "after": [...]}
 _undo: list = []
@@ -75,32 +77,38 @@ def _run_rebuild() -> dict:
     If another rebuild is already in flight, wait for it and report that build's
     result instead of starting a second, potentially conflicting build.
     """
-    global _building, _last_rebuild_duration
+    global _building, _last_rebuild_duration, _last_rebuild_ok, _last_rebuild_error
     with _rebuild_cond:
         if _building:
             _rebuild_cond.wait()
             return {
-                "ok": True,
+                "ok": _last_rebuild_ok,
                 "rebuilt": True,
                 "duration": _last_rebuild_duration,
+                "error": _last_rebuild_error or None,
                 "waited": True,
             }
         _building = True
     try:
         duration = rebuild()
-    except Exception:
+    except Exception as e:
         with _rebuild_cond:
             _building = False
+            _last_rebuild_ok = False
+            _last_rebuild_error = repr(e)
             _rebuild_cond.notify_all()
         raise
     with _rebuild_cond:
         _building = False
         _last_rebuild_duration = duration
+        _last_rebuild_ok = True
+        _last_rebuild_error = ""
         _rebuild_cond.notify_all()
     return {
         "ok": True,
         "rebuilt": True,
         "duration": round(duration, 2),
+        "error": None,
         "waited": False,
     }
 
@@ -530,9 +538,10 @@ class Handler(SimpleHTTPRequestHandler):
                 if _building:
                     _rebuild_cond.wait()
                     self._send_json({
-                        "ok": True,
+                        "ok": _last_rebuild_ok,
                         "rebuilt": True,
                         "duration": _last_rebuild_duration,
+                        "error": _last_rebuild_error or None,
                         "waited": True,
                     })
                     return
