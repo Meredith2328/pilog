@@ -8,6 +8,7 @@
     "out_dir": "docs",
     "base_path": "",
     "site_url": "https://meredith2328.github.io",
+    "google_analytics_id": "G-MVYHGJ8X03",
     "use_google_fonts": true,
     "footer_text": "© 2026 10pi (Meredith2328) — built with pilog",
     "show_dino": true,

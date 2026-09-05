@@ -15,6 +15,7 @@ DEFAULTS: dict = {
         "out_dir": "site",
         "base_path": "",
         "site_url": "",
+        "google_analytics_id": "",
         "use_google_fonts": True,
         "footer_text": "",
         "show_dino": True,

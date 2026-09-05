@@ -153,6 +153,7 @@ python pilog.py serve --watch                # 本地预览 + 自动重建
     "author": "Meredith",
     "base_path": "/blogtest",         // 部署在子目录时填，如 meredith2328.github.io/blogtest
     "site_url": "https://meredith2328.github.io/blogtest", // 绝对地址，RSS/OG 用
+    "google_analytics_id": "G-XXXXXXXXXX", // GA4 衡量 ID；留空则不加载
     "use_google_fonts": true,         // 网络受限时改为 false，使用系统字体
     "show_dino": true,                // 右下角小恐龙
     "cards_per_page": 12,             // 卡片视图每页数量
