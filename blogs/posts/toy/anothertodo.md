@@ -1,5 +1,5 @@
 ---
-preview_image: assets/anothertodo-cover.png
+preview_image: assets/anothertodo-tui.png
 title: AnotherTODO：把待办留在终端，也留在自己手里
 date: 2026-09-05 13:33:54
 tags:
@@ -8,14 +8,12 @@ tags:
 - 效率工具
 published: true
 hideInList: false
-feature: assets/anothertodo-cover.png
+feature: assets/anothertodo-tui.png
 isTop: false
 preview: 一个本地优先的终端待办工具：一行自然语言输入、TUI 管理、可靠提醒，以及把私有数据同步到自己的 Git 仓库。
 ---
 
 [AnotherTODO](https://github.com/Meredith2328/anothertodo)（命令名 `atd`）是一个给“想快速记下、但不想把待办交给云端”的人做的轻量工具。它把数据保存在本机的 `~/.atd/`，用纯文本 JSONL 做唯一事实源；需要跨设备时，再同步到用户自己的私有 Git 仓库。
-
-![AnotherTODO 的任务流插画](assets/anothertodo-cover.png)
 
 在线文档在 [AnotherTODO 文档站](https://meredith2328.github.io/anothertodo/)，可执行文件与版本更新见 [GitHub Releases](https://github.com/Meredith2328/anothertodo/releases)。
 
