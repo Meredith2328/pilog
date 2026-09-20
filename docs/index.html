@@ -26,6 +26,15 @@
   
   <meta property="og:image" content="https://meredith2328.github.io/assets/og-default.png">
 
+  
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-MVYHGJ8X03"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', "G-MVYHGJ8X03");
+  </script>
+  
   <link rel="icon" href="favicon.png">
   <link rel="apple-touch-icon" href="favicon.png">
   <link rel="alternate" type="application/rss+xml" title="10PI&#39;S BLOG丨十派的玩具箱 · RSS" href="rss.xml">
@@ -117,9 +126,9 @@
   <div class="filter-tags">
     <span class="filter-label">筛选</span>
     
-    <button class="tag-chip" type="button" data-tag="大模型">#大模型</button>
-    
     <button class="tag-chip" type="button" data-tag="项目">#项目</button>
+    
+    <button class="tag-chip" type="button" data-tag="大模型">#大模型</button>
     
     <button class="tag-chip" type="button" data-tag="CS61A">#CS61A</button>
     
@@ -139,11 +148,19 @@
       
       <button class="tag-chip" type="button" data-tag="CSAPP">#CSAPP</button>
       
+      <button class="tag-chip" type="button" data-tag="TypeSafe">#TypeSafe</button>
+      
+      <button class="tag-chip" type="button" data-tag="TypeScript">#TypeScript</button>
+      
       <button class="tag-chip" type="button" data-tag="大模型">#大模型</button>
       
       <button class="tag-chip" type="button" data-tag="奇怪的东西">#奇怪的东西</button>
       
+      <button class="tag-chip" type="button" data-tag="实验">#实验</button>
+      
       <button class="tag-chip" type="button" data-tag="工具">#工具</button>
+      
+      <button class="tag-chip" type="button" data-tag="效率工具">#效率工具</button>
       
       <button class="tag-chip" type="button" data-tag="数据结构与算法">#数据结构与算法</button>
       
@@ -164,16 +181,14 @@
 
   <div class="card-grid" id="card-grid">
     
-    <article class="card is-cover" data-tags="奇怪的东西 " data-folder="posts/toy" data-date="2024-08-30">
+    <article class="card" data-tags="Agent TypeSafe 实验 " data-folder="posts/toy" data-date="2026-09-20">
       
-      <span class="card-cover" style="background-image:url('posts/migrated/post-images/10pi.jpg')"></span>
-      
-      <a class="card-link" href="posts/toy/10pi.html">
+      <a class="card-link" href="posts/toy/jev-holein.html">
         <div class="card-body">
           <div class="card-meta">
             <span class="card-meta-left">
-              <time datetime="2024-08-30">2024-08-30</time>
-              <span class="pin-badge">置顶</span>
+              <time datetime="2026-09-20">2026-09-20</time>
+              
             </span>
             
             
@@ -182,13 +197,57 @@
             </span>
             
           </div>
-          <h3 class="card-title">十派的玩具箱有哪些内容？</h3>
+          <h3 class="card-title">尝试用 Jev 游玩手机上的黑洞大作战 (HOLEIN) 游戏</h3>
           
-          <div class="card-preview">顾名思义，玩具箱就应该是玩具箱。 知识笔记、工具笔记、写出的小玩意儿，都是玩具。 有时候玩玩具是为了写blog，有时候写blog是为了玩玩具。 任何批评和建议均会受到最热烈的欢迎： Issues / pipipi2328@gmail.com 主要集中于深度学习常用的工具。 结合 pi 的架构与真实会话数据（sessions.jsonl），把消息模型、主循环、Provider…</div>
+          <div class="card-preview">尝试用Jev。</div>
           
           <div class="card-tags">
             
-            <button class="tag-chip" type="button" data-tag="奇怪的东西">#奇怪的东西</button>
+            <button class="tag-chip" type="button" data-tag="Agent">#Agent</button>
+            
+            <button class="tag-chip" type="button" data-tag="TypeSafe">#TypeSafe</button>
+            
+            <button class="tag-chip" type="button" data-tag="实验">#实验</button>
+            
+          </div>
+        </div>
+        
+        <div class="card-thumb">
+          <img src="posts/toy/assets/jev-holein/loop-level3.gif" alt="" loading="lazy">
+        </div>
+        
+      </a>
+    </article>
+    
+    <article class="card is-cover" data-tags="项目 TypeScript 效率工具 " data-folder="posts/toy" data-date="2026-09-05">
+      
+      <span class="card-cover" style="background-image:url('posts/toy/assets/anothertodo-tui.png')"></span>
+      
+      <a class="card-link" href="posts/toy/anothertodo.html">
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-meta-left">
+              <time datetime="2026-09-05">2026-09-05</time>
+              
+            </span>
+            
+            
+            <span class="card-folder" title="点击目录片段筛选">
+              <button class="folder-part" type="button" data-folder="posts">posts</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/toy">toy</button>
+            </span>
+            
+          </div>
+          <h3 class="card-title">AnotherTODO：把待办留在终端，也留在自己手里</h3>
+          
+          <div class="card-preview">一个本地优先的终端待办工具：一行自然语言输入、TUI 管理、可靠提醒，以及把私有数据同步到自己的 Git 仓库。</div>
+          
+          <div class="card-tags">
+            
+            <button class="tag-chip" type="button" data-tag="项目">#项目</button>
+            
+            <button class="tag-chip" type="button" data-tag="TypeScript">#TypeScript</button>
+            
+            <button class="tag-chip" type="button" data-tag="效率工具">#效率工具</button>
             
           </div>
         </div>
@@ -517,36 +576,6 @@
           <div class="card-tags">
             
             <button class="tag-chip" type="button" data-tag="项目">#项目</button>
-            
-          </div>
-        </div>
-        
-      </a>
-    </article>
-    
-    <article class="card" data-tags="机器学习 " data-folder="posts/notes/ml" data-date="2026-04-09">
-      
-      <a class="card-link" href="posts/notes/ml/softmax.html">
-        <div class="card-body">
-          <div class="card-meta">
-            <span class="card-meta-left">
-              <time datetime="2026-04-09">2026-04-09</time>
-              
-            </span>
-            
-            
-            <span class="card-folder" title="点击目录片段筛选">
-              <button class="folder-part" type="button" data-folder="posts">posts</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/notes">notes</button><span class="folder-sep">/</span><button class="folder-part" type="button" data-folder="posts/notes/ml">ml</button>
-            </span>
-            
-          </div>
-          <h3 class="card-title">从原始Softmax到在线Softmax</h3>
-          
-          <div class="card-preview">撰写了原始的softmax、数值稳定的softmax、在线softmax的公式及其简单代码呈现。  我们讨论的起点是<strong>原始的softmax形式</strong>： <span class="arithmatex">\(p_j = \frac{e^{z_j}}{\sum_k e^{z_k}}.\)</span>  为保证数值稳定，令 <span class="arithmatex">\( m := \max_k z_k, \)</span> 则 softmax 可等价改写为<strong>数值稳定的softmax形式</strong>： p_j = \frac{e^{z_j - m}}{\sum_k e^{z_k -…</div>
-          
-          <div class="card-tags">
-            
-            <button class="tag-chip" type="button" data-tag="机器学习">#机器学习</button>
             
           </div>
         </div>
@@ -1179,6 +1208,17 @@
           
         
           
+          <li class="tree-file" data-path="posts/toy/anothertodo">
+            <a class="tree-row" href="posts/toy/anothertodo.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">AnotherTODO：把待办留在终端，也留在自己手里</span>
+              <span class="tree-date">2026-09-05</span>
+            </a>
+          </li>
+          
+        
+          
           <li class="tree-file" data-path="posts/toy/freshdan">
             <a class="tree-row" href="posts/toy/freshdan.html">
               <span class="tree-toggle tree-toggle-empty"></span>
@@ -1196,6 +1236,17 @@
               <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
               <span class="tree-name">友情链接们</span>
               <span class="tree-date">2024-04-30</span>
+            </a>
+          </li>
+          
+        
+          
+          <li class="tree-file" data-path="posts/toy/jev-holein">
+            <a class="tree-row" href="posts/toy/jev-holein.html">
+              <span class="tree-toggle tree-toggle-empty"></span>
+              <img class="tree-icon-img tree-icon-file" src="img/pixel-file.svg" alt="file">
+              <span class="tree-name">尝试用 Jev 游玩手机上的黑洞大作战 (HOLEIN) 游戏</span>
+              <span class="tree-date">2026-09-20</span>
             </a>
           </li>
           
