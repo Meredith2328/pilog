@@ -47,7 +47,7 @@ pilog/
 ├── tests/                 # 自动化测试（图/路径/工作台/线上）
 ├── tools/                 # 本地辅助工具（工作台页面/素材生成/截图）
 ├── dino/                  # 小恐龙游戏（构建时复制进站点）
-├── site/                  # 生成结果，提交到 GitHub
+├── docs/                  # 生成的静态站点（部署产物）
 └── .github/workflows/     # GitHub Actions 部署
 ```
 
@@ -102,7 +102,7 @@ python pilog.py serve --watch                # 本地预览 + 自动重建
    [[另一篇文章#章节]]
    ```
 
-6. 运行 `python build.py`（或开着 `serve.py --watch` 自动重建），检查效果后提交。
+6. 运行 `python pilog.py build`（或开着 `python pilog.py serve --watch` 自动重建），检查效果后提交。
 
    另外几个可选 front matter 字段：`pin: true` 让文章在卡片视图置顶；`highlight: true` 给文章加黄色描边（三种视图都显示）；`chapters_per_page: N` 让超长文章按标题切分成章节、在同一链接下分页显示（每页 N 章）。
 
@@ -116,7 +116,7 @@ python pilog.py serve --watch                # 本地预览 + 自动重建
 
 ## 本地工作台（仅本机可访问）
 
-`python serve.py` 后访问 `http://127.0.0.1:8000/manager`。工作台是**本地开发工具**：服务器默认只监听 `127.0.0.1`，且 `/manager` 与 `/api` 会拒绝一切非本机来源的请求，构建产物 `site/` 中也不会包含它。
+`python pilog.py serve` 后访问 `http://127.0.0.1:8000/manager`。工作台是**本地开发工具**：服务器默认只监听 `127.0.0.1`，且 `/manager` 与 `/api` 会拒绝一切非本机来源的请求，构建产物 `docs/` 中也不会包含它。
 
 - **预览编辑**：所见即所得地修改博客首页——点左上角头图或顶部背景图即可上传替换（`blogs/assets/logo.png`、`blogs/assets/header.png`），悬停导航项可编辑/删除/加子项/加新项（写入 `blogs/nav.md`），拖动卡片排序（写入文章 front matter 的 `pin` / `order`），双击卡片编辑元数据与全文（写入对应 `.md`），把图片拖到卡片右侧可设为该文预览图；预览顶部可在**卡片视图 / 清单视图 / 图谱视图**间切换，图谱视图会自动重新构建后嵌入真实图谱；把 Markdown 或文件夹拖到卡片区（松开前有占位框）或清单目录上即可导入并自动排入对应位置；
 - **配置**：站点标题、路径、社交账号、giscus、分页与折叠阈值等（写入 `config.json`）；
@@ -177,21 +177,21 @@ python pilog.py serve --watch                # 本地预览 + 自动重建
 ## 构建与部署（GitHub Pages）
 
 1. 修改 `config.json` 中的 `base_path` 与 `site_url`；
-2. `python build.py` 生成 `site/`；
-3. 用 GitHub Desktop 提交全部更改（包括 `site/`）；
-4. 在仓库 Settings → Pages 中选择 **Deploy from a branch 之外的 Actions 方式**（仓库已自带 `.github/workflows/deploy.yml`，推送后自动部署）；
-5. 打开 `https://<用户名>.github.io/<仓库名>/` 验证。
+2. `python pilog.py build` 生成 `docs/`；
+3. 提交源码改动与生成的 `docs/`，并推送 `pilog` 分支；
+4. 仓库自带的 `.github/workflows/deploy.yml` 会构建、测试，并将 `docs/` 同步至部署仓库；
+5. 打开配置的 `site_url` 验证。
 
 ### 一键发布（框架内置）
 
-框架内置了发布功能：构建站点 → `git add/commit` → 推送指定仓库。
+框架内置了手动发布兜底：构建站点 → `git add/commit` → 推送指定部署仓库。日常发布优先直接推送源码仓库的 `pilog` 分支，由 GitHub Actions 自动完成部署。
 
 ```powershell
-python publish.py                 # 构建 + 提交 + 推送
-python publish.py -m "发布说明"    # 自定义提交信息
+python pilog.py publish                 # 构建 + 提交 + 推送
+python pilog.py publish -m "发布说明"    # 自定义提交信息
 ```
 
-或在工作台的「配置 → 发布到 GitHub」面板填写仓库、分支与令牌后点「发布到 GitHub」。令牌只写入本地 gitignore 的 `.publish-token`（或环境变量 `PILOG_TOKEN`），不会进入仓库；发布流程只有 add/commit/push，不包含任何删除性操作。
+或在工作台的「配置 → 发布到 GitHub」面板填写仓库、分支与令牌后点「发布到 GitHub」。令牌只写入本地 gitignore 的 `.publish-token-pages`（或环境变量 `PILOG_TOKEN`），不会进入仓库；发布流程只有 add/commit/push，不包含任何删除性操作。
 
 **Fine-grained PAT 的最小权限**（GitHub 只能在网页端创建，无法通过 API 生成）：
 
