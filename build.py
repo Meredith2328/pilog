@@ -284,6 +284,39 @@ def _check_og_images(out_root: Path, site_url: str) -> list:
     return missing
 
 
+def ship_writer(root: Path, out_root: Path, base_path: str = "") -> list:
+    """Copy the single-file mobile writer into the site so GitHub Pages serves
+    it at /write/ (and /tools/write.html, the path the dev server also knows).
+    The page is static: publishing uses a token the owner pastes on their own
+    device, so nothing secret is ever part of the build."""
+    src = root / "tools" / "write.html"
+    if not src.is_file():
+        return []
+    html = src.read_text(encoding="utf-8")
+    prefix = (base_path or "").rstrip("/") + "/"
+    if prefix != "/":
+        html = html.replace('href="/css/', f'href="{prefix}css/')
+    written = []
+    for rel in ("write/index.html", "tools/write.html"):
+        dst = out_root / rel
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        dst.write_text(html, encoding="utf-8")
+        written.append(dst)
+    return written
+
+
+def writer_edit_path(root: Path, blog_root: Path, post) -> str:
+    """Repo-relative source path (blogs/posts/….md) the writer loads for the
+    post's 编辑 link; empty when the blog dir is outside the repo or the
+    writer is not part of the build."""
+    if not (root / "tools" / "write.html").is_file():
+        return ""
+    try:
+        return (Path(blog_root).resolve() / (post.rel + ".md")).relative_to(root.resolve()).as_posix()
+    except ValueError:
+        return ""
+
+
 def render_nav(page_url: str, ctx: MarkdownContext) -> str:
     nav_file = ctx.blog_root / "nav.md"
     if not nav_file.exists():
@@ -750,6 +783,7 @@ def build_site(
             ),
             "nav_html": Markup(render_nav(post.url, ctx)),
             "post": post,
+            "edit_path": writer_edit_path(cfg.root, blog_root, post),
         }
         dst = out_root / post.url
         dst.parent.mkdir(parents=True, exist_ok=True)
@@ -830,6 +864,11 @@ def build_site(
         dino_out.write_text(html, encoding="utf-8")
         log("copied dino game")
 
+    writer_pages = ship_writer(cfg.root, out_root, cfg.base_path)
+    generated_pages.update(p.resolve() for p in writer_pages)
+    if writer_pages:
+        log("copied mobile writer → /write/")
+
     # prune stale html pages (deleted posts / leftovers from imports)
     pruned = 0
     for html in out_root.rglob("*.html"):
@@ -851,8 +890,9 @@ def build_site(
     # 7. sitemap.xml (all generated html pages except 404)
     if cfg.site_url:
         urls = []
+        noindex = {p.resolve() for p in writer_pages}
         for page in sorted(generated_pages):
-            if page.suffix != ".html" or page.name == "404.html":
+            if page.suffix != ".html" or page.name == "404.html" or page in noindex:
                 continue
             rel = page.relative_to(out_root).as_posix()
             urls.append(f"  <url><loc>{cfg.site_url}/{rel}</loc></url>")

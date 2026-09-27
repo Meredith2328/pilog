@@ -6,3 +6,4 @@
 - [玩具](posts/toy/)
 - [友链](posts/toy/friends.md)
 - [恐龙游戏](dino/)
+- [写作](write/)

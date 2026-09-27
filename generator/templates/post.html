@@ -21,6 +21,7 @@
       <a class="tag-chip" href="{{ root }}index.html#tag={{ tag|urlencode }}">{{ '#' ~ tag }}</a>
       {% endfor %}
       {% if post.folder %}<span class="post-folder">▣ {{ post.folder }}</span>{% endif %}
+      {% if edit_path %}<a class="post-edit" href="{{ root }}write/index.html?path={{ edit_path|urlencode }}" rel="nofollow" title="在手机写作页编辑，改完开 PR 到 pilog">✎ 编辑</a>{% endif %}
     </div>
   </header>
 
