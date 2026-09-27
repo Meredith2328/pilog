@@ -1219,7 +1219,7 @@ class Solution:
 
 19 删除链表的倒数第n个节点
 
-<div class="algoviz" data-module="lc19-删除链表的倒数第n个节点" data-title="19 删除链表的倒数第n个节点 · 步骤可视化"></div>
+<div class="algoviz" data-module="lc19-删除链表倒数第n节点" data-title="19 删除链表的倒数第n个节点 · 步骤可视化"></div>
 ```
 # Definition for singly-linked list.
 # class ListNode:
@@ -1816,7 +1816,7 @@ class Solution:
 
 要建立平衡BST，方法是取区间中点作为根节点，然后对左右两段区间递归建立子树。
 
-<div class="algoviz" data-module="lc108-将有序数组转换为平衡二叉搜索树" data-title="108 将有序数组转换为平衡二叉搜索树 · 步骤可视化"></div>
+<div class="algoviz" data-module="lc108-有序数组转平衡BST" data-title="108 将有序数组转换为平衡二叉搜索树 · 步骤可视化"></div>
 ```
 # Definition for a binary tree node.
 # class TreeNode:
@@ -1907,7 +1907,7 @@ class Solution:
 
 中序遍历的迭代写法：需要先把左边全处理完，即从左记录到头才往回。栈中只需要记录往左的路径即可，这一点不同于根左右（记录待处理的右子树和左子树）。
 
-<div class="algoviz" data-module="lc230-二叉搜索树中第k小的元素" data-title="230 二叉搜索树中第K小的元素 · 步骤可视化"></div>
+<div class="algoviz" data-module="lc230-BST中第k小元素" data-title="230 二叉搜索树中第K小的元素 · 步骤可视化"></div>
 ```
 # Definition for a binary tree node.
 # class TreeNode:
@@ -2001,7 +2001,7 @@ class Solution:
 
 需要转成根据字符串的某些段构造二叉树，然后对于整个段执行初始函数。
 
-<div class="algoviz" data-module="lc105-从前序和中序遍历序列构造二叉树" data-title="105 从前序和中序遍历序列构造二叉树 · 步骤可视化"></div>
+<div class="algoviz" data-module="lc105-从前序中序构造二叉树" data-title="105 从前序和中序遍历序列构造二叉树 · 步骤可视化"></div>
 ```
 # Definition for a binary tree node.
 # class TreeNode:
