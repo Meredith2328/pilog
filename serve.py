@@ -8,6 +8,7 @@
     python serve.py --port 9000
 
 工作台(仅本机可访问): http://127.0.0.1:8000/manager
+手机写作(纯静态，局域网也可访问): http://127.0.0.1:8000/write
 """
 
 from __future__ import annotations
@@ -44,6 +45,7 @@ from generator.nav import parse_nav, serialize_nav
 ROOT = Path(__file__).resolve().parent
 CONFIG_PATH = ROOT / "config.json"
 MANAGER_HTML = ROOT / "tools" / "manager.html"
+WRITE_HTML = ROOT / "tools" / "write.html"
 
 _dirty = False
 _mutex = threading.Lock()
@@ -359,6 +361,13 @@ class Handler(SimpleHTTPRequestHandler):
             if not self._mutating():
                 return
             self._serve_manager()
+            return
+        if path in ("/write", "/write/"):
+            # static offline page with no API access, so LAN phones may load it
+            if not WRITE_HTML.is_file():
+                self._serve_custom_404()
+                return
+            self._send_bytes(WRITE_HTML.read_bytes(), "text/html; charset=utf-8")
             return
         if path.startswith("/api/"):
             if not self._mutating():
@@ -1053,6 +1062,7 @@ def start_server(host: str = "127.0.0.1", port: int = 8000, watch: bool = False)
     url = f"http://{host}:{port}/"
     log(f"serving {cfg.out_dir} at {url}")
     log(f"WYSIWYG manager (local only): {url}manager")
+    log(f"mobile writer: {url}write")
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
