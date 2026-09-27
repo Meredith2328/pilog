@@ -6,6 +6,8 @@
 <meta name="theme-color" content="#f7f7f7">
 <meta name="color-scheme" content="light dark">
 <meta name="mobile-web-app-capable" content="yes">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src * data: blob:; font-src 'self' data:; connect-src 'self' https://api.github.com; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta name="referrer" content="no-referrer">
 <title>pilog · 手机写作</title>
 <link rel="stylesheet" href="/css/fonts.css">
 <script>
@@ -482,6 +484,47 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
 .help li b { display: block; font: 700 14px/1.5 var(--mono); letter-spacing: .02em; }
 .help p { margin: 4px 0 0; color: var(--text); font-size: 13.5px; }
 .help pre { margin: 8px 0 0; padding: 10px 12px; background: var(--panel); border: 2px solid var(--ink); font: 12.5px/1.6 var(--mono); overflow-x: auto; }
+.help a, .note a { color: var(--accent); font-weight: 700; }
+.note.bad { border-left-color: var(--danger); }
+
+/* ---------- publish ---------- */
+.tokrow {
+  display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 6px 0 6px 12px;
+  border: 2px solid var(--ink); background: var(--raise); font: 12px/1.45 var(--mono); color: var(--text);
+}
+.tokrow i { flex: none; width: 10px; height: 10px; box-shadow: inset 0 0 0 2px var(--mute); }
+.tokrow.is-set i { background: var(--ok); box-shadow: none; }
+.tokrow.is-bad i { background: var(--danger); box-shadow: none; }
+.tokrow .t { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.tokrow .t b { color: var(--ink); }
+.tokrow button {
+  flex: none; align-self: stretch; min-width: 64px; margin: -6px 0; border: 0; border-left: 2px solid var(--ink);
+  background: var(--paper); color: var(--ink); font: 700 12px/1 var(--mono); letter-spacing: .06em;
+}
+.tokrow button:active { background: var(--ink); color: var(--paper); }
+.pbtn small { font-weight: 400; letter-spacing: 0; }
+#btn-publish { justify-content: space-between; text-align: left; }
+#btn-publish[disabled]:not(.soon) { opacity: .6; cursor: progress; }
+.steps { margin: 12px 0 0; padding: 0; list-style: none; font: 12.5px/1.5 var(--mono); color: var(--text); }
+.steps li { display: flex; gap: 8px; padding: 3px 0; }
+.steps li::before { content: "□"; flex: none; color: var(--mute); }
+.steps li.is-run::before { content: "▶"; color: var(--accent); }
+.steps li.is-ok::before { content: "■"; color: var(--ok); }
+.steps li.is-err { color: var(--danger); }
+.steps li.is-err::before { content: "×"; color: var(--danger); }
+.pub-box { margin-top: 12px; border: 2px solid var(--ink); box-shadow: 4px 4px 0 var(--shadow); background: var(--paper); }
+.pub-box .h {
+  display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px;
+  background: var(--ink); color: var(--paper); font: 700 11px/1 var(--mono); letter-spacing: .12em;
+}
+.pub-box.is-ok .h { background: var(--ok); color: #fff; }
+.pub-box.is-warn .h { background: var(--highlight); color: #3a3d40; }
+.pub-box.is-err .h { background: var(--danger); color: #fff; }
+.pub-box .b { padding: 12px; font: 13.5px/1.65 var(--sans); color: var(--ink); }
+.pub-box .b p { margin: 0 0 10px; }
+.pub-box .b code { font: 12px var(--mono); background: var(--panel); border: 1px solid var(--hairline); padding: 0 4px; word-break: break-all; }
+.pub-box .url { display: block; margin: 0 0 12px; padding: 10px; border: 1px dashed var(--mute); font: 12.5px/1.5 var(--mono); color: var(--accent); word-break: break-all; text-decoration: none; }
+.pub-box .two { gap: 10px; }
 
 .toast {
   position: fixed; left: 50%; top: calc(env(safe-area-inset-top) + 70px); z-index: 60; transform: translate(-50%, -8px);
@@ -675,11 +718,56 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
         <button class="pbtn block" type="button" id="btn-share" hidden>分享…</button>
         <button class="pbtn block" type="button" id="btn-copy-all">复制全文</button>
       </div>
-      <button class="pbtn soon block" type="button" disabled aria-disabled="true">
-        <span>发布<br><small style="font-weight:400;letter-spacing:0">即将支持：开 PR 到 pilog</small></span><span class="badge">NEXT</span>
-      </button>
     </div>
     <p class="hint" style="margin-top:16px">下载后把文件放进仓库的 <code id="ex-dir">blogs/posts/toy/</code>，提交推送即可发布。</p>
+
+    <div class="sub">发布到 GITHUB</div>
+    <div class="tokrow" id="tok-row"><i></i><span class="t" id="tok-row-t">令牌：未设置</span><button type="button" data-open="token">令牌</button></div>
+    <button class="pbtn soon block" type="button" id="btn-publish" style="margin-top:12px" disabled>
+      <span>发布（开 PR）<br><small id="pub-sub">→ Meredith2328/pilog · 合并到 pilog</small></span><span class="badge" id="pub-badge">LOCKED</span>
+    </button>
+    <p class="note" id="pub-lock">发布需要仓库主人在<b>这台设备</b>上设置 GitHub 令牌。没有令牌也能照常写作、预览和导出；页面不会替任何人申请或获得仓库权限。</p>
+    <ol class="steps" id="pub-steps" hidden></ol>
+    <div id="pub-out"></div>
+  </div>
+</section>
+
+<section class="sheet" id="sheet-token" role="dialog" aria-modal="true" aria-labelledby="sh-token-t">
+  <div class="sheet-h"><span id="sh-token-t">GITHUB 令牌</span><small>仅存本机</small><button class="x" type="button" data-close aria-label="关闭">×</button></div>
+  <div class="sheet-b">
+    <div class="file">
+      <div class="file-path" id="tok-state">未设置</div>
+      <div class="file-stat" id="tok-where">没有令牌时「发布」保持锁定</div>
+    </div>
+    <div class="fld" style="margin-top:18px">
+      <label class="lbl" for="tok-in">粘贴 fine-grained token <small>github_pat_…</small></label>
+      <input class="inp mono" id="tok-in" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" enterkeyhint="done" placeholder="github_pat_…">
+    </div>
+    <label class="sw-row">
+      <span class="t"><b>在这台设备上记住</b><small>关：只存本次会话（<code>sessionStorage</code>），关闭标签页即清除。开：存 <code>localStorage</code>，直到你手动清除。</small></span>
+      <input class="sw" type="checkbox" id="tok-remember">
+    </label>
+    <div class="two" style="margin-top:16px">
+      <button class="pbtn primary block" type="button" id="btn-tok-save">保存并验证</button>
+      <button class="pbtn danger block" type="button" id="btn-tok-clear">清除令牌</button>
+    </div>
+    <div id="tok-msg"></div>
+    <p class="note">令牌只保存在这台设备的浏览器里，只随请求直接发往 <code>api.github.com</code>。这个页面没有后端，不会上传令牌，也不会把它写进稿件或导出文件。不要在别人的设备或共用浏览器上保存。</p>
+
+    <div class="sub">如何创建（只需一次）</div>
+    <div class="help">
+      <ol>
+        <li><b>新建 fine-grained token</b>
+          <p>GitHub → Settings → Developer settings → Fine-grained tokens → Generate new token，或直接打开 <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">创建页面</a>。</p></li>
+        <li><b>只选一个仓库</b>
+          <p>Resource owner 选 <code>Meredith2328</code>；Repository access 选 <b style="display:inline">Only select repositories</b> → <code>Meredith2328/pilog</code>。</p></li>
+        <li><b>只开两项权限</b>
+          <p><code>Contents: Read and write</code> 和 <code>Pull requests: Read and write</code>（<code>Metadata: Read</code> 会自动带上）。其余全部保持 No access。</p></li>
+        <li><b>设置到期时间，复制粘贴到上面</b>
+          <p>丢了手机或怀疑泄露时，到 GitHub 令牌页 Revoke 即可立即失效。详见 <a href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token" target="_blank" rel="noopener noreferrer">GitHub 文档</a>。</p></li>
+      </ol>
+    </div>
+    <p class="hint" style="margin-top:0">发布只会在 <code>Meredith2328/pilog</code> 新建 <code>write/…</code> 分支并开 PR 到 <code>pilog</code>，从不直接推送 <code>pilog</code>，也不会自动合并。</p>
   </div>
 </section>
 
@@ -694,6 +782,7 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
       <button class="pbtn block" type="button" id="btn-import">导入 .md</button>
       <button class="pbtn block" type="button" id="btn-theme">外观：浅色</button>
     </div>
+    <button class="pbtn block" type="button" data-open="token" style="margin-top:12px">GitHub 令牌（发布用）</button>
     <button class="pbtn danger block" type="button" id="btn-wipe" style="margin-top:12px">清空本机全部稿件</button>
     <input type="file" id="file-in" accept=".md,.markdown,text/markdown,text/plain" hidden>
     <p class="hint">稿件只存在这台设备的浏览器里（localStorage）。换浏览器、清除网站数据或换打开方式都会看不到，重要内容记得导出。</p>
@@ -713,7 +802,9 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
       <li><b>添加到主屏幕</b>
         <p>Chrome 菜单 → 添加到主屏幕，之后像 App 一样一点就开。请固定用同一种方式打开：本地文件和网址的草稿存储互不相通。</p></li>
       <li><b>交稿</b>
-        <p>「导出」下载 <code>.md</code>，放到 <code>blogs/posts/分类/</code> 后提交到 <code>pilog</code> 分支即可自动部署。直接从手机开 PR 发布是下一阶段的功能。</p></li>
+        <p>「导出」下载 <code>.md</code>，放到 <code>blogs/posts/分类/</code> 后提交到 <code>pilog</code> 分支即可自动部署。</p></li>
+      <li><b>或者直接开 PR（仅仓库主人）</b>
+        <p>在「稿件 → GitHub 令牌」粘贴只授权 <code>Meredith2328/pilog</code> 的 fine-grained token，之后「导出 → 发布（开 PR）」会新建 <code>write/日期-文件名</code> 分支并开 PR 到 <code>pilog</code>，在 GitHub 上审阅后手动合并。</p></li>
     </ol>
     <p class="hint" style="margin-top:0">预览尽量贴近博客渲染，但图片只显示占位（手机上读不到仓库里的 <code>assets/</code>），公式显示为源码。</p>
   </div>
@@ -796,7 +887,7 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
       title: "", body: "", category: prefs.cat || "toy", slug: "",
       date: today(), time: nowHM(), sec: "", tags: [], preview: "", draft: false,
       previewImage: "", featureMode: "off", featurePath: "",
-      pin: false, highlight: false, hidden: false, order: "", chapters: "", extra: "", caret: 0
+      pin: false, highlight: false, hidden: false, order: "", chapters: "", extra: "", caret: 0, pub: null
     };
   }
   function isBlank(d) { return !d.title.trim() && !d.body.trim() && !d.tags.length && !d.preview.trim(); }
@@ -1672,6 +1763,7 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
     saveNow();
     if (name === "export") renderExport();
+    if (name === "token") { renderToken(); $("#tok-msg").innerHTML = ""; }
     if (name === "drafts") renderDrafts();
     if (name === "drafts") syncThemeBtn();
     el.classList.add("is-open");
@@ -1732,6 +1824,7 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
     var share = canShareFile();
     $("#btn-share").hidden = !share;
     $("#btn-share").parentNode.classList.toggle("one", !share);
+    renderPublish();
   }
   function fileName() { return slugOf(cur) + ".md"; }
   function markExported() { cur.exported = Date.now(); dirty = true; saveNow(); renderExport(); }
@@ -1775,6 +1868,331 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
   $("#btn-copy-all").addEventListener("click", function () { copyText(buildFile(cur), "已复制完整 Markdown"); markExported(); });
   $("#btn-copy-fm").addEventListener("click", function () { copyText("---\n" + fmLines(cur).join("\n") + "\n---\n", "已复制 front matter"); });
 
+  /* ================= publish (GitHub PR) =================
+     Browser-only: the owner's fine-grained token lives in this device's
+     storage and is sent to api.github.com and nowhere else (the CSP meta
+     enforces that). There is no backend, so without a token that can push to
+     the repo nothing can be published. Always a write/ branch + PR into
+     pilog; never a direct push, never a merge. */
+  var GH = { api: "https://api.github.com", owner: "Meredith2328", repo: "pilog", base: "pilog" };
+  var TOKEN_KEY = PFX + "ghToken";
+  var tok = {
+    get: function () {
+      try { return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY) || ""; } catch (e) { return ""; }
+    },
+    where: function () {
+      try {
+        if (sessionStorage.getItem(TOKEN_KEY)) return "session";
+        if (localStorage.getItem(TOKEN_KEY)) return "local";
+      } catch (e) { /* storage blocked */ }
+      return "";
+    },
+    set: function (v, remember) {
+      tok.clear();
+      (remember ? localStorage : sessionStorage).setItem(TOKEN_KEY, v);
+    },
+    clear: function () {
+      try { sessionStorage.removeItem(TOKEN_KEY); } catch (e) { /* ignore */ }
+      try { localStorage.removeItem(TOKEN_KEY); } catch (e) { /* ignore */ }
+    }
+  };
+  var tokBad = "", tokOk = false, pubBusy = false, pubPending = null;
+  var PUB_LOCK = $("#pub-lock").innerHTML;
+  var STEPS = ["验证令牌与仓库", "准备 write/ 分支", "写入文件", "打开 PR"];
+
+  function maskToken(t) {
+    if (t.length < 12) return "…";
+    var head = /^github_pat_/.test(t) ? 11 : /^gh[a-z]_/.test(t) ? 4 : 0;
+    return t.slice(0, head) + "…" + t.slice(-4);
+  }
+  function GhError(status, message, data) { this.status = status; this.message = message || ""; this.data = data || null; }
+  function repoApi(p) { return "/repos/" + GH.owner + "/" + GH.repo + p; }
+  function encPath(p) { return p.split("/").map(encodeURIComponent).join("/"); }
+  function ghReq(method, path, data) {
+    var token = tok.get();
+    if (!token) return Promise.reject(new GhError(-1));
+    if (navigator.onLine === false) return Promise.reject(new GhError(0, "offline"));
+    var headers = { Accept: "application/vnd.github+json", Authorization: "Bearer " + token, "X-GitHub-Api-Version": "2022-11-28" };
+    if (data) headers["Content-Type"] = "application/json";
+    return window.fetch(GH.api + path, {
+      method: method, headers: headers, body: data ? JSON.stringify(data) : undefined,
+      mode: "cors", credentials: "omit", referrerPolicy: "no-referrer", cache: "no-store"
+    }).then(function (r) {
+      return r.text().then(function (t) {
+        var j = null;
+        try { j = t ? JSON.parse(t) : null; } catch (e) { j = null; }
+        if (!r.ok) throw new GhError(r.status, (j && j.message) || r.statusText, j);
+        return j;
+      });
+    }, function () { throw new GhError(0, "network"); });
+  }
+  function ghMaybe(method, path) {
+    return ghReq(method, path).catch(function (e) { if (e.status === 404) return null; throw e; });
+  }
+  function ghMsg(e) {
+    var m = (e && e.message) || "";
+    switch (e && e.status) {
+      case -1: return "还没有设置令牌。";
+      case 0: return "网络不可用或请求被拦截。稿件仍保存在本机，联网后再试。";
+      case 401: return "令牌无效、已过期或已被撤销（401）。";
+      case 403:
+        if (e.code === "nopush") return "这个令牌所属的账号对 Meredith2328/pilog 没有写权限（403）。";
+        if (/rate limit/i.test(m)) return "触发了 GitHub 速率限制（403），请稍后再试。";
+        return "令牌权限不足（403）：需要 Contents 与 Pull requests 两项 Read and write，并且只授权了 Meredith2328/pilog。";
+      case 404: return "找不到仓库或分支（404）：令牌可能没有授权 Meredith2328/pilog。";
+      case 409: return "GitHub 报告冲突（409）：分支刚被改动过，请重试。";
+      case 422: return "GitHub 拒绝了请求（422）：" + m;
+      default: return "GitHub 返回 " + e.status + "：" + m;
+    }
+  }
+  function isTokenProblem(e) {
+    return e.status === 401 || (e.status === 403 && !/rate limit/i.test(e.message)) || e.status === 404;
+  }
+  function b64utf8(s) {
+    var bytes = new TextEncoder().encode(s), bin = "";
+    for (var i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return btoa(bin);
+  }
+
+  function branchSlug(d) {
+    var s = slugOf(d).normalize("NFKD").replace(/[^\w.-]+/g, "-").replace(/[._-]{2,}/g, "-")
+      .toLowerCase().slice(0, 60).replace(/^[-.]+|[-.]+$/g, "").replace(/\.lock$/, "-lock");
+    return s.length >= 3 ? s : "post-" + d.id.slice(-4);
+  }
+  function publishPlan(d) {
+    var path = pathOf(d), errors = [], warns = [];
+    if (!/^blogs\/posts\/.+\.md$/.test(path) || path.split("/").some(function (s) { return !s || s[0] === "."; }))
+      errors.push("文件路径不安全：<code>" + esc(path) + "</code>。分类和文件名里不能有空段、<code>..</code> 或以点开头的名字。");
+    if (!d.body.trim()) errors.push("正文是空的，不能发布。");
+    if (d.date && !/^\d{4}-\d\d-\d\d$/.test(d.date)) errors.push("日期格式应为 YYYY-MM-DD。");
+    if (d.time && !/^\d\d:\d\d/.test(d.time)) errors.push("时间格式应为 HH:MM。");
+    var extra = d.extra.split("\n").filter(function (l) { return l.trim(); });
+    if (extra.some(function (l) { return /^---\s*$/.test(l); }))
+      errors.push("「其他 front matter」里不能有单独的 <code>---</code> 行，它会提前结束 front matter。");
+    else {
+      var odd = extra.filter(function (l) { return !/^([A-Za-z_][\w-]*\s*:|\s+\S|-\s|#)/.test(l); });
+      if (odd.length) errors.push("「其他 front matter」有无法识别的行：<code>" + esc(odd[0]) + "</code>");
+    }
+    var file = buildFile(d), back = parseFile(file, slugOf(d) + ".md");
+    if (back.title !== d.title.trim() || back.tags.join("\n") !== d.tags.join("\n") || back.draft !== d.draft)
+      errors.push("front matter 回读不一致，请检查标题或标签里的特殊字符。");
+    if (d.draft) warns.push("勾选了草稿（<code>draft: true</code>）：合并后这篇也不会进入构建。");
+    if (d.hidden) warns.push("勾选了隐藏：合并后不会生成页面。");
+    if (d.pub && d.pub.path && d.pub.path !== path)
+      warns.push("上次 PR 写入的是 <code>" + esc(d.pub.path) + "</code>，改位置后旧文件会留在那个分支，合并前请在 GitHub 上删掉。");
+    return {
+      path: path, branch: "write/" + (d.date || today()) + "-" + branchSlug(d), file: file,
+      title: d.title.trim() || firstHeading(d.body) || slugOf(d), errors: errors, warns: warns
+    };
+  }
+  function prTitle(plan, update) { return (update ? "更新文章：" : "新文章：") + plan.title; }
+  function prBody(plan, d, update) {
+    var L = [
+      "由 pilog 手机写作页（`tools/write.html`）在作者设备上创建。**请审阅后手动合并**，页面不会自动合并。", "",
+      "- 文件：`" + plan.path + "`" + (update ? "（修改已有文章）" : "（新文章）"),
+      "- 分类：`posts/" + catOf(d) + "`",
+      "- 日期：" + (d.date || today()) + (d.time ? " " + d.time.slice(0, 5) : ""),
+      "- 标签：" + (d.tags.length ? d.tags.map(function (t) { return "`" + t.replace(/`/g, "'") + "`"; }).join(" ") : "无"),
+      "- 字数：" + proseCount(d.body)
+    ];
+    if (d.draft) L.push("", "> [!WARNING]", "> `draft: true`：合并后这篇也不会进入构建。");
+    if (d.hidden) L.push("", "> [!NOTE]", "> `hidden: true`：合并后不会生成页面。");
+    L.push("", "<details><summary>Front matter</summary>", "", "```yaml", "---", fmLines(d).join("\n"), "---", "```", "", "</details>", "");
+    return L.join("\n");
+  }
+
+  function renderSteps(k, state) {
+    var ol = $("#pub-steps");
+    ol.hidden = k < 0;
+    ol.innerHTML = STEPS.map(function (s, i) {
+      return '<li class="' + (i < k ? "is-ok" : i === k ? "is-" + state : "") + '">' + s + "</li>";
+    }).join("");
+  }
+  function pubBox(kind, head, html) {
+    $("#pub-out").innerHTML = '<div class="pub-box is-' + kind + '"><div class="h">' + head + '</div><div class="b">' + html + "</div></div>";
+  }
+  function pubBtns(a, b) {
+    return '<div class="two">' + [a, b].filter(Boolean).map(function (x) {
+      return '<button class="pbtn block' + (x[2] ? " primary" : "") + '" type="button" data-pub="' + x[0] + '">' + x[1] + "</button>";
+    }).join("") + "</div>";
+  }
+  function renderPublish() {
+    var t = tok.get(), ready = !!t && !tokBad, btn = $("#btn-publish");
+    $("#tok-row").classList.toggle("is-set", ready);
+    $("#tok-row").classList.toggle("is-bad", !!t && !!tokBad);
+    $("#tok-row-t").innerHTML = !t ? "令牌：<b>未设置</b> · 发布已锁定"
+      : "令牌：<b>" + esc(maskToken(t)) + "</b> · " + (tokBad ? "不可用" : tok.where() === "local" ? "本设备记住" : "仅本次会话");
+    btn.disabled = !ready || pubBusy;
+    btn.classList.toggle("soon", !ready);
+    btn.classList.toggle("primary", ready);
+    $("#pub-badge").textContent = !ready ? "LOCKED" : pubBusy ? "…" : "PR";
+    $("#pub-sub").textContent = cur.pub && cur.pub.url ? "→ 更新已开的 PR #" + cur.pub.number : "→ Meredith2328/pilog · 合并到 pilog";
+    $("#pub-lock").hidden = ready;
+    $("#pub-lock").className = "note" + (tokBad ? " bad" : "");
+    $("#pub-lock").innerHTML = tokBad ? esc(tokBad) + " 发布已锁定，请到「令牌」重新设置。" : PUB_LOCK;
+  }
+  function persist(d) {
+    if (d === cur) { dirty = true; saveNow(); } else store.set("d." + d.id, d);
+  }
+  async function freeBranch(name) {
+    for (var n = 2; n < 30; n++) {
+      if (!(await ghMaybe("GET", repoApi("/git/ref/heads/" + encPath(name + "-" + n))))) return name + "-" + n;
+    }
+    throw new GhError(422, "找不到可用的分支名");
+  }
+
+  async function publish(opts) {
+    opts = opts || {};
+    if (pubBusy) return null;
+    var d = cur, plan = publishPlan(d), k = 0;
+    $("#pub-out").innerHTML = "";
+    renderSteps(-1);
+    if (plan.errors.length) {
+      pubBox("err", "还不能发布", plan.errors.map(function (x) { return "<p>" + x + "</p>"; }).join("") +
+        pubBtns(["meta", "去「信息」修改", true]));
+      return { ok: false, reason: "invalid" };
+    }
+    if (!tok.get() || tokBad) { renderPublish(); return { ok: false, reason: "locked" }; }
+    saveNow();
+    pubBusy = true; renderPublish();
+    try {
+      renderSteps(0, "run");
+      var repo = await ghReq("GET", repoApi(""));
+      if (repo && repo.permissions && repo.permissions.push === false) {
+        var np = new GhError(403, "no push"); np.code = "nopush"; throw np;
+      }
+      k = 1; renderSteps(1, "run");
+      var onBase = await ghMaybe("GET", repoApi("/contents/" + encPath(plan.path) + "?ref=" + GH.base));
+      var ours = d.pub && d.pub.path === plan.path;
+      if (onBase && !opts.overwrite && !ours) {
+        pubPending = opts; renderSteps(1, "wait");
+        pubBox("warn", "文件已存在", "<p><code>" + GH.base + "</code> 上已经有 <code>" + esc(plan.path) +
+          "</code>。继续会以「修改已有文章」开 PR，合并后覆盖线上版本。</p>" +
+          pubBtns(["overwrite", "作为修改提交", true], ["rename", "改文件名"]));
+        return { ok: false, reason: "file-exists" };
+      }
+      var branch = opts.branch || (ours && d.pub.branch) || plan.branch;
+      var ref = await ghMaybe("GET", repoApi("/git/ref/heads/" + encPath(branch)));
+      if (ref && opts.mode === "new") { branch = await freeBranch(plan.branch); ref = null; }
+      else if (ref && opts.mode !== "update") {
+        pubPending = Object.assign({}, opts, { branch: branch }); renderSteps(1, "wait");
+        var mine = d.pub && d.pub.branch === branch;
+        pubBox("warn", "分支已存在", "<p><code>" + esc(branch) + "</code> 已经在仓库里" +
+          (mine ? "（这篇稿件上次开的 PR #" + esc(d.pub.number) + " 用的就是它）" : "") +
+          "。更新它会在这个分支上追加一个提交，已开的 PR 会自动带上改动；也可以另开一个新分支和新 PR。</p>" +
+          pubBtns(["update", "更新这个分支", true], ["new", "新开一个分支"]));
+        return { ok: false, reason: "branch-exists", branch: branch };
+      }
+      if (!ref) {
+        var base = await ghReq("GET", repoApi("/git/ref/heads/" + GH.base));
+        await ghReq("POST", repoApi("/git/refs"), { ref: "refs/heads/" + branch, sha: base.object.sha });
+      }
+      k = 2; renderSteps(2, "run");
+      var content = b64utf8(plan.file);
+      var existing = await ghMaybe("GET", repoApi("/contents/" + encPath(plan.path) + "?ref=" + encodeURIComponent(branch)));
+      if (existing && existing.type && existing.type !== "file") throw new GhError(422, plan.path + " 在仓库里不是文件");
+      var same = existing && String(existing.content || "").replace(/\s+/g, "") === content;
+      if (!same) {
+        await ghReq("PUT", repoApi("/contents/" + encPath(plan.path)), {
+          message: "post: " + (existing ? "更新" : "新增") + "「" + plan.title + "」",
+          content: content, branch: branch, sha: existing ? existing.sha : undefined
+        });
+      }
+      k = 3; renderSteps(3, "run");
+      var update = !!onBase;
+      var open = await ghReq("GET", repoApi("/pulls?state=open&base=" + GH.base + "&head=" + encodeURIComponent(GH.owner + ":" + branch)));
+      var pr = open && open[0], reused = !!pr;
+      if (!pr) pr = await ghReq("POST", repoApi("/pulls"), { title: prTitle(plan, update), head: branch, base: GH.base, body: prBody(plan, d, update) });
+      renderSteps(STEPS.length);
+      tokOk = true;
+      d.pub = { branch: branch, path: plan.path, url: pr.html_url, number: pr.number, at: Date.now() };
+      persist(d);
+      pubBox("ok", "PR #" + esc(pr.number) + (reused ? " 已更新" : " 已打开"),
+        "<p>" + (same ? "文件内容没有变化。" : "") + "<code>" + esc(branch) + "</code> → <code>" + GH.base +
+        "</code>。在 GitHub 上审阅后手动合并，合并后自动部署。</p>" +
+        plan.warns.map(function (x) { return '<p class="note">' + x + "</p>"; }).join("") +
+        '<a class="url" id="pub-url" href="' + esc(pr.html_url) + '" target="_blank" rel="noopener noreferrer">' + esc(pr.html_url) + "</a>" +
+        '<div class="two"><button class="pbtn block" type="button" data-pub="copy">复制链接</button>' +
+        '<a class="pbtn primary block" href="' + esc(pr.html_url) + '" target="_blank" rel="noopener noreferrer">打开 PR</a></div>');
+      toast(reused ? "已更新 PR #" + pr.number : "已开 PR #" + pr.number);
+      return { ok: true, url: pr.html_url, number: pr.number, branch: branch, reused: reused };
+    } catch (e) {
+      if (!(e instanceof GhError)) e = new GhError(-2, String(e && e.message || e));
+      if (k === 1 && e.status === 422 && /already exists/i.test(e.message)) {
+        pubPending = Object.assign({}, opts, { mode: "new" });
+      }
+      renderSteps(k, "err");
+      if (isTokenProblem(e) && k === 0) tokBad = ghMsg(e);
+      else if (e.status === 401 || (e.status === 403 && !/rate limit/i.test(e.message))) tokBad = ghMsg(e);
+      pubBox("err", "发布失败", "<p>" + esc(ghMsg(e)) + "</p>" +
+        (e.status === 0 ? "<p>现在的稿件仍保存在本机，可以先「下载 .md」备份。</p>" : "") +
+        pubBtns(tokBad ? ["token", "设置令牌", true] : ["retry", "重试", true], tokBad ? null : ["token", "检查令牌"]));
+      return { ok: false, reason: "error", status: e.status };
+    } finally {
+      pubBusy = false;
+      renderPublish();
+    }
+  }
+  $("#btn-publish").addEventListener("click", function () { publish(); });
+  $("#pub-out").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-pub]");
+    if (!b) return;
+    var act = b.dataset.pub, pend = pubPending || {};
+    if (act === "copy") copyText($("#pub-url").href, "已复制 PR 链接");
+    else if (act === "overwrite") publish(Object.assign({}, pend, { overwrite: true }));
+    else if (act === "update") publish(Object.assign({}, pend, { mode: "update" }));
+    else if (act === "new") publish(Object.assign({}, pend, { mode: "new", branch: null }));
+    else if (act === "retry") publish(pend);
+    else if (act === "token") showSheet("token");
+    else if (act === "rename" || act === "meta") {
+      hideSheet(false); setView("meta");
+      if (act === "rename") setTimeout(function () { $("#f-slug").focus(); }, 80);
+    }
+  });
+
+  function tokMsg(kind, html) { $("#tok-msg").innerHTML = '<p class="note ' + kind + '">' + html + "</p>"; }
+  function renderToken() {
+    var t = tok.get(), w = tok.where();
+    $("#tok-state").innerHTML = t ? "<b>" + esc(maskToken(t)) + "</b>" : "未设置";
+    $("#tok-where").textContent = !t ? "没有令牌时「发布」保持锁定"
+      : (w === "local" ? "保存在本设备（localStorage）" : "仅本次会话（sessionStorage）") +
+        (tokBad ? " · 不可用" : tokOk ? " · 已验证" : " · 未验证");
+    $("#tok-remember").checked = w === "local";
+    $("#tok-in").value = "";
+  }
+  $("#btn-tok-save").addEventListener("click", async function () {
+    var v = $("#tok-in").value.trim(), old = tok.get();
+    if (!v && !old) { tokMsg("bad", "先把令牌粘贴到输入框。"); return; }
+    if (v && (/\s/.test(v) || v.length < 20)) { tokMsg("bad", "这看起来不是完整的令牌，请重新复制。"); return; }
+    try { tok.set(v || old, $("#tok-remember").checked); } catch (e) { tokMsg("bad", "浏览器禁止本地存储，无法保存令牌。"); return; }
+    tokBad = ""; tokOk = false;
+    renderToken(); renderPublish();
+    tokMsg("", "验证中…");
+    var fine = /^github_pat_/.test(v || old);
+    try {
+      var repo = await ghReq("GET", repoApi(""));
+      if (repo && repo.permissions && repo.permissions.push === false) {
+        var np = new GhError(403, "no push"); np.code = "nopush"; throw np;
+      }
+      tokOk = true;
+      tokMsg("ok", "已保存并验证：可以访问 Meredith2328/pilog。Pull requests 权限会在第一次发布时确认。" +
+        (fine ? "" : "<br>这不是 fine-grained token，建议换成只授权这个仓库的 fine-grained token。"));
+    } catch (e) {
+      if (e.status === 0) tokMsg("", "已保存，但现在无法联网验证，发布时会再检查。");
+      else if (isTokenProblem(e)) { tokBad = ghMsg(e); tokMsg("bad", esc(tokBad) + " 发布保持锁定。"); }
+      else tokMsg("bad", "已保存，但验证失败：" + esc(ghMsg(e)));
+    }
+    renderToken(); renderPublish();
+  });
+  $("#btn-tok-clear").addEventListener("click", function () {
+    tok.clear(); tokBad = ""; tokOk = false;
+    renderToken(); renderPublish();
+    tokMsg("ok", "已从这台设备清除令牌。如怀疑泄露，请同时到 GitHub 上 Revoke。");
+  });
+  $("#tok-in").addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); $("#btn-tok-save").click(); }
+  });
+
   /* ================= drafts ================= */
   function openDraft(d, quiet) {
     if (cur && cur.id !== d.id) {
@@ -1786,6 +2204,8 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
     if (index.ids.indexOf(d.id) < 0) index.ids.push(d.id);
     try { writeIndex(); } catch (e) { /* surfaced on next save */ }
     fillFields();
+    $("#pub-out").innerHTML = "";
+    renderSteps(-1);
     var c = Math.min(d.caret || 0, body.value.length);
     body.setSelectionRange(c, c);
     body.scrollTop = 0;
@@ -1814,7 +2234,8 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
         '<button class="drow-main" type="button" data-act="open"><span class="drow-t' + (t ? "" : " is-empty") + '">' + esc(t || "无标题稿件") + "</span>" +
         '<span class="drow-m"><span>posts/' + esc(catOf(d)) + "</span><span>" + proseCount(d.body) + " 字</span><span>" + relTime(d.updated) + "</span>" +
         (active ? '<span class="badge ink">编辑中</span>' : "") + (d.draft ? '<span class="badge">DRAFT</span>' : "") +
-        (d.exported && d.exported >= d.updated ? '<span class="badge">已导出</span>' : "") + "</span></button>" +
+        (d.exported && d.exported >= d.updated ? '<span class="badge">已导出</span>' : "") +
+        (d.pub && d.pub.number ? '<span class="badge">PR #' + esc(d.pub.number) + "</span>" : "") + "</span></button>" +
         '<button class="drow-del" type="button" data-act="del" aria-label="删除">删除</button></div>';
     }).join("");
   }
@@ -1932,7 +2353,11 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
     }).catch(function () { /* offline or not the pilog dev server */ });
   }
 
-  window.__pilogWrite = { render: renderMarkdown, build: function () { return buildFile(cur); }, parse: parseFile, current: function () { return cur; } };
+  window.__pilogWrite = {
+    render: renderMarkdown, build: function () { return buildFile(cur); }, parse: parseFile, current: function () { return cur; },
+    plan: function () { var p = publishPlan(cur); p.prTitle = prTitle(p, false); p.prBody = prBody(p, cur, false); return p; },
+    publish: publish
+  };
 })();
 </script>
 </body>
