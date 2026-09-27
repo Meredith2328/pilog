@@ -20,7 +20,7 @@
 - **Obsidian 语法**：`![[图片.png]]`、`[[文章]]`、`![[图片.png|300]]` 均原生支持，也支持 Markdown 原生相对/绝对路径图片；
 - **图片工作台**：本地拖入图片即导入，支持缩放、裁剪、旋转、替换、删除，并一键复制引用片段；
 - **所见即所得工作台**：本地 `/manager` 提供配置表单 + 博客首页实时预览编辑——直接点选/拖拽更换头图与背景长图、增删改导航栏、拖拽卡片排序（跨入置顶区即置顶）、双击卡片编辑标题/预览/标签/高亮/全文、拖图到卡片设置预览图；所有修改即时写入本地文件，支持撤销/重做，并实时显示每次修改影响的文件；
-- **手机写作**：`tools/write.html` 是单文件、可离线的 Android 写作页（serve 时位于 `/write`，局域网手机也能打开）：编辑 / 预览 / front matter 表单、本机多稿件自动保存、导出 `.md`；
+- **手机写作**：`tools/write.html` 是单文件、可离线的 Android 写作页（serve 时位于 `/write`，局域网手机也能打开）：编辑 / 预览 / front matter 表单、本机多稿件自动保存、导出 `.md`；仓库主人还可以用**只存在自己手机上**的 fine-grained token 直接「发布（开 PR）」到 `pilog`（见[手机发布](#手机发布开-pr)）；
 - **导航自定义**：`blogs/nav.md` 决定导航栏内容（支持多级下拉）；
 - **giscus 评论 + RSS**：`config.json` 填好仓库即可开启评论，`rss.xml` 自动生成；
 - **社交图标**：GitHub / X / Bilibili / 微博 / 邮箱，配置后显示在页头；
@@ -106,6 +106,25 @@ python pilog.py serve --watch                # 本地预览 + 自动重建
 6. 运行 `python pilog.py build`（或开着 `python pilog.py serve --watch` 自动重建），检查效果后提交。
 
    另外几个可选 front matter 字段：`pin: true` 让文章在卡片视图置顶；`highlight: true` 给文章加黄色描边（三种视图都显示）；`chapters_per_page: N` 让超长文章按标题切分成章节、在同一链接下分页显示（每页 N 章）。
+
+## 手机发布（开 PR）
+
+写作页「导出 → 发布（开 PR）」会在浏览器里直接调用 GitHub API：从最新的 `pilog` 新建 `write/<日期>-<文件名>` 分支 → 把拼好 front matter 的 Markdown 写到表单显示的 `blogs/posts/…/*.md` → 开 PR 到 `pilog`，并显示 PR 链接（可复制 / 打开）。**永远不直接推送 `pilog`，也不自动合并**；在 GitHub 上审阅后手动合并，合并即触发自动部署。同一篇稿件再次发布时，会询问「更新这个分支」（追加提交，已开的 PR 自动带上改动）还是「新开一个分支」；`pilog` 上已有同名文件时会先确认是否作为「修改已有文章」提交。
+
+**仓库主人一次性设置**（令牌只存在这台手机上）：
+
+1. GitHub → Settings → Developer settings → Fine-grained tokens → [Generate new token](https://github.com/settings/personal-access-tokens/new)；
+2. Resource owner 选 `Meredith2328`，Repository access 选 **Only select repositories** → `Meredith2328/pilog`；
+3. Repository permissions 只开 **Contents: Read and write** 与 **Pull requests: Read and write**（Metadata: Read 自动带上），其余保持 No access；设置到期时间；
+4. 手机打开写作页 →「稿件 → GitHub 令牌」（或导出面板里的「令牌」）粘贴并「保存并验证」。默认只存 `sessionStorage`（关闭标签页即清除）；打开「在这台设备上记住」才存 `localStorage`。随时可「清除令牌」，丢手机时到 GitHub 上 Revoke 即时失效。
+
+**安全边界**：
+
+- 页面没有后端，也没有任何共享的 GitHub App、OAuth 密钥、PAT 或 Actions secret 可供它使用；令牌不会写进 HTML/JS、稿件或导出文件，只随请求直接发往 `api.github.com`（页面的 CSP 把 `connect-src` 限定为本站与 `api.github.com`，请求一律 `credentials: "omit"`、`no-referrer`）；
+- **访客无法发布**：没有令牌时「发布」按钮锁定，但写作、预览、导出照常可用。发布只能用对 `Meredith2328/pilog` 有写权限的账号的令牌；陌生人的令牌会被 GitHub 拒绝（401/403/404，或仓库返回无 push 权限），页面随即锁定发布；
+- 页面不会 fork 仓库、不邀请协作者、不修改任何仓库设置或分支保护，也不会给陌生人开放写权限；
+- 令牌无效、权限不足、仓库未授权、速率限制、离线等情况都会给出中文提示，稿件始终保留在本机；
+- 令牌存在浏览器里，与同源页面共享存储：请只在自己的设备上保存，不要在共用浏览器里勾选「记住」。
 
 ## 文件管理（manager 的“文件管理”页）
 
