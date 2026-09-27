@@ -20,7 +20,7 @@
 - **Obsidian 语法**：`![[图片.png]]`、`[[文章]]`、`![[图片.png|300]]` 均原生支持，也支持 Markdown 原生相对/绝对路径图片；
 - **图片工作台**：本地拖入图片即导入，支持缩放、裁剪、旋转、替换、删除，并一键复制引用片段；
 - **所见即所得工作台**：本地 `/manager` 提供配置表单 + 博客首页实时预览编辑——直接点选/拖拽更换头图与背景长图、增删改导航栏、拖拽卡片排序（跨入置顶区即置顶）、双击卡片编辑标题/预览/标签/高亮/全文、拖图到卡片设置预览图；所有修改即时写入本地文件，支持撤销/重做，并实时显示每次修改影响的文件；
-- **手机写作**：`tools/write.html` 是单文件、可离线的 Android 写作页（serve 时位于 `/write`，局域网手机也能打开）：编辑 / 预览 / front matter 表单、本机多稿件自动保存、导出 `.md`；仓库主人还可以用**只存在自己手机上**的 fine-grained token 直接「发布（开 PR）」到 `pilog`（见[手机发布](#手机发布开-pr)）；
+- **手机写作**：`tools/write.html` 是单文件、可离线的 Android 写作页（线上位于 <https://meredith2328.github.io/write/>，serve 时位于 `/write`，局域网手机也能打开；文章页的「✎ 编辑」可从 `pilog` 载入原文原地修改）：编辑 / 预览 / front matter 表单、本机多稿件自动保存、导出 `.md`；仓库主人还可以用**只存在自己手机上**的 fine-grained token 直接「发布（开 PR）」到 `pilog`（见[手机发布](#手机发布开-pr)）；
 - **导航自定义**：`blogs/nav.md` 决定导航栏内容（支持多级下拉）；
 - **giscus 评论 + RSS**：`config.json` 填好仓库即可开启评论，`rss.xml` 自动生成；
 - **社交图标**：GitHub / X / Bilibili / 微博 / 邮箱，配置后显示在页头；
@@ -109,6 +109,8 @@ python pilog.py serve --watch                # 本地预览 + 自动重建
 
 ## 手机发布（开 PR）
 
+写作页随站点一起部署：构建时 `build.py` 把 `tools/write.html` 原样复制到 `docs/write/index.html`（和 `docs/tools/write.html`），所以合并部署后在 **<https://meredith2328.github.io/write/>** 就能打开，博客导航栏也有「写作」入口。页面不进 sitemap，带 `noindex`。
+
 写作页「导出 → 发布（开 PR）」会在浏览器里直接调用 GitHub API：从最新的 `pilog` 新建 `write/<日期>-<文件名>` 分支 → 把拼好 front matter 的 Markdown 写到表单显示的 `blogs/posts/…/*.md` → 开 PR 到 `pilog`，并显示 PR 链接（可复制 / 打开）。**永远不直接推送 `pilog`，也不自动合并**；在 GitHub 上审阅后手动合并，合并即触发自动部署。同一篇稿件再次发布时，会询问「更新这个分支」（追加提交，已开的 PR 自动带上改动）还是「新开一个分支」；`pilog` 上已有同名文件时会先确认是否作为「修改已有文章」提交。
 
 **仓库主人一次性设置**（令牌只存在这台手机上）：
@@ -118,13 +120,25 @@ python pilog.py serve --watch                # 本地预览 + 自动重建
 3. Repository permissions 只开 **Contents: Read and write** 与 **Pull requests: Read and write**（Metadata: Read 自动带上），其余保持 No access；设置到期时间；
 4. 手机打开写作页 →「稿件 → GitHub 令牌」（或导出面板里的「令牌」）粘贴并「保存并验证」。默认只存 `sessionStorage`（关闭标签页即清除）；打开「在这台设备上记住」才存 `localStorage`。随时可「清除令牌」，丢手机时到 GitHub 上 Revoke 即时失效。
 
+**原地修改已发布的文章**：
+
+- 每篇文章页的元信息行有「✎ 编辑」，链接到 `/write/index.html?path=blogs/posts/…/*.md`；也可以在写作页「稿件 → 编辑线上文章」输入路径或直接粘贴文章网址（`posts/…/x.html` 会换成对应的 `.md`）。只接受 `blogs/posts/` 下的 `.md`；
+- 有令牌时用 Contents API 读取 `pilog` 分支上的当前版本（`GET /repos/Meredith2328/pilog/contents/<path>?ref=pilog`）放进本机稿件；没有令牌会先请你设置，保存后自动继续载入；
+- 没改信息字段时原样保留原文的 front matter 与空白，PR 的 diff 只有你改动的正文；
+- 发布走同样的流程：新建 `write/<载入日期>-edit-<文件名>` 分支，带着载入时的文件 sha 提交修改，开「更新文章：…」PR 到 `pilog`。如果载入后 `pilog` 上这篇又被改过（比如别的 PR 已合并），发布前会提示，可以选「载入线上最新」或确认用自己的版本；
+- 再次打开同一篇时：线上没变就继续本机稿件；本机和线上都改过时会询问，「载入线上最新」会另存一份，不会覆盖本机改动。
+
+**合并是唯一的发布闸门**：写作页只会建 `write/*` 分支和开 PR，不会调用 merge 接口、不会开启自动合并、不会写 `pilog`。Daniel 在 GitHub 上审阅 diff 后手动合并，合并到 `pilog` 才会触发 `deploy.yml` 更新线上站点；不合并的 PR 关掉即可，线上不受影响。
+
 **安全边界**：
 
 - 页面没有后端，也没有任何共享的 GitHub App、OAuth 密钥、PAT 或 Actions secret 可供它使用；令牌不会写进 HTML/JS、稿件或导出文件，只随请求直接发往 `api.github.com`（页面的 CSP 把 `connect-src` 限定为本站与 `api.github.com`，请求一律 `credentials: "omit"`、`no-referrer`）；
 - **访客无法发布**：没有令牌时「发布」按钮锁定，但写作、预览、导出照常可用。发布只能用对 `Meredith2328/pilog` 有写权限的账号的令牌；陌生人的令牌会被 GitHub 拒绝（401/403/404，或仓库返回无 push 权限），页面随即锁定发布；
 - 页面不会 fork 仓库、不邀请协作者、不修改任何仓库设置或分支保护，也不会给陌生人开放写权限；
 - 令牌无效、权限不足、仓库未授权、速率限制、离线等情况都会给出中文提示，稿件始终保留在本机；
-- 令牌存在浏览器里，与同源页面共享存储：请只在自己的设备上保存，不要在共用浏览器里勾选「记住」。
+- 令牌存在浏览器里，与同源页面共享存储：请只在自己的设备上保存，不要在共用浏览器里勾选「记住」；
+- 线上写作页与博客同在 `meredith2328.github.io` 源下，而博客页面会加载 Google Analytics、giscus 等第三方脚本，这些脚本理论上能读到同源的 `localStorage`。所以默认只存 `sessionStorage`；若勾选「记住」，请给令牌设较短的到期时间，并保持只授权 `Meredith2328/pilog` 的两项权限。注意 Contents 写权限本身允许通过 API 直接写任何分支：写作页从不这样做，但令牌一旦泄露，别人可以。想让「只能走 PR」成为硬约束，可以给 `pilog` 开分支保护（Settings → Branches / Rulesets：Require a pull request before merging）；
+- 这个流程不需要、也不使用任何 Actions secret；`deploy.yml` 的 `PILOG_TOKEN` 只用于部署，与写作页无关。
 
 ## 文件管理（manager 的“文件管理”页）
 
