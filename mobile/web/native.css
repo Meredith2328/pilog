@@ -1,0 +1,29 @@
+/* pilog write — Android-only additions; reuses write.html's tokens and classes. */
+.vgate {
+  position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center;
+  padding: calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 16px);
+  background: var(--panel); overflow-y: auto;
+}
+.vgate-box {
+  width: 100%; max-width: 420px; padding: 20px; background: var(--paper);
+  border: 2px solid var(--ink); box-shadow: 6px 6px 0 var(--shadow);
+}
+.vgate-h {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 18px;
+  font: 700 13px/1 var(--mono); letter-spacing: .14em;
+}
+.vgate-h small { margin-left: auto; font: 11px/1 var(--mono); letter-spacing: 0; color: var(--mute); }
+.vgate-lock, .vlock::before {
+  content: ""; display: inline-block; width: 12px; height: 14px; flex: none;
+  background: linear-gradient(var(--ink), var(--ink)) 0 6px / 12px 8px no-repeat,
+    linear-gradient(var(--ink), var(--ink)) 2px 0 / 2px 6px no-repeat,
+    linear-gradient(var(--ink), var(--ink)) 8px 0 / 2px 6px no-repeat,
+    linear-gradient(var(--ink), var(--ink)) 2px 0 / 8px 2px no-repeat;
+}
+.vgate .note { margin-top: 16px; }
+.vg-msg { min-height: 20px; margin: -4px 0 12px; font: 12px/1.4 var(--mono); color: var(--mute); }
+.vg-msg.is-bad { color: var(--danger); }
+.vlock::before { background-color: transparent; }
+.vlock:active::before { filter: invert(1); }
+html.is-vault .brand-t { background: var(--accent); }
+.app-help ol { margin-bottom: 8px; }
