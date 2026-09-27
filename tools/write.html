@@ -8,6 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src * data: blob:; font-src 'self' data:; connect-src 'self' https://api.github.com; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
 <title>pilog · 手机写作</title>
 <link rel="stylesheet" href="/css/fonts.css">
 <script>
@@ -540,10 +541,10 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
 <body>
 <div class="app" id="app" data-view="write">
   <header class="bar">
-    <span class="brand" aria-label="pilog 手机写作">
+    <a class="brand" id="brand" aria-label="pilog 手机写作">
       <span class="pix" data-pix="dino"></span>
       <span class="brand-t">PILOG·WRITE</span>
-    </span>
+    </a>
     <span class="save" id="save" role="status" aria-live="polite"><i></i><span id="save-t">就绪</span><span class="save-c" id="save-c"></span></span>
     <button class="sq" id="btn-help" type="button" aria-label="使用说明">?</button>
     <button class="pbtn" id="btn-drafts" type="button" aria-label="稿件列表">稿件 <span class="n" id="draft-n">1</span></button>
@@ -774,7 +775,10 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
 <section class="sheet" id="sheet-drafts" role="dialog" aria-modal="true" aria-labelledby="sh-drafts-t">
   <div class="sheet-h"><span id="sh-drafts-t">稿件</span><small id="drafts-sub"></small><button class="x" type="button" data-close aria-label="关闭">×</button></div>
   <div class="sheet-b">
-    <button class="pbtn primary block" type="button" id="btn-new">＋ 新建稿件</button>
+    <div class="two">
+      <button class="pbtn primary block" type="button" id="btn-new">＋ 新建稿件</button>
+      <button class="pbtn block" type="button" data-open="remote">✎ 编辑线上文章</button>
+    </div>
     <div class="sub">本机保存的稿件</div>
     <div id="draft-list"></div>
     <div class="sub">更多</div>
@@ -789,10 +793,27 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
   </div>
 </section>
 
+<section class="sheet" id="sheet-remote" role="dialog" aria-modal="true" aria-labelledby="sh-remote-t">
+  <div class="sheet-h"><span id="sh-remote-t">编辑线上文章</span><small>读 pilog 分支</small><button class="x" type="button" data-close aria-label="关闭">×</button></div>
+  <div class="sheet-b">
+    <div class="fld">
+      <label class="lbl" for="rm-in">文章路径 <small>blogs/posts/…/*.md 或文章网址</small></label>
+      <div class="row">
+        <input class="inp mono" id="rm-in" type="text" placeholder="blogs/posts/toy/10pi.md" autocomplete="off" autocapitalize="none" spellcheck="false" enterkeyhint="go">
+        <button class="pbtn primary" type="button" id="btn-rm-load">载入</button>
+      </div>
+    </div>
+    <div id="rm-out"></div>
+    <p class="hint">从 <code>pilog</code> 分支读取这篇的最新版本，放进本机稿件原地修改。改完在「导出 → 发布（开 PR）」提交，PR 合并前线上不会变。也可以在博客文章页点「✎ 编辑」直接跳过来。</p>
+  </div>
+</section>
+
 <section class="sheet" id="sheet-help" role="dialog" aria-modal="true" aria-labelledby="sh-help-t">
   <div class="sheet-h"><span id="sh-help-t">在 Android 上使用</span><button class="x" type="button" data-close aria-label="关闭">×</button></div>
   <div class="sheet-b help">
     <ol>
+      <li><b>在线打开</b>
+        <p>博客导航栏的「写作」，或直接访问 <code>https://meredith2328.github.io/write/</code>。页面是纯静态的，写作、预览、草稿照样离线可用。</p></li>
       <li><b>本地打开（离线可用）</b>
         <p>把仓库里的 <code>tools/write.html</code> 存到手机，在「文件」里点开并选择 Chrome。写作、预览、草稿都不需要网络。</p></li>
       <li><b>或者走电脑的本地服务</b>
@@ -805,6 +826,8 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
         <p>「导出」下载 <code>.md</code>，放到 <code>blogs/posts/分类/</code> 后提交到 <code>pilog</code> 分支即可自动部署。</p></li>
       <li><b>或者直接开 PR（仅仓库主人）</b>
         <p>在「稿件 → GitHub 令牌」粘贴只授权 <code>Meredith2328/pilog</code> 的 fine-grained token，之后「导出 → 发布（开 PR）」会新建 <code>write/日期-文件名</code> 分支并开 PR 到 <code>pilog</code>，在 GitHub 上审阅后手动合并。</p></li>
+      <li><b>修改已发布的文章</b>
+        <p>文章页点「✎ 编辑」，或「稿件 → 编辑线上文章」输入路径。有令牌时会从 <code>pilog</code> 载入原文；改完发布会开一个「更新文章」PR，同样需要手动合并。</p></li>
     </ol>
     <p class="hint" style="margin-top:0">预览尽量贴近博客渲染，但图片只显示占位（手机上读不到仓库里的 <code>assets/</code>），公式显示为源码。</p>
   </div>
@@ -887,7 +910,7 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
       title: "", body: "", category: prefs.cat || "toy", slug: "",
       date: today(), time: nowHM(), sec: "", tags: [], preview: "", draft: false,
       previewImage: "", featureMode: "off", featurePath: "",
-      pin: false, highlight: false, hidden: false, order: "", chapters: "", extra: "", caret: 0, pub: null
+      pin: false, highlight: false, hidden: false, order: "", chapters: "", extra: "", caret: 0, pub: null, src: null
     };
   }
   function isBlank(d) { return !d.title.trim() && !d.body.trim() && !d.tags.length && !d.preview.trim(); }
@@ -967,7 +990,9 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
   }
   function slugOf(d) { return cleanSlug(d.slug) || autoSlug(d); }
   function catOf(d) { return cleanCat(d.category) || "toy"; }
-  function pathOf(d) { return "blogs/posts/" + catOf(d) + "/" + slugOf(d) + ".md"; }
+  /* a post loaded from pilog keeps its exact repo path until the user moves it */
+  function srcOf(d) { return d.src && catOf(d) === d.src.cat && slugOf(d) === d.src.slug ? d.src : null; }
+  function pathOf(d) { var s = srcOf(d); return s ? s.path : "blogs/posts/" + catOf(d) + "/" + slugOf(d) + ".md"; }
 
   function yq(v) {
     var s = String(v);
@@ -1000,9 +1025,28 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
     if (extra) L = L.concat(extra.split("\n"));
     return L;
   }
+  /* Loaded posts reuse their original front matter text and whitespace while
+     the fields are untouched, so an edit PR's diff shows only what changed. */
   function buildFile(d) {
     var b = d.body.replace(/\r\n?/g, "\n").replace(/\s+$/, "");
-    return "---\n" + fmLines(d).join("\n") + "\n---\n\n" + (b ? b + "\n" : "");
+    var s = d.src, raw = !!s && s.fm === fmLines(d).join("\n");
+    var head = raw ? s.head : "---\n" + fmLines(d).join("\n") + "\n---\n";
+    var sep = s && (raw || s.sep) ? s.sep : "\n";
+    return head + sep + (b ? b + (s ? s.tail : "\n") : "");
+  }
+  function fromRemote(text, path, sha) {
+    text = text.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n");
+    var name = path.split("/").pop();
+    var d = parseFile(text, name);
+    d.category = path.slice("blogs/posts/".length, -name.length - 1);
+    var m = text.match(/^---\n([\s\S]*?)\n---[ \t]*(?:\n|$)/);
+    var head = m ? m[0] : "";
+    d.src = {
+      path: path, sha: sha, head: head, sep: text.slice(head.length).match(/^\n*/)[0], tail: d.body.match(/\s*$/)[0],
+      cat: catOf(d), slug: slugOf(d), fm: fmLines(d).join("\n"), at: Date.now(), day: today()
+    };
+    d.updated = d.src.at;
+    return d;
   }
 
   function yScalar(v) {
@@ -1505,6 +1549,7 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
   function updateDerived() {
     var slug = slugOf(cur), cat = catOf(cur);
     $("#doc-path").innerHTML = '<span class="p">posts/' + esc(cat) + "/<b>" + esc(slug) + "</b>.md</span>" +
+      (srcOf(cur) ? '<span class="badge ink" title="从 pilog 载入，发布为修改">线上</span>' : "") +
       (cur.draft ? '<span class="badge">DRAFT</span>' : "") + '<span class="go">信息 ›</span>';
     $("#slug-hint").innerHTML = cur.slug ? "网址：<code>posts/" + esc(cat) + "/" + esc(slug) + ".html</code>"
       : "未填写时使用 <code>" + esc(slug) + "</code>。仅英文、数字和连字符最稳妥。";
@@ -1764,6 +1809,7 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
     saveNow();
     if (name === "export") renderExport();
     if (name === "token") { renderToken(); $("#tok-msg").innerHTML = ""; }
+    if (name === "remote") { $("#rm-out").innerHTML = ""; if (!$("#rm-in").value && cur.src) $("#rm-in").value = cur.src.path; }
     if (name === "drafts") renderDrafts();
     if (name === "drafts") syncThemeBtn();
     el.classList.add("is-open");
@@ -1804,7 +1850,8 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
   /* ================= export ================= */
   function renderExport() {
     var d = cur, slug = slugOf(d), cat = catOf(d), text = buildFile(d);
-    $("#ex-path").innerHTML = "blogs/posts/" + esc(cat) + "/<b>" + esc(slug) + ".md</b>";
+    var full = pathOf(d), cut = full.lastIndexOf("/") + 1;
+    $("#ex-path").innerHTML = esc(full.slice(0, cut)) + "<b>" + esc(full.slice(cut)) + "</b>";
     var bytes = new Blob([text]).size;
     $("#ex-stat").innerHTML = "<span>" + proseCount(d.body) + " 字</span><span>" +
       (bytes > 2048 ? (bytes / 1024).toFixed(1) + " KB" : bytes + " B") + "</span><span>" +
@@ -1980,8 +2027,12 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
     if (d.hidden) warns.push("勾选了隐藏：合并后不会生成页面。");
     if (d.pub && d.pub.path && d.pub.path !== path)
       warns.push("上次 PR 写入的是 <code>" + esc(d.pub.path) + "</code>，改位置后旧文件会留在那个分支，合并前请在 GitHub 上删掉。");
+    var src = srcOf(d);
+    if (d.src && !src)
+      warns.push("这篇是从 <code>" + esc(d.src.path) + "</code> 载入的。改了分类或文件名后会新建文件，原文件不会被删除。");
     return {
-      path: path, branch: "write/" + (d.date || today()) + "-" + branchSlug(d), file: file,
+      path: path, file: file, src: !!src,
+      branch: "write/" + (src ? src.day + "-edit-" : (d.date || today()) + "-") + branchSlug(d),
       title: d.title.trim() || firstHeading(d.body) || slugOf(d), errors: errors, warns: warns
     };
   }
@@ -1995,6 +2046,7 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
       "- 标签：" + (d.tags.length ? d.tags.map(function (t) { return "`" + t.replace(/`/g, "'") + "`"; }).join(" ") : "无"),
       "- 字数：" + proseCount(d.body)
     ];
+    if (plan.src) L.push("- 来源：从 `" + GH.base + "` 载入原文后在写作页修改（载入时文件 blob `" + String(d.src.sha).slice(0, 7) + "`）");
     if (d.draft) L.push("", "> [!WARNING]", "> `draft: true`：合并后这篇也不会进入构建。");
     if (d.hidden) L.push("", "> [!NOTE]", "> `hidden: true`：合并后不会生成页面。");
     L.push("", "<details><summary>Front matter</summary>", "", "```yaml", "---", fmLines(d).join("\n"), "---", "```", "", "</details>", "");
@@ -2064,7 +2116,14 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
       k = 1; renderSteps(1, "run");
       var onBase = await ghMaybe("GET", repoApi("/contents/" + encPath(plan.path) + "?ref=" + GH.base));
       var ours = d.pub && d.pub.path === plan.path;
-      if (onBase && !opts.overwrite && !ours) {
+      if (plan.src && onBase && onBase.sha !== d.src.sha && !opts.overwrite) {
+        pubPending = opts; renderSteps(1, "wait");
+        pubBox("warn", "线上版本已变", "<p>你载入这篇之后，<code>" + GH.base + "</code> 上的 <code>" + esc(plan.path) +
+          "</code> 又被改过（可能是别的 PR 已合并）。继续提交会让这个 PR 用你的版本替换那些改动，合并前请在 GitHub 上核对 diff。</p>" +
+          pubBtns(["overwrite", "仍然提交我的版本", true], ["reload", "载入线上最新"]));
+        return { ok: false, reason: "stale" };
+      }
+      if (onBase && !opts.overwrite && !ours && !plan.src) {
         pubPending = opts; renderSteps(1, "wait");
         pubBox("warn", "文件已存在", "<p><code>" + GH.base + "</code> 上已经有 <code>" + esc(plan.path) +
           "</code>。继续会以「修改已有文章」开 PR，合并后覆盖线上版本。</p>" +
@@ -2144,6 +2203,7 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
     else if (act === "new") publish(Object.assign({}, pend, { mode: "new", branch: null }));
     else if (act === "retry") publish(pend);
     else if (act === "token") showSheet("token");
+    else if (act === "reload") loadRemote(cur.src.path, { fresh: true });
     else if (act === "rename" || act === "meta") {
       hideSheet(false); setView("meta");
       if (act === "rename") setTimeout(function () { $("#f-slug").focus(); }, 80);
@@ -2183,6 +2243,7 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
       else tokMsg("bad", "已保存，但验证失败：" + esc(ghMsg(e)));
     }
     renderToken(); renderPublish();
+    if (tokOk && remote.pending) loadRemote(remote.path);
   });
   $("#btn-tok-clear").addEventListener("click", function () {
     tok.clear(); tokBad = ""; tokOk = false;
@@ -2191,6 +2252,122 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
   });
   $("#tok-in").addEventListener("keydown", function (e) {
     if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); $("#btn-tok-save").click(); }
+  });
+
+  /* ================= live edit: load a post from pilog =================
+     ?path=blogs/posts/….md (or the post's site URL) pulls the current file
+     from the pilog branch with the same device token; publishing it goes
+     through the usual write/ branch + PR, never straight to pilog. */
+  var remote = { path: "", pending: false, busy: false, cache: null };
+  function normPath(raw) {
+    var s = String(raw || "").trim();
+    try { s = decodeURIComponent(s); } catch (e) { /* keep as typed */ }
+    s = s.replace(/^[a-z]+:\/\/[^/]+/i, "").replace(/[?#].*$/, "").replace(/\\/g, "/").replace(/^\/+/, "");
+    if (/^posts\//.test(s)) s = "blogs/" + s;
+    s = s.replace(/\.html$/, ".md");
+    if (!/^blogs\/posts\/(?:[^/]+\/)*[^/]+\.md$/.test(s)) return "";
+    if (s.split("/").some(function (p) { return !p || p[0] === "."; })) return "";
+    return s;
+  }
+  function unb64utf8(s) {
+    var bin = atob(String(s).replace(/\s+/g, "")), bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
+  function rmBox(kind, head, html) {
+    $("#rm-out").innerHTML = '<div class="pub-box is-' + kind + '"><div class="h">' + head + '</div><div class="b">' + html + "</div></div>";
+  }
+  function rmBtns(a, b) {
+    return '<div class="two">' + [a, b].filter(Boolean).map(function (x) {
+      return '<button class="pbtn block' + (x[2] ? " primary" : "") + '" type="button" data-rm="' + x[0] + '">' + x[1] + "</button>";
+    }).join("") + "</div>";
+  }
+  function linkedDraft(path) {
+    var list = allDrafts();
+    if (cur && list.every(function (d) { return d.id !== cur.id; })) list.unshift(cur);
+    return list.filter(function (d) { return d.src && d.src.path === path; })[0] || null;
+  }
+  function useRemote(d, msg) {
+    openDraft(d, true);
+    dirty = true;
+    saveNow();
+    remote.cache = null;
+    hideSheet(false);
+    setView("write");
+    toast(msg);
+    return { ok: true, id: d.id, path: d.src.path };
+  }
+  async function loadRemote(raw, opts) {
+    opts = opts || {};
+    if (remote.busy) return null;
+    var path = normPath(raw);
+    if (!$("#sheet-remote").classList.contains("is-open")) showSheet("remote");
+    $("#rm-in").value = path || String(raw || "");
+    if (!path) {
+      rmBox("err", "路径无效", "<p>只能编辑 <code>blogs/posts/</code> 下的 <code>.md</code> 文件，例如 <code>blogs/posts/toy/10pi.md</code>，也可以粘贴文章网址。</p>");
+      return { ok: false, reason: "invalid" };
+    }
+    remote.path = path;
+    if (!tok.get() || tokBad) {
+      remote.pending = true;
+      rmBox("warn", "需要令牌", "<p>载入 <code>" + esc(path) + "</code> 要用你在这台设备上设置的 GitHub 令牌（与发布同一个）。设置好后会自动继续载入。</p>" +
+        rmBtns(["token", "设置令牌", true]));
+      return { ok: false, reason: "locked" };
+    }
+    remote.pending = false;
+    remote.busy = true;
+    rmBox("run", "载入中", "<p>正在从 <code>" + GH.base + "</code> 读取 <code>" + esc(path) + "</code>…</p>");
+    try {
+      var j = remote.cache && remote.cache.path === path && opts.cached ? remote.cache
+        : await ghReq("GET", repoApi("/contents/" + encPath(path) + "?ref=" + GH.base));
+      if (!j || j.type !== "file") throw new GhError(422, path + " 不是文件");
+      if (j.encoding && j.encoding !== "base64") throw new GhError(422, "文件太大，GitHub 不返回内容（超过 1 MB）");
+      remote.cache = { path: path, type: j.type, sha: j.sha, content: j.content, encoding: j.encoding };
+      tokOk = true;
+      var text = unb64utf8(j.content || ""), have = linkedDraft(path);
+      if (have && !opts.fresh) {
+        var edited = have.updated > have.src.at;
+        if (have.src.sha === j.sha) return useRemote(have, edited ? "继续本机稿件（线上没有新改动）" : "已打开「" + path.split("/").pop() + "」");
+        if (!edited) {
+          var again = fromRemote(text, path, j.sha);
+          again.id = have.id; again.created = have.created; again.pub = have.pub;
+          return useRemote(again, "已刷新为 pilog 上的最新版本");
+        }
+        rmBox("warn", "两边都有改动", "<p>本机稿件有未发布的改动，而 <code>" + GH.base + "</code> 上的这篇在你载入后也被改过。</p>" +
+          "<p>可以继续改本机稿件，或把线上最新版本载入为<b>另一份</b>稿件（本机稿件保留）。</p>" +
+          rmBtns(["keep", "继续本机稿件", true], ["fresh", "载入线上最新"]));
+        remote.keep = have.id;
+        return { ok: false, reason: "conflict" };
+      }
+      return useRemote(fromRemote(text, path, j.sha), "已从 pilog 载入 " + path.split("/").pop());
+    } catch (e) {
+      if (!(e instanceof GhError)) e = new GhError(-2, String(e && e.message || e));
+      if (e.status === 401 || (e.status === 403 && !/rate limit/i.test(e.message))) tokBad = ghMsg(e);
+      var msg = e.status === 404 ? "在 " + GH.base + " 分支上找不到 " + path + "（404）。可能路径写错、文章已改名，或令牌没有授权 Meredith2328/pilog。"
+        : ghMsg(e);
+      rmBox("err", "载入失败", "<p>" + esc(msg) + "</p>" +
+        rmBtns(tokBad ? ["token", "设置令牌", true] : ["retry", "重试", true], tokBad ? null : ["token", "检查令牌"]));
+      return { ok: false, reason: "error", status: e.status };
+    } finally {
+      remote.busy = false;
+      renderPublish();
+    }
+  }
+  $("#btn-rm-load").addEventListener("click", function () { loadRemote($("#rm-in").value); });
+  $("#rm-in").addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); loadRemote(this.value); }
+  });
+  $("#rm-out").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-rm]");
+    if (!b) return;
+    var act = b.dataset.rm;
+    if (act === "token") showSheet("token");
+    else if (act === "retry") loadRemote(remote.path);
+    else if (act === "fresh") loadRemote(remote.path, { fresh: true, cached: true });
+    else if (act === "keep") {
+      var d = loadDraft(remote.keep) || linkedDraft(remote.path);
+      if (d) useRemote(d, "继续本机稿件");
+    }
   });
 
   /* ================= drafts ================= */
@@ -2216,8 +2393,8 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
   function newDraft() {
     if (cur && isBlank(cur)) { hideSheet(false); setView("write"); toast("当前已是空白稿件"); return; }
     var d = blankDraft();
-    dirty = true;
     openDraft(d, true);
+    dirty = true;
     saveNow();
     hideSheet(false);
     setView("write");
@@ -2233,7 +2410,8 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
       return '<div class="drow' + (active ? " is-active" : "") + '" data-id="' + d.id + '">' +
         '<button class="drow-main" type="button" data-act="open"><span class="drow-t' + (t ? "" : " is-empty") + '">' + esc(t || "无标题稿件") + "</span>" +
         '<span class="drow-m"><span>posts/' + esc(catOf(d)) + "</span><span>" + proseCount(d.body) + " 字</span><span>" + relTime(d.updated) + "</span>" +
-        (active ? '<span class="badge ink">编辑中</span>' : "") + (d.draft ? '<span class="badge">DRAFT</span>' : "") +
+        (active ? '<span class="badge ink">编辑中</span>' : "") + (d.src ? '<span class="badge">线上</span>' : "") +
+        (d.draft ? '<span class="badge">DRAFT</span>' : "") +
         (d.exported && d.exported >= d.updated ? '<span class="badge">已导出</span>' : "") +
         (d.pub && d.pub.number ? '<span class="badge">PR #' + esc(d.pub.number) + "</span>" : "") + "</span></button>" +
         '<button class="drow-del" type="button" data-act="del" aria-label="删除">删除</button></div>';
@@ -2289,8 +2467,8 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
     if (!f) return;
     f.text().then(function (text) {
       var d = parseFile(text, f.name);
-      dirty = true;
       openDraft(d, true);
+      dirty = true;
       saveNow();
       hideSheet(false);
       setView("write");
@@ -2338,6 +2516,14 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
   document.addEventListener("visibilitychange", function () { if (document.hidden) saveNow(); });
   window.addEventListener("pagehide", saveNow);
 
+  if (/^https?:$/.test(location.protocol)) { $("#brand").href = "../"; $("#brand").title = "返回博客"; }
+  var askPath = new URLSearchParams(location.search).get("path");
+  if (askPath !== null) {
+    /* drop ?path= so a reload resumes the local draft instead of re-asking */
+    try { history.replaceState(history.state, "", location.pathname + location.hash); } catch (e) { /* file:// */ }
+    loadRemote(askPath);
+  }
+
   if (/^https?:$/.test(location.protocol)) {
     fetch("/api/tree", { credentials: "same-origin" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
       if (!j || !j.dirs) return;
@@ -2356,7 +2542,8 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
   window.__pilogWrite = {
     render: renderMarkdown, build: function () { return buildFile(cur); }, parse: parseFile, current: function () { return cur; },
     plan: function () { var p = publishPlan(cur); p.prTitle = prTitle(p, false); p.prBody = prBody(p, cur, false); return p; },
-    publish: publish
+    publish: publish, load: loadRemote, fromRemote: fromRemote, normPath: normPath,
+    buildOf: buildFile, pathOf: pathOf
   };
 })();
 </script>
