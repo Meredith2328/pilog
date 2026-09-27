@@ -2331,7 +2331,6 @@ def dfs_stack(start, graph):
 
 BFS 只要无脑在入队时标记时就可以了，防止重复入队。
 
-<div class="algoviz" data-module="lc3-递归访问邻居-v2" data-title="3 递归访问邻居 · 步骤可视化"></div>
 ```python
 from collections import deque
 
