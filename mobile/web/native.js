@@ -36,6 +36,7 @@
   function ldel(k) { rawDel.call(LS, k); }
 
   var space = rawGet.call(SS, SPACE) === "vault" ? "vault" : "notes";
+  if (space === "vault") document.documentElement.classList.add("is-vault", "is-locked");
   var vaultMem = null;
   var tokenLocal = "";
 
@@ -82,6 +83,17 @@
     var bin = atob(s), out = new Uint8Array(bin.length);
     for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
     return out;
+  }
+  var DINO = ["........########", ".......##.######", ".......#########", ".......#########",
+    ".......#####....", ".......#######..", "#.....#####.....", "#....########...",
+    "##..######.#....", "##########......", ".#########......", "..#######.......",
+    "...##..##.......", "...#....#.......", "...##...##......"];
+  function dinoSvg() {
+    var d = "";
+    DINO.forEach(function (row, y) {
+      row.replace(/#+/g, function (run, x) { d += "M" + x + " " + y + "h" + run.length + "v1h-" + run.length + "z"; });
+    });
+    return '<svg viewBox="0 0 16 15" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="' + d + '"/></svg>';
   }
   function el(html) { var d = document.createElement("div"); d.innerHTML = html.trim(); return d.firstChild; }
 
@@ -258,7 +270,7 @@
   function enterVault() { rawSet.call(SS, SPACE, "vault"); location.reload(); }
   function leaveVault() {
     flushVault().then(function () {
-      if (Sec) Sec.setSecure({ on: false }).catch(function () {});
+      call("setSecure", { on: false });
       rawDel.call(SS, SPACE); location.reload();
     });
   }
@@ -273,6 +285,7 @@
         vault.file = file;
         var fresh = !file;
         var root = el('<div class="vgate" role="dialog" aria-modal="true" aria-labelledby="vg-t">' +
+          '<div class="vgate-in"><div class="vgate-brand"><span class="pix">' + dinoSvg() + '</span><span class="brand-t">PILOG·VAULT</span></div>' +
           '<div class="vgate-box">' +
           '<div class="vgate-h"><span class="vgate-lock" aria-hidden="true"></span><span id="vg-t">私密库</span><small>' +
           (fresh ? "首次使用 · 设置密码" : "已加密 · 输入密码解锁") + "</small></div>" +
@@ -285,12 +298,14 @@
           (!fresh && file.bio && Sec ? '<button class="pbtn block" type="button" id="vg-bio" style="margin-top:12px">用指纹 / 面容解锁</button>' : "") +
           '<button class="pbtn block" type="button" id="vg-back" style="margin-top:12px">返回普通稿件</button>' +
           '<p class="note">私密库的稿件只以加密形式保存在 App 私有目录，不会同步成 .md 文件。密码不保存在任何地方；忘记密码将无法恢复内容。</p>' +
-          "</div></div>");
+          "</div></div></div>");
         document.body.appendChild(root);
+        markReady();
         var pw = $("#vg-pw", root), msg = $("#vg-msg", root), go = $("#vg-go", root);
         function fail(t) { msg.textContent = t; msg.className = "vg-msg is-bad"; go.disabled = false; }
         function done() {
-          if (Sec) Sec.setSecure({ on: true }).catch(function () {});
+          call("setSecure", { on: true });
+          document.documentElement.classList.remove("is-locked");
           root.remove(); resolve();
         }
         function submit() {
@@ -438,11 +453,33 @@
   function injectHelp() {
     var help = $("#sheet-help .sheet-b");
     if (!help) return;
-    help.insertBefore(el('<div class="app-help"><div class="sub" style="margin-top:0">ANDROID APP</div><ol>' +
-      '<li><b>稿件就是 .md 文件</b><p>普通稿件自动同步到 <code>Documents/pilog/posts/分类/文件名.md</code>。用 USB 连电脑即可把 <code>posts/</code> 拷进仓库的 <code>blogs/posts/</code>。改「信息」里的分类或文件名就是重命名。</p></li>' +
-      "<li><b>私密库</b><p>「稿件 → 进入私密库」设置密码后使用；内容加密保存、不生成 .md 文件，离开 App 1 分钟自动上锁。可选开启指纹解锁。</p></li>" +
-      "<li><b>开 PR</b><p>「稿件 → GitHub 令牌」粘贴 fine-grained token（令牌用 Android Keystore 加密保存），然后「导出 → 发布（开 PR）」。</p></li>" +
-      "</ol></div>"), help.firstChild);
+    var title = $("#sh-help-t");
+    if (title) title.textContent = "使用说明";
+    var web = $("ol", help);
+    var ol = el("<ol>" +
+      "<li><b>稿件就是 .md 文件</b><p>普通稿件随写随存，同时同步到 <code>Documents/pilog/posts/分类/文件名.md</code>，带 pilog 的 front matter。在「信息」里改分类或文件名就是重命名；在「稿件」里删除会一并删掉文件。</p></li>" +
+      "<li><b>打开已有文件</b><p>「稿件 → 导入 .md」选择手机里的文件；「编辑线上文章」从 <code>pilog</code> 分支载入已发布的文章。</p></li>" +
+      "<li><b>私密库</b><p>「稿件 → 进入私密库」，第一次设置密码。内容只以加密形式存在 App 私有目录，不生成 .md 文件；右上角锁形按钮立即上锁，离开 App 1 分钟也会自动上锁。解锁后可开启指纹解锁、修改密码，或把普通稿件移入。</p></li>" +
+      "<li><b>开 PR 到 pilog</b><p>「稿件 → GitHub 令牌」粘贴只授权 <code>Meredith2328/pilog</code> 的 fine-grained token（Contents 与 Pull requests 读写），令牌由 Android Keystore 加密保存。之后「导出 → 发布（开 PR）」会新建 <code>write/日期-文件名</code> 分支并开 PR 到 <code>pilog</code>，在 GitHub 上审阅后手动合并。</p></li>" +
+      "<li><b>导出与电脑同步</b><p>「导出 → 分享 / 导出 .md」走系统分享。USB 连电脑，把 <code>Documents/pilog/posts/</code> 拷进仓库的 <code>blogs/posts/</code> 即可。</p></li>" +
+      "</ol>");
+    if (web) web.replaceWith(ol); else help.insertBefore(ol, help.firstChild);
+  }
+  function call(name, arg) {
+    if (!Sec || typeof Sec[name] !== "function") return Promise.resolve();
+    try { return Promise.resolve(Sec[name](arg)).catch(function () {}); } catch (e) { return Promise.resolve(); }
+  }
+  function markReady() {
+    requestAnimationFrame(function () { requestAnimationFrame(function () { call("ready"); }); });
+  }
+  function syncTheme() {
+    var root = document.documentElement, last = null;
+    function push() {
+      var dark = root.dataset.theme === "dark";
+      if (dark !== last) { last = dark; window.__pilogTheme = dark; call("setTheme", { dark: dark }); }
+    }
+    push();
+    new MutationObserver(push).observe(root, { attributes: true, attributeFilter: ["data-theme"] });
   }
 
   /* ================= native export + links ================= */
@@ -483,6 +520,7 @@
   function boot() {
     /* the token is only read lazily by the publish UI, so a slow Keystore must not hold up the editor */
     var pre = Promise.race([loadToken(), new Promise(function (r) { setTimeout(r, 1500); })]);
+    syncTheme();
     var ready = space === "vault" ? pre.then(gate) : pre;
     ready.then(function () {
       window.__pilogMain();
@@ -490,7 +528,9 @@
       injectPiwiki();
       injectHelp();
       showMirrorDir();
+      markReady();
     }).catch(function (e) {
+      markReady();
       console.error(e);
       toast("启动失败：" + (e && e.message || e));
     });

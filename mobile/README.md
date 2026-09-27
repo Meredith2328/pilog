@@ -25,18 +25,21 @@ cd mobile
 npm install
 echo "sdk.dir=$HOME/Android/Sdk" > android/local.properties   # or set ANDROID_HOME
 npm run apk
-# → mobile/android/app/build/outputs/apk/debug/app-debug.apk
+# → mobile/android/app/build/outputs/apk/release/app-release.apk   (~1 MB)
 ```
 
 `npm run apk` rebuilds `www/` from the current `tools/write.html`, runs
-`cap sync`, then runs `./gradlew assembleDebug`. If you use Android Studio,
-run `npm run sync` and then open `mobile/android`.
+`cap sync`, then runs `./gradlew assembleRelease`. The release build is
+shrunk with R8 and resource shrinking, and is signed with the local debug key
+so it installs directly. `npm run apk:debug` builds an unshrunk, inspectable
+`apk/debug/app-debug.apk` (about 4 MB) for `chrome://inspect`. If you use
+Android Studio, run `npm run sync` and then open `mobile/android`.
 
 ## Install
 
 - USB: enable Developer options and USB debugging on the phone, then run
-  `adb install -r mobile/android/app/build/outputs/apk/debug/app-debug.apk`.
-- Without a computer: copy `app-debug.apk` to the phone, open it in Files, and
+  `adb install -r mobile/android/app/build/outputs/apk/release/app-release.apk`.
+- Without a computer: copy `app-release.apk` to the phone, open it in Files, and
   allow "install unknown apps" for Files when Android asks.
 
 The package is `io.github.meredith2328.pilogwrite` and needs Android 8.0 (API 26)
@@ -45,7 +48,7 @@ updates it automatically). On a device whose WebView was never updated, for
 example Chrome 74 on a stock Android 10 image, everything still works, but
 parts of write.html's layout (`min()`/`max()` padding, flex `gap`) degrade.
 On Android 8–10, the first save asks for storage permission so the app can
-write to `Documents/`. The debug APK is signed with the local debug key, so an APK built on a
+write to `Documents/`. Both APKs are signed with the local debug key, so an APK built on a
 different machine won't install over it. Uninstall the old one first, after
 exporting your notes.
 
@@ -96,8 +99,30 @@ rename and delete, export, Keystore token routing, PR publish, vault
 encryption, lock and unlock, wrong password, and move into the vault. Set
 `SHOTS=<dir>` to also save screenshots.
 
-On a device or emulator, the debug build exposes the WebView to
-`chrome://inspect`.
+`npm run smoke` rebuilds `www/` and runs the smoke test.
+
+## Changelog
+
+### 0.2.0
+
+- Native look and feel:
+  - The launcher icon and splash use write's pixel dino (an adaptive icon, a
+    themed/monochrome icon on Android 13+, and a dark splash variant).
+    Capacitor's stock images are gone.
+  - The splash stays up until the editor has painted, so launch never shows a
+    blank or half-built page.
+  - The status bar, navigation bar, and window background follow write's own
+    light/dark toggle, and the choice is remembered for the next cold start.
+- Vault: the editor stays hidden until the lock screen is passed. The lock
+  screen uses the write brand block and pixel lock.
+- App-specific copy: the help sheet explains the `.md` folder, the vault, and
+  PR setup. The token sheet now says Keystore instead of browser storage.
+- Size and speed: the default build is an R8-minified release (about 1 MB,
+  down from about 5 MB). Duplicate variable-font files are deduplicated, and
+  only English and Chinese resources are kept.
+- Fix: in minified builds, R8 stripped Capacitor's plugin permission metadata,
+  so on Android 8–10 writing to `Documents/` hung. Keep rules are added in
+  `proguard-rules.pro`.
 
 ## Changelog
 

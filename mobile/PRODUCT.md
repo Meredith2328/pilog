@@ -13,7 +13,7 @@ APK ships that same page offline, plus a small native bridge.
 | Write UX | The one already built and tested (editor, preview, front matter, PR publish) | Would have to be rebuilt and then kept in sync |
 | Upstream changes | `npm run apk` repackages the current `tools/write.html` | Every change needs porting |
 | Native size | One Java plugin (~250 lines) + ~450 lines of bridge JS | Whole app |
-| APK | ~5 MB debug | Similar |
+| APK | ~1 MB (R8 release) | Similar or larger |
 
 `scripts/build-web.mjs` copies `tools/write.html` without forking it. It applies
 five asserted patches: allow the bundled script in the CSP, defer boot until the

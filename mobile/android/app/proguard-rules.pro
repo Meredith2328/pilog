@@ -19,3 +19,10 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Capacitor reads plugin metadata (@CapacitorPlugin permissions/aliases, @PluginMethod,
+# @PermissionCallback) reflectively at runtime; without these, R8 drops the nested
+# @Permission data and Filesystem never sees storage as granted on Android <= 10.
+-keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod
+-keep class com.getcapacitor.annotation.** { *; }
+-keep @com.getcapacitor.annotation.CapacitorPlugin class * { *; }

@@ -1,5 +1,6 @@
 package io.github.meredith2328.pilogwrite;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
@@ -7,12 +8,16 @@ import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyPermanentlyInvalidatedException;
 import android.security.keystore.KeyProperties;
 import android.util.Base64;
+import android.view.Window;
 import android.view.WindowManager;
+import android.webkit.WebView;
 
 import androidx.annotation.NonNull;
 import androidx.biometric.BiometricManager;
 import androidx.biometric.BiometricPrompt;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -34,7 +39,9 @@ import javax.crypto.spec.GCMParameterSpec;
  *   (used for the GitHub token), ciphertext kept in private SharedPreferences;
  * - bio*: the vault data key wrapped by a second Keystore key that only works after a
  *   BIOMETRIC_STRONG prompt and is invalidated when biometrics change;
- * - setSecure: FLAG_SECURE while the vault is open (no screenshots / recents preview).
+ * - setSecure: FLAG_SECURE while the vault is open (no screenshots / recents preview);
+ * - ready / setTheme: release the launch splash once the UI has painted, and keep the
+ *   system bars and window background in step with write.html's theme.
  */
 @CapacitorPlugin(name = "PilogSecure")
 public class PilogSecurePlugin extends Plugin {
@@ -44,6 +51,7 @@ public class PilogSecurePlugin extends Plugin {
     private static final String KEY_PREFS = "pilog.secure.v1";
     private static final String KEY_BIO = "pilog.vault.bio.v1";
     private static final String BIO_BLOB = "__vault_bio";
+    private static final String UI_PREFS = "pilog.ui";
 
     private SharedPreferences prefs() {
         return getContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
@@ -192,6 +200,38 @@ public class PilogSecurePlugin extends Plugin {
     private void clearBio() {
         prefs().edit().remove(BIO_BLOB).apply();
         deleteKey(KEY_BIO);
+    }
+
+    @PluginMethod
+    public void ready(PluginCall call) {
+        MainActivity.webReady = true;
+        call.resolve();
+    }
+
+    /** Follow write.html's own light/dark toggle (not just the system setting) and remember it for cold starts. */
+    @PluginMethod
+    public void setTheme(PluginCall call) {
+        boolean dark = Boolean.TRUE.equals(call.getBoolean("dark", false));
+        getContext().getSharedPreferences(UI_PREFS, Context.MODE_PRIVATE).edit().putBoolean("dark", dark).apply();
+        getActivity().runOnUiThread(() -> {
+            paint(getActivity(), getBridge().getWebView(), dark);
+            call.resolve();
+        });
+    }
+
+    static void applySavedTheme(Activity activity, WebView webView) {
+        SharedPreferences p = activity.getSharedPreferences(UI_PREFS, Context.MODE_PRIVATE);
+        if (p.contains("dark")) paint(activity, webView, p.getBoolean("dark", false));
+    }
+
+    private static void paint(Activity activity, WebView webView, boolean dark) {
+        int bg = dark ? 0xFF17181A : 0xFFF7F7F7;
+        Window w = activity.getWindow();
+        w.getDecorView().setBackgroundColor(bg);
+        if (webView != null) webView.setBackgroundColor(bg);
+        WindowInsetsControllerCompat c = WindowCompat.getInsetsController(w, w.getDecorView());
+        c.setAppearanceLightStatusBars(!dark);
+        c.setAppearanceLightNavigationBars(!dark);
     }
 
     @PluginMethod

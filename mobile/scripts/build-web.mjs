@@ -4,6 +4,7 @@
 // write.html is never forked: only the small, asserted patches below are
 // applied, so upstream edits to write.html flow into the app on the next build.
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -50,11 +51,30 @@ soft("drafts storage copy",
   "稿件只存在这台设备的浏览器里（localStorage）。换浏览器、清除网站数据或换打开方式都会看不到，重要内容记得导出。",
   '稿件保存在 App 内，并同步为 <code id="app-mirror-dir">Documents/pilog/</code> 下的 .md 文件（私密库除外）。卸载 App 前请先导出或备份该文件夹。');
 soft("download button", "下载 .md 文件</button>", "分享 / 导出 .md</button>");
+soft("export hint", "下载后把文件放进仓库的", "导出后放进仓库的");
+soft("token session copy", "关：只存本次会话（<code>sessionStorage</code>），关闭标签页即清除。", "关：只在本次运行中使用，退出 App 后清除。");
+soft("token where copy", "仅本次会话（sessionStorage）", "仅本次运行");
+soft("token note",
+  "令牌只保存在这台设备的浏览器里，只随请求直接发往 <code>api.github.com</code>。这个页面没有后端，不会上传令牌，也不会把它写进稿件或导出文件。不要在别人的设备或共用浏览器上保存。",
+  "令牌用 Android Keystore 加密保存在这台手机上，只随请求直接发往 <code>api.github.com</code>。App 没有后端，不会上传令牌，也不会把它写进稿件或导出的 .md。");
+soft("token sheet badge", "<small>仅存本机</small>", "<small>KEYSTORE</small>");
+soft("remote hint", "也可以在博客文章页点「✎ 编辑」直接跳过来。", "");
+soft("help link", "在 Android 上怎么打开、怎么交稿？", ".md 文件、私密库与开 PR 怎么用？");
 
 rmSync(out, { recursive: true, force: true });
 mkdirSync(join(out, "css"), { recursive: true });
 writeFileSync(join(out, "index.html"), html);
-cpSync(join(repo, "generator", "static", "css", "fonts.css"), join(out, "css", "fonts.css"));
-cpSync(join(repo, "generator", "static", "fonts"), join(out, "fonts"), { recursive: true });
+// The site ships each variable font once per weight; the app points every
+// weight at the first identical file so the APK (and the WebView) load it once.
+const fontDir = join(repo, "generator", "static", "fonts");
+const seen = new Map();
+mkdirSync(join(out, "fonts"));
+const css = readFileSync(join(repo, "generator", "static", "css", "fonts.css"), "utf8")
+  .replace(/url\('\.\.\/fonts\/([^']+)'\)/g, (m, name) => {
+    const hash = createHash("sha256").update(readFileSync(join(fontDir, name))).digest("hex");
+    if (!seen.has(hash)) { seen.set(hash, name); cpSync(join(fontDir, name), join(out, "fonts", name)); }
+    return `url('../fonts/${seen.get(hash)}')`;
+  });
+writeFileSync(join(out, "css", "fonts.css"), css);
 cpSync(join(mobile, "web"), out, { recursive: true });
 console.log(`www/ built from tools/write.html (${html.length} chars)`);

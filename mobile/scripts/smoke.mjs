@@ -45,7 +45,9 @@ const fakeCapacitor = () => {
     set: async (o) => { const s = load("sec"); s[o.key] = o.value; save("sec", s); },
     remove: async (o) => { const s = load("sec"); delete s[o.key]; save("sec", s); },
     bioStatus: async () => ({ available: false, enrolled: false }),
-    setSecure: async () => {}
+    setSecure: async () => {},
+    setTheme: async (o) => { window.__nativeTheme = o.dark ? "dark" : "light"; },
+    ready: async () => { window.__nativeReady = (window.__nativeReady || 0) + 1; }
   };
   window.__shared = [];
   window.Capacitor = {
@@ -94,6 +96,7 @@ await page.fill("#f-title", "Hello Pilog App");
 await page.fill("#f-body", "## 小标题\n\n正文 **加粗**。");
 await settle();
 await shot("1-notes-editor");
+check("splash released after first paint", await page.evaluate(() => window.__nativeReady >= 1));
 let files = await fsState();
 const first = "DOCUMENTS:pilog/posts/toy/hello-pilog-app.md";
 check("draft mirrored to Documents/pilog/posts/<cat>/<slug>.md", first in files, Object.keys(files).join(", "));
@@ -155,6 +158,7 @@ await openDrafts();
 await shot("3-drafts-sheet");
 await page.click("#app-vault");
 await page.waitForSelector(".vgate");
+check("editor stays hidden behind the vault gate", await page.$eval("#app", (a) => getComputedStyle(a).visibility === "hidden"));
 await shot("4-vault-create");
 await page.fill("#vg-pw", "correct horse");
 await page.fill("#vg-pw2", "correct horse");
@@ -203,6 +207,12 @@ const del = page.locator('#draft-list .drow:has-text("Hello Pilog App") [data-ac
 await del.click(); await del.click();
 await settle();
 check("deleting a draft deletes its .md", !("DOCUMENTS:pilog/posts/toy/renamed-note.md" in (await fsState())));
+await page.click("#btn-theme");
+await page.waitForTimeout(200);
+check("system bars follow the in-app theme toggle", (await page.evaluate(() => window.__nativeTheme)) === "dark");
+await page.click("#sheet-drafts [data-close]");
+await page.waitForTimeout(300);
+await shot("6-dark-editor");
 check("piwiki target is present but disabled", await page.$eval("#app-piwiki", (b) => b.disabled));
 check("no page errors", errors.length === 0, errors.join("\n"));
 
