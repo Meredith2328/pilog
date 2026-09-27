@@ -1,6 +1,8 @@
 /* pilog write — Android-only additions; reuses write.html's tokens and classes. */
+/* longhands for WebViews older than Chrome 87 (no `inset`), e.g. un-updated Android 8–10 */
+.view, .scrim { top: 0; right: 0; bottom: 0; left: 0; }
 .vgate {
-  position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center;
+  position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 100; display: flex; align-items: center; justify-content: center;
   padding: calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 16px);
   background: var(--panel); overflow-y: auto;
 }

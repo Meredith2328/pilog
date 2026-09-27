@@ -3,7 +3,6 @@
   "appName": "pilog write",
   "webDir": "www",
   "android": {
-    "allowMixedContent": false,
-    "webContentsDebuggingEnabled": false
+    "allowMixedContent": false
   }
 }

@@ -99,7 +99,7 @@
   function loadToken() {
     var legacy = lget(TOKEN);
     if (legacy) { ldel(TOKEN); tokenLocal = legacy; return secureSet(TOKEN, legacy); }
-    return secureGet(TOKEN).then(function (v) { tokenLocal = v; });
+    return secureGet(TOKEN).then(function (v) { if (!tokenLocal) tokenLocal = v; });
   }
 
   /* ================= notes space: mirror drafts as .md files ================= */
@@ -481,7 +481,8 @@
   window.addEventListener("pagehide", function () { if (vaultMem) flushVault(); });
 
   function boot() {
-    var pre = loadToken();
+    /* the token is only read lazily by the publish UI, so a slow Keystore must not hold up the editor */
+    var pre = Promise.race([loadToken(), new Promise(function (r) { setTimeout(r, 1500); })]);
     var ready = space === "vault" ? pre.then(gate) : pre;
     ready.then(function () {
       window.__pilogMain();
@@ -489,6 +490,9 @@
       injectPiwiki();
       injectHelp();
       showMirrorDir();
+    }).catch(function (e) {
+      console.error(e);
+      toast("启动失败：" + (e && e.message || e));
     });
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
