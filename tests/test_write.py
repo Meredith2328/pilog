@@ -73,7 +73,7 @@ REPO = "/repos/Meredith2328/pilog"
 GH_MOCK = r"""
 (() => {
   const real = window.fetch.bind(window);
-  const S = window.__gh = { calls: [], fail: [], offline: false, n: 0, pulls: [],
+  const S = window.__gh = { calls: [], fail: JSON.parse(sessionStorage.getItem("__ghfail") || "[]"), offline: false, n: 0, pulls: [], truncate: false,
     repo: { full_name: "Meredith2328/pilog", permissions: { admin: true, push: true, pull: true } },
     refs: { pilog: "base000" }, files: JSON.parse(sessionStorage.getItem("__ghfiles") || "{}") };
   const out = (status, body) => Promise.resolve(new Response(body == null ? "" : JSON.stringify(body),
@@ -87,8 +87,8 @@ GH_MOCK = r"""
     S.calls.push({ method, path: decodeURIComponent(u.pathname), query: Object.fromEntries(u.searchParams),
       auth: (init.headers || {}).Authorization || "", credentials: init.credentials, body });
     if (S.offline) return Promise.reject(new TypeError("Failed to fetch"));
-    const sig = method + " " + decodeURIComponent(u.pathname);
-    const f = S.fail.find(x => sig.startsWith(x.sig));
+    const sig = method + " " + decodeURIComponent(u.pathname), anon = !(init.headers || {}).Authorization;
+    const f = S.fail.find(x => sig.startsWith(x.sig) && (!x.anon || anon));
     if (f) return out(f.status, { message: f.message });
     const pre = "/repos/Meredith2328/pilog";
     if (!u.pathname.startsWith(pre)) return out(404, { message: "Not Found" });
@@ -97,6 +97,21 @@ GH_MOCK = r"""
     if (p.startsWith("/git/ref/heads/") && method === "GET") {
       const b = p.slice(15);
       return b in S.refs ? out(200, { ref: "refs/heads/" + b, object: { sha: S.refs[b] } }) : out(404, { message: "Not Found" });
+    }
+    if (p.startsWith("/git/trees/") && method === "GET") {
+      const id = p.slice(11), [head, sub] = id.split(":"), expr = head in S.refs && sub != null;
+      const pre = head in S.refs ? (sub ? sub + "/" : "") : head === "tree" ? sub + "/" : null;
+      if (pre === null) return out(404, { message: "Not Found" });
+      const ref = head in S.refs ? head : "pilog", tree = [], dirs = new Set();
+      for (const k of Object.keys(S.files)) {
+        if (!k.startsWith(ref + "|") || !k.slice(ref.length + 1).startsWith(pre)) continue;
+        const rel = k.slice(ref.length + 1 + pre.length), segs = rel.split("/");
+        for (let i = 1; i < segs.length; i++) dirs.add(segs.slice(0, i).join("/"));
+        tree.push({ path: rel, type: "blob", sha: S.files[k].sha });
+      }
+      dirs.forEach(d => tree.push({ path: d, type: "tree", sha: "tree:" + pre + d }));
+      const cut = expr && S.truncate;
+      return out(200, { sha: id, truncated: cut, tree: cut ? tree.slice(0, 1) : tree });
     }
     if (p === "/git/refs" && method === "POST") {
       const b = body.ref.replace("refs/heads/", "");
@@ -107,8 +122,17 @@ GH_MOCK = r"""
     }
     if (p.startsWith("/contents/")) {
       const path = p.slice(10), ref = u.searchParams.get("ref") || (body && body.branch), k = ref + "|" + path, ex = S.files[k];
-      if (method === "GET") return ex ? out(200, { type: "file", path, sha: ex.sha, content: ex.content.replace(/(.{60})/g, "$1\n") })
-        : out(404, { message: "Not Found" });
+      if (method === "GET" && ex) return out(200, { type: "file", path, sha: ex.sha, content: ex.content.replace(/(.{60})/g, "$1\n") });
+      if (method === "GET") {
+        const dir = ref + "|" + path + "/", kids = {};
+        for (const k of Object.keys(S.files)) if (k.startsWith(dir)) {
+          const rest = k.slice(dir.length);
+          kids[rest.split("/")[0]] = rest.includes("/") ? "dir" : "file";
+        }
+        const names = Object.keys(kids);
+        return names.length ? out(200, names.map(n => ({ name: n, path: path + "/" + n, type: kids[n], sha: "tree:" + path + "/" + n })))
+          : out(404, { message: "Not Found" });
+      }
       if (method === "PUT") {
         if (!(body.branch in S.refs)) return out(404, { message: "Branch not found" });
         if (ex && !body.sha) return out(422, { message: "\"sha\" wasn't supplied." });
@@ -442,14 +466,19 @@ def live_edit_checks(b, base_url: str) -> None:
           and pg.get_attribute("#brand", "href") == "../", pg.title())
     round_trip_checks(pg)
 
-    # ---- ?path= without a token: ask for one, touch nothing ----
+    # ---- ?path= without a token: public read; if GitHub refuses it, ask for a token ----
+    seed(src, "sha-v1")
+    pg.evaluate("sessionStorage.setItem('__ghfail', JSON.stringify([{ sig: 'GET " + REPO + "/contents', status: 403,"
+                " message: 'API rate limit exceeded for 127.0.0.1', anon: true }]))")
     open_write("?path=" + LIVE_PATH)
     wait_js(pg, "!!document.querySelector('#sheet-remote.is-open #rm-out .pub-box.is-warn')")
-    check("live: without token asks for one, no GitHub request",
-          "需要令牌" in pg.inner_text("#rm-out") and gh(pg, "S.calls.length") == 0
-          and pg.input_value("#rm-in") == LIVE_PATH, pg.inner_text("#rm-out"))
+    first = gh(pg, "S.calls")
+    check("live: without token reads anonymously; refused → asks for a token",
+          "需要令牌" in pg.inner_text("#rm-out") and "速率限制" in pg.inner_text("#rm-out")
+          and [(c["path"], c["auth"], c["credentials"]) for c in first] == [(f"{REPO}/contents/{LIVE_PATH}", "", "omit")]
+          and pg.input_value("#rm-in") == LIVE_PATH, repr((pg.inner_text("#rm-out"), first)))
     check("live: ?path= is dropped from the address bar", "path=" not in pg.url, pg.url)
-    seed(src, "sha-v1")
+    pg.evaluate("sessionStorage.removeItem('__ghfail'); window.__gh.fail = []; window.__gh.calls = []")
     pg.click("#rm-out [data-rm=token]")
     pg.fill("#tok-in", FAKE_TOKEN)
     pg.click("#btn-tok-save")
@@ -542,17 +571,128 @@ def live_edit_checks(b, base_url: str) -> None:
     check("live: 401 while loading locks the token", "401" in pg.inner_text("#rm-out")
           and "is-bad" in (pg.get_attribute("#tok-row", "class") or ""))
 
-    # ---- in-app entry point ----
-    pg.evaluate("window.__gh.fail = []")
+    # ---- in-app entry point: bad token → public catalog, public read ----
+    cards = json.loads((TMP / "site" / "data" / "cards.json").read_text(encoding="utf-8"))
+    pub_top = sorted({c["url"].split("/")[1] for c in cards if c["url"].count("/") >= 2}, key=str.lower)
+    pub_toy = sorted(("f:" + c["url"].split("/")[-1][:-5] + ".md" for c in cards if c["url"].startswith("posts/toy/")), key=str.lower)
+    extra = ["blogs/posts/toy/osu-lyrics.md", "blogs/posts/notes/ml/softmax.md", "blogs/posts/reference/career-advice-by-tao.md"]
+    pg.evaluate("([m]) => { const f = window.__gh.files; for (const [p, c] of Object.entries(m)) f['pilog|' + p] = { content: c, sha: 'sha-' + p.split('/').pop() };"
+                " for (const p of ['blogs/posts/toy/assets/x.png', 'blogs/posts/migrated/post-images/a.png', 'blogs/posts/toy/.draft.md', 'blogs/posts/toy/notes.txt'])"
+                " f['pilog|' + p] = { content: '', sha: 'x' }; }",
+                [{**{p: b64((ROOT / p).read_text(encoding="utf-8")) for p in extra},
+                  "blogs/posts/toy/secret-wip.md": b64("---\ntitle: 还没写完\ndraft: true\n---\n\nWIP\n")}])
+    site_reqs = []
+    pg.on("request", lambda r: site_reqs.append((r.url, r.headers.get("authorization"))) if "api.github.com" not in r.url else None)
+
+    def index_hits():
+        return [u for u, _ in site_reqs if u.endswith("/data/cards.json")]
+
+    def levels():
+        return pg.evaluate("[...document.querySelectorAll('#pk select')].map(s => ({ v: s.value,"
+                           " o: [...s.options].map(o => o.value).filter(Boolean), t: [...s.options].map(o => o.textContent), off: s.disabled }))")
+
+    def api():
+        return [c["path"].replace(REPO, "") + ("?" + "&".join(f"{k}={v}" for k, v in c["query"].items()) if c["query"] else "")
+                for c in gh(pg, "S.calls")]
+
+    def open_picker(n):
+        pg.click("#btn-drafts")
+        pg.click("#sheet-drafts [data-open=remote]")
+        wait_js(pg, f"document.querySelectorAll('#pk select').length === {n} && !document.querySelector('#pk select:disabled')")
+
+    pg.evaluate("window.__gh.fail = []; window.__gh.calls = []")
+    pg.click("#sheet-remote [data-close]")
+    pg.wait_for_timeout(250)
+    open_picker(2)
+    lv = levels()
+    check("picker (no usable token): lists the site's published posts, no GitHub request",
+          "已发布" in pg.inner_text("#pk-src") and api() == [] and len(index_hits()) == 1
+          and lv[0]["o"] == ["d:" + x for x in pub_top] and lv[1]["o"] == pub_toy
+          and [x["v"] for x in lv] == ["d:toy", "f:10pi.md"], repr((lv, api(), index_hits())))
+    check("picker: paste fallback stays collapsed under 高级", not pg.evaluate("document.querySelector('#rm-adv').open"))
+    pg.select_option("#pk select[data-i='1']", "f:osu-lyrics.md")
+    wait_js(pg, "!document.querySelector('.sheet.is-open') && window.__pilogWrite.current().src.path === 'blogs/posts/toy/osu-lyrics.md'")
+    load = gh(pg, "S.calls.find(c => c.path.includes('/contents/'))")
+    check("picker (public): posts → toy → osu-lyrics loads anonymously",
+          load["auth"] == "" and load["path"] == f"{REPO}/contents/blogs/posts/toy/osu-lyrics.md" and load["query"] == {"ref": "pilog"}
+          and pg.evaluate("window.__pilogWrite.current().slug") == "osu-lyrics", repr(load))
+    pg.evaluate("window.__gh.calls = []")
+    pg.click("#btn-drafts")
+    pg.click("#sheet-drafts [data-open=remote]")
+    pg.click("#rm-adv > summary")
+    pg.fill("#rm-in", "posts/toy/10pi.html")
+    pg.click("#btn-rm-load")
+    wait_js(pg, "!document.querySelector('.sheet.is-open') && window.__pilogWrite.current().slug === '10pi'")
+    check("live: pasted path still loads (anonymously while the token is bad)",
+          [(c["path"], c["auth"]) for c in gh(pg, "S.calls")] == [(f"{REPO}/contents/{LIVE_PATH}", "")] and len(index_hits()) == 1,
+          repr(gh(pg, "S.calls")))
+
+    # ---- token → full repo tree in one request, folders expand from cache ----
+    pg.click("#btn-drafts")
+    pg.click("#sheet-drafts [data-open=token]")
+    pg.fill("#tok-in", FAKE_TOKEN)
+    pg.click("#btn-tok-save")
+    wait_js(pg, "(document.querySelector('#tok-row').className || '').includes('is-set')")
+    pg.click("#sheet-token [data-close]")
+    pg.wait_for_timeout(250)
+    pg.evaluate("window.__gh.calls = []")
+    open_picker(2)
+    lv = levels()
+    check("picker (token): posts subtree from one Git Trees call on pilog",
+          api() == ["/git/trees/pilog:blogs/posts?recursive=1"] and "仓库" in pg.inner_text("#pk-src")
+          and [x["v"] for x in lv] == ["d:toy", "f:10pi.md"] and gh(pg, "S.calls[0].auth") == "Bearer " + FAKE_TOKEN, repr((api(), lv)))
+    check("picker (token): dirs first, junk and asset-only folders skipped, drafts marked",
+          lv[0]["o"] == ["d:notes", "d:reference", "d:toy"]
+          and lv[1]["o"] == ["f:10pi.md", "f:osu-lyrics.md", "f:secret-wip.md"]
+          and "secret-wip · 未发布" in lv[1]["t"] and "10pi" in lv[1]["t"], repr(lv))
+    pg.select_option("#pk select[data-i='0']", "d:notes")
+    grew = pg.evaluate("document.querySelectorAll('#pk select').length")
+    pg.select_option("#pk select[data-i='1']", "d:ml")
+    check("picker: expanding folders is synchronous and hits no network",
+          grew == 2 and levels()[2]["o"] == ["f:softmax.md"] and len(api()) == 1, repr((grew, levels(), api())))
+    pg.select_option("#pk select[data-i='2']", "f:softmax.md")
+    wait_js(pg, "!document.querySelector('.sheet.is-open') && window.__pilogWrite.current().src.path === 'blogs/posts/notes/ml/softmax.md'")
+    d = pg.evaluate("window.__pilogWrite.current()")
+    check("picker: leaf loads through loadRemote with the token", d["category"] == "notes/ml" and d["slug"] == "softmax"
+          and d["src"]["sha"] == "sha-softmax.md" and gh(pg, "S.calls[S.calls.length - 1].auth") == "Bearer " + FAKE_TOKEN,
+          json.dumps(d, ensure_ascii=False)[:200])
+    n = len(api())
+    open_picker(3)
+    check("picker: reopening restores the trail from cache, no new requests",
+          [x["v"] for x in levels()] == ["d:notes", "d:ml", "f:softmax.md"] and len(api()) == n, repr(levels()))
+
+    pg.evaluate("window.__gh.truncate = true; window.__gh.calls = []")
+    pg.click("#pk-re")
+    wait_js(pg, "document.querySelectorAll('#pk select').length === 3 && !document.querySelector('#pk select:disabled')")
+    check("picker: truncated tree falls back to the blogs/posts subtree",
+          api() == ["/git/trees/pilog:blogs/posts?recursive=1", "/contents/blogs?ref=pilog", "/git/trees/tree:blogs/posts?recursive=1"]
+          and [x["v"] for x in levels()] == ["d:notes", "d:ml", "f:softmax.md"], repr((api(), levels())))
+    pg.evaluate("window.__gh.truncate = false; window.__gh.offline = true")
+    pg.click("#pk-re")
+    wait_js(pg, "!!document.querySelector('#rm-out .pub-box.is-err [data-rm=relist]')")
+    check("picker: offline refresh → message + retry, token kept", "网络" in pg.inner_text("#rm-out")
+          and "is-bad" not in (pg.get_attribute("#tok-row", "class") or ""), pg.inner_text("#rm-out"))
+    pg.evaluate("window.__gh.offline = false")
+    pg.click("#rm-out [data-rm=relist]")
+    wait_js(pg, "document.querySelectorAll('#pk select').length === 3 && !document.querySelector('#pk select:disabled')")
+    check("picker: retry recovers the trail", [x["v"] for x in levels()] == ["d:notes", "d:ml", "f:softmax.md"]
+          and pg.inner_text("#rm-out").strip() == "", repr(levels()))
+
+    # ---- clearing the token switches back to the public catalog ----
     pg.click("#sheet-remote [data-close]")
     pg.wait_for_timeout(250)
     pg.click("#btn-drafts")
-    pg.click("#sheet-drafts [data-open=remote]")
-    pg.fill("#rm-in", "posts/toy/10pi.html")
-    pg.click("#btn-rm-load")
-    wait_js(pg, "!!document.querySelector('#rm-out .pub-box.is-warn [data-rm=token]')")
-    check("live: drafts sheet entry reaches the same loader (token still locked)",
-          pg.input_value("#rm-in") == LIVE_PATH and "需要令牌" in pg.inner_text("#rm-out"))
+    pg.click("#sheet-drafts [data-open=token]")
+    pg.click("#btn-tok-clear")
+    pg.click("#sheet-token [data-close]")
+    pg.wait_for_timeout(250)
+    pg.evaluate("window.__gh.calls = []")
+    hits = len(index_hits())
+    open_picker(3)
+    check("picker: token cleared → refetches the public index, no GitHub request",
+          "已发布" in pg.inner_text("#pk-src") and api() == [] and len(index_hits()) == hits + 1
+          and [x["v"] for x in levels()] == ["d:notes", "d:ml", "f:softmax.md"], repr((api(), index_hits(), levels())))
+    check("picker: public index is fetched without credentials", site_reqs and all(h is None for _, h in site_reqs), repr(site_reqs[:3]))
     check("live: no page errors", not errs, "; ".join(errs))
     ctx.close()
 
@@ -563,10 +703,11 @@ def static_security_checks() -> None:
     check("security: no token literals in write.html",
           not re.search(r"(github_pat_[A-Za-z0-9_]{20,}|gh[pousr]_[A-Za-z0-9]{20,})", html))
     csp = re.search(r'http-equiv="Content-Security-Policy" content="([^"]+)"', html)
-    check("security: CSP limits connect-src to self + api.github.com",
-          bool(csp) and "connect-src 'self' https://api.github.com;" in csp.group(1), csp and csp.group(1))
-    hosts = set(re.findall(r"fetch\(\s*[\"']([a-z]+://[^\"'/]+)", html)) | set(re.findall(r'api:\s*"([^"]+)"', html))
-    check("security: only api.github.com is contacted", hosts == {"https://api.github.com"}, repr(hosts))
+    check("security: CSP limits connect-src to self + api.github.com + the public site",
+          bool(csp) and "connect-src 'self' https://api.github.com https://meredith2328.github.io;" in csp.group(1), csp and csp.group(1))
+    hosts = set(re.findall(r"fetch\(\s*[\"']([a-z]+://[^\"'/]+)", html)) | set(re.findall(r'(?:api|origin):\s*"([^"]+)"', html))
+    check("security: only api.github.com and the public site are contacted",
+          hosts == {"https://api.github.com", "https://meredith2328.github.io"}, repr(hosts))
 
 
 def main() -> None:
