@@ -35,6 +35,10 @@ so it installs directly. `npm run apk:debug` builds an unshrunk, inspectable
 `apk/debug/app-debug.apk` (about 4 MB) for `chrome://inspect`. If you use
 Android Studio, run `npm run sync` and then open `mobile/android`.
 
+`www/` is generated and gitignored; there is no copy of the write UI under
+`mobile/`. Any change to `tools/write.html` reaches the app the next time you run
+`npm run apk` or `npm run sync`, and an installed APK keeps the version it was built with.
+
 ## Install
 
 - USB: enable Developer options and USB debugging on the phone, then run
