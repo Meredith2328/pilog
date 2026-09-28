@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/pilog_ink</item>
+        <item name="colorPrimaryDark">@color/pilog_paper</item>
+        <item name="colorAccent">@color/pilog_accent</item>
+        <item name="android:windowBackground">@color/pilog_paper</item>
+    </style>
+
+    <style name="AppTheme.NoActionBar" parent="AppTheme">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/pilog_paper</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_dino</item>
+        <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
+    </style>
+</resources>
