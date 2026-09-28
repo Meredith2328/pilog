@@ -362,8 +362,9 @@ class Handler(SimpleHTTPRequestHandler):
                 return
             self._serve_manager()
             return
-        if path in ("/write", "/write/"):
-            # static offline page with no API access, so LAN phones may load it
+        if path in ("/write", "/write/", "/tools/write.html"):
+            # static page with no local /api access, so LAN phones may load it;
+            # publishing talks to api.github.com with a device-local token only
             if not WRITE_HTML.is_file():
                 self._serve_custom_404()
                 return
