@@ -107,8 +107,17 @@ GH_MOCK = r"""
     }
     if (p.startsWith("/contents/")) {
       const path = p.slice(10), ref = u.searchParams.get("ref") || (body && body.branch), k = ref + "|" + path, ex = S.files[k];
-      if (method === "GET") return ex ? out(200, { type: "file", path, sha: ex.sha, content: ex.content.replace(/(.{60})/g, "$1\n") })
-        : out(404, { message: "Not Found" });
+      if (method === "GET" && ex) return out(200, { type: "file", path, sha: ex.sha, content: ex.content.replace(/(.{60})/g, "$1\n") });
+      if (method === "GET") {
+        const dir = ref + "|" + path + "/", kids = {};
+        for (const k of Object.keys(S.files)) if (k.startsWith(dir)) {
+          const rest = k.slice(dir.length);
+          kids[rest.split("/")[0]] = rest.includes("/") ? "dir" : "file";
+        }
+        const names = Object.keys(kids);
+        return names.length ? out(200, names.map(n => ({ name: n, path: path + "/" + n, type: kids[n], sha: "tree-" + n })))
+          : out(404, { message: "Not Found" });
+      }
       if (method === "PUT") {
         if (!(body.branch in S.refs)) return out(404, { message: "Branch not found" });
         if (ex && !body.sha) return out(422, { message: "\"sha\" wasn't supplied." });
@@ -543,16 +552,85 @@ def live_edit_checks(b, base_url: str) -> None:
           and "is-bad" in (pg.get_attribute("#tok-row", "class") or ""))
 
     # ---- in-app entry point ----
-    pg.evaluate("window.__gh.fail = []")
+    pg.evaluate("window.__gh.fail = []; window.__gh.calls = []")
     pg.click("#sheet-remote [data-close]")
     pg.wait_for_timeout(250)
     pg.click("#btn-drafts")
     pg.click("#sheet-drafts [data-open=remote]")
+    wait_js(pg, "!!document.querySelector('#rm-out .pub-box.is-warn [data-rm=token]')")
+    check("picker: locked token → asks for one, paste fallback collapsed, no request",
+          "需要令牌" in pg.inner_text("#rm-out") and pg.locator("#pk select").count() == 0
+          and not pg.evaluate("document.querySelector('#rm-adv').open") and gh(pg, "S.calls.length") == 0)
+    pg.click("#rm-adv > summary")
     pg.fill("#rm-in", "posts/toy/10pi.html")
     pg.click("#btn-rm-load")
     wait_js(pg, "!!document.querySelector('#rm-out .pub-box.is-warn [data-rm=token]')")
     check("live: drafts sheet entry reaches the same loader (token still locked)",
           pg.input_value("#rm-in") == LIVE_PATH and "需要令牌" in pg.inner_text("#rm-out"))
+
+    # ---- cascading picker ----
+    pg.click("#rm-out [data-rm=token]")
+    pg.fill("#tok-in", FAKE_TOKEN)
+    pg.click("#btn-tok-save")
+    wait_js(pg, "!document.querySelector('.sheet.is-open')")
+    extra = ["blogs/posts/toy/osu-lyrics.md", "blogs/posts/notes/ml/softmax.md", "blogs/posts/reference/career-advice-by-tao.md"]
+    pg.evaluate("([m]) => { const f = window.__gh.files; for (const [p, c] of Object.entries(m)) f['pilog|' + p] = { content: c, sha: 'sha-' + p.split('/').pop() };"
+                " for (const p of ['blogs/posts/toy/assets/x.png', 'blogs/posts/migrated/post-images/a.png', 'blogs/posts/toy/.draft.md', 'blogs/posts/toy/notes.txt'])"
+                " f['pilog|' + p] = { content: '', sha: 'x' }; }",
+                [{p: b64((ROOT / p).read_text(encoding="utf-8")) for p in extra}])
+    pg.evaluate("window.__gh.calls = []")
+
+    def levels():
+        return pg.evaluate("[...document.querySelectorAll('#pk select')].map(s => ({ v: s.value,"
+                           " o: [...s.options].map(o => o.value).filter(Boolean), off: s.disabled }))")
+
+    def lists():
+        return [c["path"].replace(REPO + "/contents/", "") for c in gh(pg, "S.calls") if c["query"].get("ref") == "pilog"]
+
+    pg.click("#btn-drafts")
+    pg.click("#sheet-drafts [data-open=remote]")
+    wait_js(pg, "document.querySelectorAll('#pk select').length === 2 && !document.querySelector('#pk select:disabled')")
+    lv = levels()
+    check("picker: opens on the current post's path, one level per select",
+          [x["v"] for x in lv] == ["d:toy", "f:10pi.md"] and lists() == ["blogs/posts", "blogs/posts/toy"], repr((lv, lists())))
+    check("picker: dirs first, junk skipped",
+          lv[0]["o"] == ["d:migrated", "d:notes", "d:reference", "d:toy"]
+          and lv[1]["o"] == ["f:10pi.md", "f:osu-lyrics.md"], repr(lv))
+    pg.select_option("#pk select[data-i='0']", "d:notes")
+    wait_js(pg, "document.querySelectorAll('#pk select').length === 2 && document.querySelector('#pk select[data-i=\"1\"]').options.length > 1")
+    pg.select_option("#pk select[data-i='1']", "d:ml")
+    wait_js(pg, "document.querySelectorAll('#pk select').length === 3 && document.querySelector('#pk select[data-i=\"2\"]').options.length > 1")
+    check("picker: nested level appears only after picking its parent", levels()[2]["o"] == ["f:softmax.md"], repr(levels()))
+    pg.select_option("#pk select[data-i='2']", "f:softmax.md")
+    wait_js(pg, "!document.querySelector('.sheet.is-open') && window.__pilogWrite.current().src.path === 'blogs/posts/notes/ml/softmax.md'")
+    d = pg.evaluate("window.__pilogWrite.current()")
+    check("picker: leaf loads through loadRemote", d["category"] == "notes/ml" and d["slug"] == "softmax"
+          and d["src"]["sha"] == "sha-softmax.md", json.dumps(d, ensure_ascii=False)[:200])
+    n = len(gh(pg, "S.calls"))
+    pg.click("#btn-drafts")
+    pg.click("#sheet-drafts [data-open=remote]")
+    wait_js(pg, "document.querySelectorAll('#pk select').length === 3")
+    check("picker: reopening restores the trail from cache, no new requests",
+          [x["v"] for x in levels()] == ["d:notes", "d:ml", "f:softmax.md"] and len(gh(pg, "S.calls")) == n, repr(levels()))
+    pg.select_option("#pk select[data-i='0']", "d:toy")
+    wait_js(pg, "document.querySelectorAll('#pk select').length === 2")
+    pg.select_option("#pk select[data-i='1']", "f:osu-lyrics.md")
+    wait_js(pg, "!document.querySelector('.sheet.is-open') && window.__pilogWrite.current().src.path === 'blogs/posts/toy/osu-lyrics.md'")
+    check("picker: posts → toy → osu-lyrics loads the post", pg.evaluate("window.__pilogWrite.current().slug") == "osu-lyrics")
+
+    pg.click("#btn-drafts")
+    pg.click("#sheet-drafts [data-open=remote]")
+    wait_js(pg, "document.querySelectorAll('#pk select').length === 2")
+    pg.evaluate("window.__gh.offline = true")
+    pg.click("#pk-re")
+    wait_js(pg, "!!document.querySelector('#rm-out .pub-box.is-err [data-rm=relist]')")
+    check("picker: offline refresh → message + retry, token kept", "网络" in pg.inner_text("#rm-out")
+          and "is-bad" not in (pg.get_attribute("#tok-row", "class") or ""), pg.inner_text("#rm-out"))
+    pg.evaluate("window.__gh.offline = false")
+    pg.click("#rm-out [data-rm=relist]")
+    wait_js(pg, "document.querySelectorAll('#pk select').length === 2 && !document.querySelector('#pk select:disabled')")
+    check("picker: retry recovers the trail", [x["v"] for x in levels()] == ["d:toy", "f:osu-lyrics.md"]
+          and pg.inner_text("#rm-out").strip() == "", repr(levels()))
     check("live: no page errors", not errs, "; ".join(errs))
     ctx.close()
 

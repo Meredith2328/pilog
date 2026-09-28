@@ -184,6 +184,18 @@ textarea.inp { resize: vertical; min-height: 96px; }
   flex: 1; min-width: 0; border: 0; outline: none; background: transparent; padding: 0 10px;
   font: 15px/1 var(--mono); color: var(--ink); border-radius: 0;
 }
+.pk { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.pk .affix { min-width: 0; margin-left: calc(var(--d, 0) * 14px); }
+.pk .affix:focus-within { border-color: var(--ink); box-shadow: 3px 3px 0 var(--shadow); }
+.pk .affix.is-set { border-color: var(--ink); }
+.pk select {
+  flex: 1; min-width: 0; border: 0; outline: none; background: transparent; padding: 0 10px; border-radius: 0;
+  font: 15px/1 var(--mono); color: var(--ink); -webkit-appearance: none; appearance: none; cursor: pointer;
+}
+.pk select:disabled { color: var(--mute); cursor: default; }
+.pk .affix span:last-child { padding: 0 12px; pointer-events: none; }
+.pk-re { border: 0; background: none; padding: 0; font: 12px/1.3 var(--mono); color: var(--accent); cursor: pointer; }
+.pk-re:disabled { color: var(--mute); cursor: default; }
 .row { display: flex; gap: 10px; align-items: stretch; }
 .row > .inp { flex: 1; min-width: 0; }
 .row > .pbtn { flex: none; box-shadow: none; }
@@ -797,13 +809,20 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
   <div class="sheet-h"><span id="sh-remote-t">编辑线上文章</span><small>读 pilog 分支</small><button class="x" type="button" data-close aria-label="关闭">×</button></div>
   <div class="sheet-b">
     <div class="fld">
-      <label class="lbl" for="rm-in">文章路径 <small>blogs/posts/…/*.md 或文章网址</small></label>
-      <div class="row">
-        <input class="inp mono" id="rm-in" type="text" placeholder="blogs/posts/toy/10pi.md" autocomplete="off" autocapitalize="none" spellcheck="false" enterkeyhint="go">
-        <button class="pbtn primary" type="button" id="btn-rm-load">载入</button>
-      </div>
+      <div class="lbl"><span>选择文章 <small>pilog / blogs/posts</small></span><button class="pk-re" type="button" id="pk-re">刷新列表</button></div>
+      <div class="pk" id="pk"></div>
     </div>
     <div id="rm-out"></div>
+    <details class="more" id="rm-adv">
+      <summary>高级：粘贴路径或网址</summary>
+      <div class="in">
+        <label class="lbl" for="rm-in" style="margin-top:12px">文章路径 <small>blogs/posts/…/*.md 或文章网址</small></label>
+        <div class="row">
+          <input class="inp mono" id="rm-in" type="text" placeholder="blogs/posts/toy/10pi.md" autocomplete="off" autocapitalize="none" spellcheck="false" enterkeyhint="go">
+          <button class="pbtn primary" type="button" id="btn-rm-load">载入</button>
+        </div>
+      </div>
+    </details>
     <p class="hint">从 <code>pilog</code> 分支读取这篇的最新版本，放进本机稿件原地修改。改完在「导出 → 发布（开 PR）」提交，PR 合并前线上不会变。也可以在博客文章页点「✎ 编辑」直接跳过来。</p>
   </div>
 </section>
@@ -1809,7 +1828,12 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
     saveNow();
     if (name === "export") renderExport();
     if (name === "token") { renderToken(); $("#tok-msg").innerHTML = ""; }
-    if (name === "remote") { $("#rm-out").innerHTML = ""; if (!$("#rm-in").value && cur.src) $("#rm-in").value = cur.src.path; }
+    if (name === "remote") {
+      $("#rm-out").innerHTML = "";
+      if (!$("#rm-in").value && cur.src) $("#rm-in").value = cur.src.path;
+      $("#rm-adv").open = false;
+      if (pk.hold) pkIdle(); else pkStart();
+    }
     if (name === "drafts") renderDrafts();
     if (name === "drafts") syncThemeBtn();
     el.classList.add("is-open");
@@ -1820,6 +1844,7 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
   }
   function hideSheet(fromPop) {
     if (!openSheet) return;
+    pk.pending = false;
     openSheet.classList.remove("is-open");
     $("#scrim").classList.remove("is-on");
     openSheet = null;
@@ -2243,7 +2268,8 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
       else tokMsg("bad", "已保存，但验证失败：" + esc(ghMsg(e)));
     }
     renderToken(); renderPublish();
-    if (tokOk && remote.pending) loadRemote(remote.path);
+    if (tokOk && remote.pending) loadRemote(remote.path, { picked: remote.picked });
+    else if (tokOk && pk.pending) showSheet("remote");
   });
   $("#btn-tok-clear").addEventListener("click", function () {
     tok.clear(); tokBad = ""; tokOk = false;
@@ -2301,8 +2327,10 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
     opts = opts || {};
     if (remote.busy) return null;
     var path = normPath(raw);
-    if (!$("#sheet-remote").classList.contains("is-open")) showSheet("remote");
+    if (!$("#sheet-remote").classList.contains("is-open")) { pk.hold = true; showSheet("remote"); pk.hold = false; }
     $("#rm-in").value = path || String(raw || "");
+    remote.picked = !!opts.picked;
+    if (!opts.picked) $("#rm-adv").open = true;
     if (!path) {
       rmBox("err", "路径无效", "<p>只能编辑 <code>blogs/posts/</code> 下的 <code>.md</code> 文件，例如 <code>blogs/posts/toy/10pi.md</code>，也可以粘贴文章网址。</p>");
       return { ok: false, reason: "invalid" };
@@ -2362,12 +2390,119 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
     if (!b) return;
     var act = b.dataset.rm;
     if (act === "token") showSheet("token");
-    else if (act === "retry") loadRemote(remote.path);
-    else if (act === "fresh") loadRemote(remote.path, { fresh: true, cached: true });
+    else if (act === "retry") loadRemote(remote.path, { picked: remote.picked });
+    else if (act === "relist") pkRetry();
+    else if (act === "fresh") loadRemote(remote.path, { fresh: true, cached: true, picked: remote.picked });
     else if (act === "keep") {
       var d = loadDraft(remote.keep) || linkedDraft(remote.path);
       if (d) useRemote(d, "继续本机稿件");
     }
+  });
+
+  /* cascading picker: lists blogs/posts one directory per level (Contents
+     API on pilog, same token), cached until the page reloads or 刷新列表. */
+  var PK_ROOT = "blogs/posts", PK_SKIP = /^(assets|post-images|images?)$/;
+  var pk = { cache: {}, levels: [], want: "", hold: false, pending: false, run: 0 };
+  function pkList(dir) {
+    if (pk.cache[dir]) return Promise.resolve(pk.cache[dir]);
+    return ghReq("GET", repoApi("/contents/" + encPath(dir) + "?ref=" + GH.base)).then(function (j) {
+      if (!Array.isArray(j)) throw new GhError(422, dir + " 不是目录");
+      var items = j.filter(function (x) {
+        if (!x.name || x.name[0] === ".") return false;
+        return x.type === "dir" ? !PK_SKIP.test(x.name) : x.type === "file" && /\.md$/i.test(x.name);
+      }).map(function (x) { return { name: x.name, dir: x.type === "dir" }; }).sort(function (a, b) {
+        return (b.dir - a.dir) || a.name.localeCompare(b.name);
+      });
+      pk.cache[dir] = items;
+      tokOk = true;
+      return items;
+    });
+  }
+  function pkRender() {
+    $("#pk").innerHTML = pk.levels.map(function (lv, i) {
+      var head = lv.dir.split("/").pop() + "/", opts;
+      if (lv.err) opts = "<option>读取失败</option>";
+      else if (!lv.items) opts = "<option>读取中…</option>";
+      else if (!lv.items.length) opts = "<option>（空）</option>";
+      else {
+        opts = '<option value=""' + (lv.pick ? "" : " selected") + " disabled>选择 · " + lv.items.length + " 项</option>" +
+          lv.items.map(function (x) {
+            var v = (x.dir ? "d:" : "f:") + x.name;
+            return '<option value="' + esc(v) + '"' + (lv.pick === x.name ? " selected" : "") + ">" +
+              esc(x.dir ? x.name + "/" : x.name.replace(/\.md$/i, "")) + "</option>";
+          }).join("");
+      }
+      var live = lv.items && lv.items.length && !lv.err;
+      return '<div class="affix' + (lv.pick ? " is-set" : "") + '" style="--d:' + i + '"><span>' + esc(head) + "</span>" +
+        '<select data-i="' + i + '" aria-label="' + esc(lv.dir.slice(6) + "/") + ' 下的目录或文章"' + (live ? "" : " disabled") + ">" +
+        opts + '</select><span aria-hidden="true">▾</span></div>';
+    }).join("") || (pk.idle ? '<button class="pbtn block" type="button" data-pk="start">从列表选择…</button>' : "");
+    $("#pk-re").disabled = !pk.levels.length || pk.levels.some(function (lv) { return !lv.items && !lv.err; });
+  }
+  function pkOpen(dir) {
+    var run = pk.run, lv = { dir: dir, items: null, pick: "" };
+    pk.levels.push(lv);
+    pkRender();
+    return pkList(dir).then(function (items) {
+      if (run !== pk.run || pk.levels.indexOf(lv) < 0) return;
+      lv.items = items;
+      var rest = pk.want.indexOf(dir + "/") === 0 ? pk.want.slice(dir.length + 1).split("/") : [];
+      var hit = rest.length && items.filter(function (x) { return x.name === rest[0]; })[0];
+      if (hit) { lv.pick = hit.name; if (hit.dir) return pkOpen(dir + "/" + hit.name); }
+      pkRender();
+    }, function (e) {
+      if (run !== pk.run || pk.levels.indexOf(lv) < 0) return;
+      if (!(e instanceof GhError)) e = new GhError(-2, String(e && e.message || e));
+      if (e.status === 401 || (e.status === 403 && !/rate limit/i.test(e.message))) { tokBad = ghMsg(e); renderToken(); renderPublish(); }
+      lv.err = true;
+      pkRender();
+      var msg = e.status === 404 ? "在 " + GH.base + " 分支上找不到目录 " + dir + "（404）。可能令牌没有授权 Meredith2328/pilog。" : ghMsg(e);
+      rmBox("err", "列表读取失败", "<p>" + esc(msg) + "</p>" +
+        rmBtns(tokBad ? ["token", "设置令牌", true] : ["relist", "重试", true], tokBad ? null : ["token", "检查令牌"]));
+    });
+  }
+  function pkStart(want) {
+    pk.run++; pk.idle = false; pk.levels = [];
+    pk.want = want != null ? want : cur && cur.src ? cur.src.path : "";
+    if (!tok.get() || tokBad) {
+      pk.pending = true;
+      pkRender();
+      rmBox("warn", "需要令牌", "<p>列出 <code>blogs/posts/</code> 下的文章要用你在这台设备上设置的 GitHub 令牌（与发布同一个）。设置好后会回到这里。</p>" +
+        rmBtns(["token", "设置令牌", true]));
+      return;
+    }
+    pk.pending = false;
+    pkOpen(PK_ROOT);
+  }
+  function pkIdle() { pk.run++; pk.levels = []; pk.idle = true; pkRender(); }
+  function pkRetry() {
+    var bad = pk.levels.filter(function (lv) { return lv.err; })[0];
+    if (!bad) { pkStart(); return; }
+    $("#rm-out").innerHTML = "";
+    pk.levels = pk.levels.slice(0, pk.levels.indexOf(bad));
+    pk.run++;
+    pkOpen(bad.dir);
+  }
+  $("#pk").addEventListener("change", function (e) {
+    var sel = e.target.closest("select");
+    if (!sel || !sel.value) return;
+    var i = +sel.dataset.i, lv = pk.levels[i], name = sel.value.slice(2);
+    pk.run++;
+    pk.want = "";
+    pk.levels = pk.levels.slice(0, i + 1);
+    lv.pick = name;
+    $("#rm-out").innerHTML = "";
+    if (sel.value[0] === "d") pkOpen(lv.dir + "/" + name);
+    else { pkRender(); loadRemote(lv.dir + "/" + name, { picked: true }); }
+  });
+  $("#pk").addEventListener("click", function (e) {
+    if (e.target.closest("[data-pk=start]")) { $("#rm-out").innerHTML = ""; pkStart(); }
+  });
+  $("#pk-re").addEventListener("click", function () {
+    var picked = pk.levels.filter(function (lv) { return lv.pick; }).pop();
+    pk.cache = {};
+    $("#rm-out").innerHTML = "";
+    pkStart(picked ? picked.dir + "/" + picked.pick : "");
   });
 
   /* ================= drafts ================= */
