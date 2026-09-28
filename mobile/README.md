@@ -107,6 +107,12 @@ encryption, lock and unlock, wrong password, and move into the vault. Set
 
 ## Changelog
 
+### 0.2.1
+
+- 编辑线上文章 picks posts from cascading folder dropdowns (paste path moved to
+  高级). Without a token it lists the blog's published posts; with a token, the
+  full `blogs/posts` tree on `pilog`. The tree is fetched once per open/refresh.
+
 ### 0.2.0
 
 - Native look and feel:
