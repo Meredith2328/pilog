@@ -7,6 +7,8 @@ read back correctly by pilog's own parser."""
 from __future__ import annotations
 
 import base64
+import functools
+import http.server
 import json
 import pathlib
 import shutil
@@ -73,7 +75,7 @@ GH_MOCK = r"""
   const real = window.fetch.bind(window);
   const S = window.__gh = { calls: [], fail: [], offline: false, n: 0, pulls: [],
     repo: { full_name: "Meredith2328/pilog", permissions: { admin: true, push: true, pull: true } },
-    refs: { pilog: "base000" }, files: {} };
+    refs: { pilog: "base000" }, files: JSON.parse(sessionStorage.getItem("__ghfiles") || "{}") };
   const out = (status, body) => Promise.resolve(new Response(body == null ? "" : JSON.stringify(body),
     { status, headers: { "Content-Type": "application/json" } }));
   window.fetch = function (url, init) {
@@ -339,6 +341,222 @@ def publish_checks(b) -> None:
     ctx.close()
 
 
+LIVE_PATH = "blogs/posts/toy/10pi.md"
+
+
+def wait_js(pg, expr: str, timeout_ms: int = 5000) -> None:
+    """wait_for_function polls via eval, which the writer's CSP forbids."""
+    for _ in range(timeout_ms // 50):
+        if pg.evaluate(expr):
+            return
+        pg.wait_for_timeout(50)
+    raise AssertionError("timed out waiting for: " + expr)
+
+
+def b64(text: str) -> str:
+    return base64.b64encode(text.encode("utf-8")).decode("ascii")
+
+
+def build_checks() -> pathlib.Path:
+    """Build the real site into TMP and check what GitHub Pages will serve."""
+    import re
+
+    import build
+
+    site = TMP / "site"
+    build.build_site(config_path=ROOT / "config.json", out_dir=str(site))
+    src = WRITE.read_text(encoding="utf-8")
+    check("build: writer shipped at /write/ and /tools/write.html",
+          (site / "write/index.html").read_text(encoding="utf-8") == src
+          and (site / "tools/write.html").read_text(encoding="utf-8") == src)
+    check("build: writer pages stay out of the sitemap",
+          "write" not in (site / "sitemap.xml").read_text(encoding="utf-8").replace("overwrite", ""))
+    for page, want in (("index.html", "write/index.html"), ("posts/toy/10pi.html", "../../write/index.html")):
+        html = (site / page).read_text(encoding="utf-8")
+        nav = re.search(r'<nav class="site-nav".*?</nav>', html, re.S)
+        check(f"build: nav links to the writer ({page})",
+              bool(nav) and f'href="{want}">写作</a>' in nav.group(0), nav and nav.group(0)[-400:])
+    post = (site / "posts/toy/10pi.html").read_text(encoding="utf-8")
+    check("build: post page has an edit link into the writer",
+          'class="post-edit" href="../../write/index.html?path=blogs/posts/toy/10pi.md"' in post,
+          re.search(r'<a class="post-edit"[^>]*>', post))
+    alt = TMP / "alt"
+    build.ship_writer(ROOT, alt, "/sub")
+    check("build: base_path rewrites the writer's root-absolute css",
+          'href="/sub/css/fonts.css"' in (alt / "write/index.html").read_text(encoding="utf-8"))
+    return site
+
+
+def round_trip_checks(pg) -> None:
+    files = [(p.relative_to(ROOT).as_posix(), p.read_text(encoding="utf-8"))
+             for p in sorted((ROOT / "blogs/posts").rglob("*.md"))]
+    bad = pg.evaluate("""fs => { const w = window.__pilogWrite;
+        return fs.filter(([p, t]) => { const d = w.fromRemote(t, p, 'x');
+          return w.buildOf(d) !== t || w.pathOf(d) !== p; }).map(x => x[0]); }""", files)
+    check(f"live: all {len(files)} repo posts rebuild byte-for-byte after load", not bad, repr(bad[:5]))
+
+    src = (ROOT / LIVE_PATH).read_text(encoding="utf-8")
+    head = src[: src.index("\n---\n", 4) + 5]
+    out = pg.evaluate("""([p, t]) => { const w = window.__pilogWrite, d = w.fromRemote(t, p, 'x');
+        d.body = d.body.replace(/\\s+$/, '') + '\\n\\n新增一段。';
+        const body = w.buildOf(d); d.tags = d.tags.concat(['新标签']); return [body, w.buildOf(d)]; }""", [LIVE_PATH, src])
+    check("live: body edit keeps original front matter bytes",
+          out[0].startswith(head) and out[0].endswith("新增一段。\n") and out[0][len(head):].startswith(src[len(head):].rstrip()),
+          out[0][:200])
+    fm, _ = split_front_matter(out[1])
+    orig, _ = split_front_matter(src)
+    check("live: field edit regenerates front matter pilog can parse",
+          fm.get("tags") == orig["tags"] + ["新标签"] and fm.get("title") == orig["title"]
+          and fm.get("feature") == orig["feature"] and fm.get("published") is True, repr(fm))
+
+    norm = pg.evaluate("""xs => xs.map(x => window.__pilogWrite.normPath(x))""", [
+        "posts/toy/10pi.html", "https://meredith2328.github.io/posts/toy/10pi.html?x=1#top", "/blogs/posts/toy/10pi.md",
+        "blogs%2Fposts%2Ftoy%2F10pi.md", "blogs/posts/../../.github/workflows/deploy.yml", "blogs/posts/toy/.x.md",
+        "README.md", "blogs/posts//a.md", "blogs/assets/x.md", "blogs/posts/toy/10pi.txt"])
+    check("live: ?path= accepts repo paths / post URLs, rejects anything else",
+          norm[:4] == [LIVE_PATH] * 4 and norm[4:] == [""] * 6, repr(norm))
+
+
+def live_edit_checks(b, base_url: str) -> None:
+    src = (ROOT / LIVE_PATH).read_text(encoding="utf-8")
+    orig, orig_body = split_front_matter(src)
+    ctx = b.new_context(viewport={"width": 412, "height": 860}, is_mobile=True, has_touch=True)
+    ctx.add_init_script(GH_MOCK)
+    pg = ctx.new_page()
+    block_external(pg)
+    errs = []
+    pg.on("pageerror", lambda e: errs.append(str(e)))
+
+    def open_write(query=""):
+        pg.goto(f"{base_url}/write/{query}", wait_until="domcontentloaded")
+        pg.wait_for_function("!!window.__pilogWrite")
+
+    def seed(content: str, sha: str):
+        # sessionStorage copy survives the navigations below (the mock re-inits per page)
+        pg.evaluate("([c, s]) => { const f = { content: c, sha: s }; window.__gh.files['pilog|" + LIVE_PATH + "'] = f;"
+                    " sessionStorage.setItem('__ghfiles', JSON.stringify({ 'pilog|" + LIVE_PATH + "': f })); }",
+                    [b64(content), sha])
+
+    open_write()
+    check("pages: built /write/ serves the writer", pg.title().startswith("pilog")
+          and pg.get_attribute("#brand", "href") == "../", pg.title())
+    round_trip_checks(pg)
+
+    # ---- ?path= without a token: ask for one, touch nothing ----
+    open_write("?path=" + LIVE_PATH)
+    wait_js(pg, "!!document.querySelector('#sheet-remote.is-open #rm-out .pub-box.is-warn')")
+    check("live: without token asks for one, no GitHub request",
+          "需要令牌" in pg.inner_text("#rm-out") and gh(pg, "S.calls.length") == 0
+          and pg.input_value("#rm-in") == LIVE_PATH, pg.inner_text("#rm-out"))
+    check("live: ?path= is dropped from the address bar", "path=" not in pg.url, pg.url)
+    seed(src, "sha-v1")
+    pg.click("#rm-out [data-rm=token]")
+    pg.fill("#tok-in", FAKE_TOKEN)
+    pg.click("#btn-tok-save")
+    wait_js(pg, "window.__pilogWrite.current().src && !document.querySelector('.sheet.is-open')")
+    d = pg.evaluate("window.__pilogWrite.current()")
+    load = gh(pg, "S.calls.find(c => c.path.includes('/contents/'))")
+    check("live: saving the token resumes the load via Contents API on pilog",
+          load["method"] == "GET" and load["path"] == f"{REPO}/contents/{LIVE_PATH}" and load["query"] == {"ref": "pilog"}
+          and load["auth"] == "Bearer " + FAKE_TOKEN and load["credentials"] == "omit", repr(load))
+    check("live: loaded post fills the editor",
+          d["title"] == orig["title"] and d["category"] == "toy" and d["slug"] == "10pi" and d["tags"] == orig["tags"]
+          and pg.input_value("#f-body").strip() == orig_body.strip() and d["src"]["sha"] == "sha-v1"
+          and pg.evaluate("document.querySelector('#app').dataset.view") == "write"
+          and "线上" in pg.inner_text("#doc-path"), json.dumps(d, ensure_ascii=False)[:300])
+    check("live: unchanged load rebuilds the exact file", pg.evaluate("window.__pilogWrite.build()") == src)
+
+    # ---- edit in place → PR updating the existing file ----
+    pg.fill("#f-body", pg.input_value("#f-body").rstrip() + "\n\n手机上补的一段。\n")
+    pg.wait_for_timeout(500)
+    pg.evaluate("window.__gh.calls = []")
+    pg.click(".cta")
+    pg.click("#btn-publish")
+    wait_js(pg, "!!document.querySelector('#pub-out .pub-box.is-ok')")
+    calls = gh(pg, "S.calls")
+    sig = [(c["method"], c["path"].replace(REPO, "")) for c in calls]
+    br = pg.evaluate("window.__pilogWrite.plan().branch")
+    day = pg.evaluate("window.__pilogWrite.current().src.day")
+    want = [("GET", ""), ("GET", "/contents/" + LIVE_PATH), ("GET", "/git/ref/heads/" + br), ("GET", "/git/ref/heads/pilog"),
+            ("POST", "/git/refs"), ("GET", "/contents/" + LIVE_PATH), ("PUT", "/contents/" + LIVE_PATH),
+            ("GET", "/pulls"), ("POST", "/pulls")]
+    check("live publish: no overwrite prompt, straight to branch → PR", sig == want and br == f"write/{day}-edit-10pi", repr((br, sig)))
+    put = next(c for c in calls if c["method"] == "PUT")
+    sent = base64.b64decode(put["body"]["content"]).decode("utf-8")
+    head = src[: src.index("\n---\n", 4) + 5]
+    check("live publish: commits on write/ branch with the pilog blob sha",
+          put["body"]["branch"] == br and put["body"]["sha"] == "sha-v1", repr(put["body"])[:200])
+    check("live publish: diff is just the edit", sent == src.rstrip("\n") + "\n\n手机上补的一段。\n" and sent.startswith(head), sent[-120:])
+    pr = gh(pg, "S.pulls[S.pulls.length - 1]")
+    check("live publish: PR into pilog titled as update, says manual merge",
+          pr["base"] == "pilog" and pr["head"] == br and pr["title"] == "更新文章：" + orig["title"]
+          and "修改已有文章" in pr["body"] and "手动合并" in pr["body"] and "sha-v1" in pr["body"], repr(pr)[:300])
+    check("live publish: never merges, pilog untouched",
+          not any("/merge" in c["path"] or (c["body"] or {}).get("branch") == "pilog" for c in calls)
+          and gh(pg, "S.refs.pilog") == "base000" and gh(pg, "S.files['pilog|" + LIVE_PATH + "'].sha") == "sha-v1")
+
+    # ---- pilog moved on after load → warn before replacing it ----
+    newer = src.replace("顾名思义", "（别人改过）顾名思义", 1)
+    seed(newer, "sha-v2")
+    r = pg.evaluate("window.__pilogWrite.publish()")
+    check("live publish: stale base is flagged before any write",
+          r["reason"] == "stale" and "线上版本已变" in pg.inner_text("#pub-out")
+          and pg.locator("#pub-out [data-pub=reload]").count() == 1, repr(r))
+    pg.click("#pub-out [data-pub=overwrite]")
+    wait_js(pg, "!!document.querySelector('#pub-out [data-pub=update]')")
+    pg.click("#pub-out [data-pub=update]")
+    wait_js(pg, "!!document.querySelector('#pub-out .pub-box.is-ok')")
+    check("live publish: confirmed overwrite updates the same PR", gh(pg, "S.pulls.length") == 1, gh(pg, "S.pulls.length"))
+
+    # ---- reopening ?path= with local edits and a newer pilog → ask ----
+    n0 = pg.evaluate("JSON.parse(localStorage.getItem('pilog.write.index')).ids.length")
+    open_write("?path=" + LIVE_PATH)
+    wait_js(pg, "!!document.querySelector('#rm-out [data-rm=fresh]')")
+    check("live: local edits + newer pilog → asks keep / load latest", "两边都有改动" in pg.inner_text("#rm-out"))
+    pg.click("#rm-out [data-rm=fresh]")
+    wait_js(pg, "window.__pilogWrite.current().src.sha === 'sha-v2'")
+    n1 = pg.evaluate("JSON.parse(localStorage.getItem('pilog.write.index')).ids.length")
+    check("live: latest loads as a separate draft, local edits kept",
+          n1 == n0 + 1 and "（别人改过）" in pg.input_value("#f-body")
+          and pg.evaluate("Object.keys(localStorage).filter(k => k.startsWith('pilog.write.d.'))"
+                          ".map(k => localStorage.getItem(k)).some(v => v.includes('手机上补的一段'))"), (n0, n1))
+    open_write("?path=" + LIVE_PATH)
+    wait_js(pg, "!document.querySelector('.sheet.is-open') && window.__pilogWrite.current().src")
+    check("live: reopening an untouched loaded post reuses its draft",
+          pg.evaluate("JSON.parse(localStorage.getItem('pilog.write.index')).ids.length") == n1
+          and pg.evaluate("window.__pilogWrite.current().src.sha") == "sha-v2")
+
+    # ---- errors ----
+    open_write("?path=blogs/posts/toy/nope.md")
+    wait_js(pg, "!!document.querySelector('#rm-out .pub-box.is-err [data-rm=retry]')")
+    check("live: missing file → 404 message with retry", "找不到" in pg.inner_text("#rm-out"), pg.inner_text("#rm-out"))
+    pg.evaluate("window.__gh.calls = []")
+    open_write("?path=../../.github/workflows/deploy.yml")
+    wait_js(pg, "!!document.querySelector('#rm-out .pub-box.is-err')")
+    check("live: unsafe ?path= refused without a request",
+          "路径无效" in pg.inner_text("#rm-out") and gh(pg, "S.calls.length") == 0)
+    pg.evaluate("window.__gh.fail = [{ sig: 'GET " + REPO + "/contents', status: 401, message: 'Bad credentials' }]")
+    pg.fill("#rm-in", LIVE_PATH)
+    pg.click("#btn-rm-load")
+    wait_js(pg, "!!document.querySelector('#rm-out .pub-box.is-err [data-rm=token]')")
+    check("live: 401 while loading locks the token", "401" in pg.inner_text("#rm-out")
+          and "is-bad" in (pg.get_attribute("#tok-row", "class") or ""))
+
+    # ---- in-app entry point ----
+    pg.evaluate("window.__gh.fail = []")
+    pg.click("#sheet-remote [data-close]")
+    pg.wait_for_timeout(250)
+    pg.click("#btn-drafts")
+    pg.click("#sheet-drafts [data-open=remote]")
+    pg.fill("#rm-in", "posts/toy/10pi.html")
+    pg.click("#btn-rm-load")
+    wait_js(pg, "!!document.querySelector('#rm-out .pub-box.is-warn [data-rm=token]')")
+    check("live: drafts sheet entry reaches the same loader (token still locked)",
+          pg.input_value("#rm-in") == LIVE_PATH and "需要令牌" in pg.inner_text("#rm-out"))
+    check("live: no page errors", not errs, "; ".join(errs))
+    ctx.close()
+
+
 def static_security_checks() -> None:
     html = WRITE.read_text(encoding="utf-8")
     import re
@@ -447,6 +665,8 @@ def main() -> None:
         pg.wait_for_timeout(300)
         n = pg.evaluate("JSON.parse(localStorage.getItem('pilog.write.index')).ids.length")
         check("new draft adds to the list", n == 2, n)
+        check("new draft is written to storage right away",
+              pg.evaluate("!!localStorage.getItem('pilog.write.d.' + window.__pilogWrite.current().id)"))
         pg.click("#btn-drafts")
         pg.click("#draft-list .drow:not(.is-active) [data-act=open]")
         pg.wait_for_timeout(200)
@@ -456,6 +676,20 @@ def main() -> None:
 
         check("no page errors", not errs, "; ".join(errs))
         publish_checks(b)
+
+        # plain static server over the build output = what GitHub Pages serves
+        site = build_checks()
+        class Quiet(http.server.SimpleHTTPRequestHandler):
+            def log_message(self, *a):
+                pass
+
+        handler = functools.partial(Quiet, directory=str(site))
+        pages = http.server.ThreadingHTTPServer(("127.0.0.1", PORT + 1), handler)
+        threading.Thread(target=pages.serve_forever, daemon=True).start()
+        try:
+            live_edit_checks(b, f"http://127.0.0.1:{PORT + 1}")
+        finally:
+            pages.shutdown()
         static_security_checks()
         b.close()
     shutil.rmtree(TMP, ignore_errors=True)

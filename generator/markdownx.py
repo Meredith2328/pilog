@@ -477,6 +477,9 @@ def _rewrite_href(href: str, src_file: Path, page_url: str,
     if cleaned.startswith("dino/") or cleaned == "dino":
         if cleaned in ("dino", "dino/", "dino/index.html"):
             return rel_output(page_url, "dino/index.html") + anchor
+    # mobile writer (tools/write.html shipped by build.ship_writer)
+    if cleaned in ("write", "write/", "write/index.html"):
+        return rel_output(page_url, "write/index.html") + anchor
 
     if path_part.endswith("/"):
         for cand in candidates:
