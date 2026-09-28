@@ -1,0 +1,43 @@
+/* pilog write — Android-only additions; reuses write.html's tokens and classes. */
+/* longhands for WebViews older than Chrome 87 (no `inset`), e.g. un-updated Android 8–10 */
+.view, .scrim { top: 0; right: 0; bottom: 0; left: 0; }
+
+/* vault space: nothing of the editor is shown until the gate is passed */
+html.is-locked #app { visibility: hidden; }
+
+.vgate {
+  position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 100; display: flex; overflow-y: auto;
+  padding: calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 16px);
+  background: var(--paper);
+}
+.vgate-in { width: 100%; max-width: 420px; margin: auto; }
+.vgate-brand { display: flex; align-items: center; gap: 9px; margin: 0 0 16px 2px; color: var(--ink); }
+.vgate-brand .pix { width: 26px; height: 24px; }
+.vgate-brand .brand-t { background: var(--accent); }
+.vgate-box {
+  padding: 20px; background: var(--paper);
+  border: 2px solid var(--ink); box-shadow: 6px 6px 0 var(--shadow);
+}
+.vgate-h {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 18px;
+  font: 700 13px/1 var(--mono); letter-spacing: .14em;
+}
+.vgate-h small { margin-left: auto; font: 11px/1 var(--mono); letter-spacing: 0; color: var(--mute); }
+.vgate-lock, .vlock::before {
+  content: ""; display: inline-block; width: 12px; height: 14px; flex: none;
+  background: linear-gradient(var(--ink), var(--ink)) 0 6px / 12px 8px no-repeat,
+    linear-gradient(var(--ink), var(--ink)) 2px 0 / 2px 6px no-repeat,
+    linear-gradient(var(--ink), var(--ink)) 8px 0 / 2px 6px no-repeat,
+    linear-gradient(var(--ink), var(--ink)) 2px 0 / 8px 2px no-repeat;
+}
+.vgate .note { margin: 16px 0 0; }
+.vg-msg { min-height: 20px; margin: -4px 0 12px; font: 12px/1.4 var(--mono); color: var(--mute); }
+.vg-msg.is-bad { color: var(--danger); }
+.vgate .pbtn:disabled { opacity: .55; }
+.vlock:active::before {
+  background: linear-gradient(var(--paper), var(--paper)) 0 6px / 12px 8px no-repeat,
+    linear-gradient(var(--paper), var(--paper)) 2px 0 / 2px 6px no-repeat,
+    linear-gradient(var(--paper), var(--paper)) 8px 0 / 2px 6px no-repeat,
+    linear-gradient(var(--paper), var(--paper)) 2px 0 / 8px 2px no-repeat;
+}
+html.is-vault .bar .brand-t { background: var(--accent); }
