@@ -15,9 +15,9 @@ mobile/
 └── android/                # Capacitor native project (+ PilogSecurePlugin.java)
 ```
 
-## Build the debug APK
+## Build the APK
 
-Requirements: Node 22+, JDK 21, and an Android SDK with platform 36 and build-tools 36.
+Requirements: Node 22+, JDK 21, and an Android SDK with platform 36 and build-tools 35.
 Android Studio installs all of these.
 
 ```bash
@@ -29,15 +29,32 @@ npm run apk
 ```
 
 `npm run apk` rebuilds `www/` from the current `tools/write.html`, runs
-`cap sync`, then runs `./gradlew assembleRelease`. The release build is
-shrunk with R8 and resource shrinking, and is signed with the local debug key
-so it installs directly. `npm run apk:debug` builds an unshrunk, inspectable
+`cap sync`, then runs the platform's Gradle wrapper with `:app:assembleRelease`. The release build is
+shrunk with R8 and resource shrinking, and uses the fixed signing key described
+below. `npm run apk:debug` builds an unshrunk, inspectable
 `apk/debug/app-debug.apk` (about 4 MB) for `chrome://inspect`. If you use
 Android Studio, run `npm run sync` and then open `mobile/android`.
 
 `www/` is generated and gitignored; there is no copy of the write UI under
 `mobile/`. Any change to `tools/write.html` reaches the app the next time you run
 `npm run apk` or `npm run sync`, and an installed APK keeps the version it was built with.
+
+## Signing and GitHub builds
+
+Local builds use `~/.android/debug.keystore`, or the file specified by
+`PILOG_ANDROID_KEYSTORE`. Both release and debug APKs use that same file.
+The key alias and passwords are `androiddebugkey` and `android`.
+Gradle verifies its certificate against `signing-certificate.sha256` before
+building. A missing key or a different certificate stops the build.
+
+To build on another computer, copy the existing keystore there and use it via
+the same path or `PILOG_ANDROID_KEYSTORE`.
+
+The `Build Android APK` GitHub Actions workflow builds on changes to the mobile
+app, write page, or bundled fonts. It restores the same keystore from the
+repository secret `PILOG_ANDROID_KEYSTORE_BASE64`, verifies the signature, and
+uploads the APK as the `pilog-write-apk` artifact. Download it from the run's
+Artifacts section. The artifact is retained for 90 days.
 
 ## Install
 
@@ -52,9 +69,9 @@ updates it automatically). On a device whose WebView was never updated, for
 example Chrome 74 on a stock Android 10 image, everything still works, but
 parts of write.html's layout (`min()`/`max()` padding, flex `gap`) degrade.
 On Android 8–10, the first save asks for storage permission so the app can
-write to `Documents/`. Both APKs are signed with the local debug key, so an APK built on a
-different machine won't install over it. Uninstall the old one first, after
-exporting your notes.
+write to `Documents/`. APKs built with the fixed key can update each other on
+the same device. When switching from an APK signed with a different key,
+export all notes, uninstall that version, and install the fixed-key APK.
 
 ## Using it
 
@@ -106,6 +123,11 @@ encryption, lock and unlock, wrong password, and move into the vault. Set
 `npm run smoke` rebuilds `www/` and runs the smoke test.
 
 ## Changelog
+
+### 0.2.2
+
+- Press Back once for an exit prompt, then again within two seconds to exit.
+- Local builds and GitHub Actions use the same verified signing key.
 
 ### 0.2.1
 

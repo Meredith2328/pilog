@@ -1,13 +1,13 @@
 {
   "name": "pilog-write-android",
   "private": true,
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Capacitor Android shell around pilog's tools/write.html",
   "scripts": {
     "web": "node scripts/build-web.mjs",
     "sync": "node scripts/build-web.mjs && cap sync android",
-    "apk": "npm run sync && cd android && ./gradlew assembleRelease",
-    "apk:debug": "npm run sync && cd android && ./gradlew assembleDebug",
+    "apk": "npm run sync && node scripts/build-apk.mjs release",
+    "apk:debug": "npm run sync && node scripts/build-apk.mjs debug",
     "smoke": "node scripts/build-web.mjs && node scripts/smoke.mjs"
   },
   "dependencies": {

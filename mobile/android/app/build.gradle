@@ -1,5 +1,21 @@
 apply plugin: 'com.android.application'
 
+def pilogKeystore = file(System.getenv('PILOG_ANDROID_KEYSTORE') ?: "${System.getProperty('user.home')}/.android/debug.keystore")
+if (!pilogKeystore.isFile()) {
+    throw new GradleException("签名密钥文件不存在：${pilogKeystore}")
+}
+def pilogKeys = java.security.KeyStore.getInstance(pilogKeystore, 'android'.toCharArray())
+if (!pilogKeys.isKeyEntry('androiddebugkey')) {
+    throw new GradleException('签名密钥缺少 androiddebugkey 私钥')
+}
+def pilogCertificate = pilogKeys.getCertificate('androiddebugkey')
+def pilogFingerprint = java.security.MessageDigest.getInstance('SHA-256')
+    .digest(pilogCertificate.encoded).encodeHex().toString()
+def expectedFingerprint = file('../../signing-certificate.sha256').text.trim()
+if (pilogFingerprint != expectedFingerprint) {
+    throw new GradleException("签名证书指纹不一致：${pilogFingerprint}")
+}
+
 android {
     namespace = "io.github.meredith2328.pilogwrite"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +23,8 @@ android {
         applicationId "io.github.meredith2328.pilogwrite"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 3
-        versionName "0.2.1"
+        versionCode 4
+        versionName "0.2.2"
         // UI copy is Chinese; drop the ~80 AppCompat translations nobody sees
         androidResources.localeFilters += ["en", "zh"]
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -18,10 +34,17 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        debug {
+            storeFile pilogKeystore
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+    }
     buildTypes {
         release {
             // R8 + resource shrinking keep the APK small and cold start fast.
-            // Signed with the local debug key so it installs directly; use a real key for store builds.
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
