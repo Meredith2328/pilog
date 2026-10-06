@@ -99,6 +99,20 @@ def main():
                 assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth')
                 print('通过：自定义文件名有效，清空后恢复该稿件原来的默认文件名。')
 
+                day = page.locator('#f-date').input_value()
+                imported_name = 'post-' + day.replace('-', '') + '-000000.md'
+                imported_file = OUT / imported_name
+                imported_file.write_text(f'---\ntitle: 导入稿件\ndate: {day}\n---\n\n导入内容\n', encoding='utf-8')
+                page.locator('#file-in').set_input_files(imported_file)
+                expect(page.locator('#f-body')).to_have_value('导入内容\n')
+                assert Path(current_path(page)).name == imported_name
+                page.locator('#btn-drafts').click()
+                page.locator('#btn-new').click()
+                page.locator('#f-body').fill('导入后的新稿件')
+                expect(page.locator('#save-t')).to_have_text('已保存')
+                assert Path(current_path(page)).name != imported_name
+                print('通过：导入稿件保留文件名，新稿件使用独立编号。')
+
                 page.locator('#btn-drafts').click()
                 page.locator('#sheet-drafts [data-open="remote"]').click()
                 expect(page.locator('#pk select').first).to_be_enabled(timeout=60000)
