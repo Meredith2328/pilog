@@ -458,7 +458,7 @@
     var web = $("ol", help);
     var ol = el("<ol>" +
       "<li><b>稿件就是 .md 文件</b><p>普通稿件随写随存，同时同步到 <code>Documents/pilog/posts/分类/文件名.md</code>，带 pilog 的 front matter。在「信息」里改分类或文件名就是重命名；在「稿件」里删除会一并删掉文件。</p></li>" +
-      "<li><b>打开已有文件</b><p>「稿件 → 导入 .md」选择手机里的文件；「编辑线上文章」从 <code>pilog</code> 分支载入已发布的文章。</p></li>" +
+      "<li><b>打开已有文件</b><p>「稿件 → 导入 .md」选择手机里的文件；「编辑线上文章」通过下拉菜单依次选择目录和文章，从 <code>pilog</code> 分支载入原文。</p></li>" +
       "<li><b>私密库</b><p>「稿件 → 进入私密库」，第一次设置密码。内容只以加密形式存在 App 私有目录，不生成 .md 文件；右上角锁形按钮立即上锁，离开 App 1 分钟也会自动上锁。解锁后可开启指纹解锁、修改密码，或把普通稿件移入。</p></li>" +
       "<li><b>开 PR 到 pilog</b><p>「稿件 → GitHub 令牌」粘贴只授权 <code>Meredith2328/pilog</code> 的 fine-grained token（Contents 与 Pull requests 读写），令牌由 Android Keystore 加密保存。之后「导出 → 发布（开 PR）」会新建 <code>write/日期-文件名</code> 分支并开 PR 到 <code>pilog</code>，在 GitHub 上审阅后手动合并。</p></li>" +
       "<li><b>导出与电脑同步</b><p>「导出 → 分享 / 导出 .md」走系统分享。USB 连电脑，把 <code>Documents/pilog/posts/</code> 拷进仓库的 <code>blogs/posts/</code> 即可。</p></li>" +

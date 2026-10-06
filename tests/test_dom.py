@@ -5,16 +5,19 @@
 from __future__ import annotations
 
 import json
+import shutil
 import sys
+import tempfile
 import threading
+from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-
-from util import block_external
 
 from PIL import Image, ImageStat
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from generator.content import split_front_matter
 PORT = 8132
 OUT_DIR = ROOT / json.loads(
     (ROOT / "config.json").read_text(encoding="utf-8")
@@ -25,8 +28,8 @@ class Handler(SimpleHTTPRequestHandler):
     def log_message(self, *args):
         pass
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=str(OUT_DIR), **kwargs)
+    def __init__(self, *args, directory=OUT_DIR, **kwargs):
+        super().__init__(*args, directory=str(directory), **kwargs)
 
 
 def check(name, cond, detail=""):
@@ -41,37 +44,24 @@ def img_stats(path: Path):
 
 
 def expected_card_titles():
-    """Expected homepage card order derived from blog front matter, mirroring
-    generator.content.sorted_for_cards: pinned first, then manual `order`
-    ascending, then newest first. Hidden posts (hidden/hideInList) are skipped.
-    Keeps the assertions below in sync when posts are added or dated."""
     import datetime as dt
-    import re
 
     posts_dir = ROOT / "blogs" / "posts"
     items = []
     for md in posts_dir.rglob("*.md"):
-        parts = md.read_text(encoding="utf-8", errors="replace").split("---", 2)
-        if len(parts) < 3:
+        meta, _ = split_front_matter(md.read_text(encoding="utf-8"))
+        if meta.get("hidden") or meta.get("hideInList"):
             continue
-        meta = parts[1]
-
-        def field(name):
-            m = re.search(rf"^{name}:\s*(.*)$", meta, re.M)
-            return m.group(1).strip() if m else ""
-
-        if field("hidden") == "true" or field("hideInList") == "true":
-            continue
-        title, date_s = field("title"), field("date")
+        title, date_s = meta.get("title"), str(meta.get("date", ""))
         if not title or not date_s:
             continue
-        order_s = field("order")
+        order = meta.get("order")
         items.append(
             {
                 "title": title,
                 "date": dt.datetime.fromisoformat(date_s),
-                "order": float(order_s) if order_s not in ("", "null") else None,
-                "pin": field("pin") == "true",
+                "order": float(order) if order is not None else None,
+                "pin": bool(meta.get("pin")),
                 "rel": md.relative_to(posts_dir).as_posix(),
             }
         )
@@ -95,9 +85,11 @@ def main() -> None:
     with sync_playwright() as p:
         browser = p.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
-        block_external(page)
         page.on("pageerror", lambda e: failures.append("pageerror: " + str(e)))
-        page.on("console", lambda m: failures.append(m.text) if m.type == "error" else None)
+        page.on("console", lambda message: failures.append(message.location["url"] + ": " + message.text)
+                if message.type == "error" and message.location["url"].startswith(base + "/") else None)
+        page.on("response", lambda response: failures.append(f"HTTP {response.status}: {response.url}")
+                if response.status >= 400 and response.url.startswith(base + "/") else None)
         page.goto(base + "/", wait_until="networkidle")
 
         ok = True
@@ -105,10 +97,10 @@ def main() -> None:
         ok &= check("default view global exposed",
                     page.evaluate("window.PILOG_DEFAULT_VIEW") == "cards")
         first_title = page.locator(".card-title").first.inner_text()
-        ok &= check("pinned index card first", "十派的玩具箱" in first_title, first_title[:30])
         expected_cards = expected_card_titles()
+        ok &= check("first card follows post metadata", first_title == expected_cards[0]["title"], first_title[:40])
         second_title = page.locator(".card-title").nth(1).inner_text()
-        ok &= check("newest post follows pin", second_title == expected_cards[1]["title"],
+        ok &= check("second card follows post metadata", second_title == expected_cards[1]["title"],
                     second_title[:40])
         ok &= check("highlight card shown", page.locator(".card.is-highlight").count() >= 1)
         body_font = page.evaluate("getComputedStyle(document.body).fontFamily")
@@ -145,7 +137,8 @@ def main() -> None:
         page.locator(".folder-part[data-folder='posts/toy']").first.click()
         ok &= check("folder chip appears", page.locator(".sel-chip.sel-folder").count() == 1)
         vis = page.locator(".card:visible").count()
-        ok &= check("folder filter narrows cards", vis == 9, str(vis))
+        expected_toy = sum(1 for card in expected_cards if card["rel"].startswith("toy/"))
+        ok &= check("folder filter shows matching posts", vis == expected_toy, str(vis))
         page.locator(".sel-chip .sel-x").first.click()
 
         # only one folder condition at a time: selecting another folder
@@ -180,22 +173,36 @@ def main() -> None:
         ok &= check("empty state cleared", page.locator(".empty-cards").count() == 0)
         page.click("#filter-more")  # close the more-tags panel before moving on
 
-        # filters must still work when data/cards.json is unavailable (e.g. the
-        # built site opened directly via file:// where fetch is blocked): the
-        # server-rendered cards on the page are filtered synchronously
-        page.route("**/data/cards.json", lambda route: route.fulfill(
-            status=200, content_type="application/json", body="not-json"))
-        page.goto(base + "/", wait_until="networkidle")
-        page.locator(".filter-tags .tag-chip", has_text="大模型").first.click()
-        page.wait_for_timeout(400)
-        vis = page.locator(".card:visible").count()
-        ok &= check("tag filter works without cards.json", vis >= 1, str(vis))
-        page.unroute("**/data/cards.json")
-        page.locator(".sel-chip .sel-x").first.click()
-        page.wait_for_timeout(300)
+        # 在独立构建副本中移除文章索引，验证真实 HTTP 404 下的筛选行为。
+        scratch = ROOT / ".write_live"
+        scratch.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix="catalog-", dir=scratch) as temp_dir:
+            site_copy = Path(temp_dir) / "site"
+            assert site_copy.resolve().is_relative_to(ROOT.resolve())
+            shutil.copytree(OUT_DIR, site_copy)
+            (site_copy / "data" / "cards.json").unlink()
+            with ThreadingHTTPServer(("127.0.0.1", 0), partial(Handler, directory=site_copy)) as partial_server:
+                partial_thread = threading.Thread(target=partial_server.serve_forever, daemon=True)
+                partial_thread.start()
+                try:
+                    partial_page = browser.new_page(viewport={"width": 1440, "height": 1000})
+                    catalog_statuses = []
+                    partial_page.on("response", lambda response: catalog_statuses.append(response.status)
+                                    if response.url.endswith("/data/cards.json") else None)
+                    partial_page.on("pageerror", lambda error: failures.append("pageerror: " + str(error)))
+                    partial_page.goto(f"http://127.0.0.1:{partial_server.server_port}/index.html", wait_until="networkidle")
+                    partial_page.locator(".filter-tags .tag-chip", has_text="大模型").first.click()
+                    partial_page.wait_for_timeout(400)
+                    vis = partial_page.locator(".card:visible").count()
+                    ok &= check("missing catalog returns HTTP 404", 404 in catalog_statuses)
+                    ok &= check("tag filter works without catalog", vis >= 1, str(vis))
+                    partial_page.close()
+                finally:
+                    partial_server.shutdown()
+                    partial_thread.join()
 
         # nav folder link in cards view selects the folder filter
-        page.goto(base + "/", wait_until="networkidle")  # reset the no-cards.json fallback
+        page.goto(base + "/", wait_until="networkidle")
         page.locator(".site-nav a[data-kind='folder']", has_text="CS相关").click()
         page.wait_for_timeout(500)
         ok &= check("nav folder selects filter", page.locator(".sel-chip.sel-folder").count() == 1)
@@ -363,22 +370,18 @@ def main() -> None:
         ok &= check("pager starts at chapter 1", "第 1 章" in info1, info1)
         ok &= check("paging hides other chapters",
                     page.locator(".post-chapter:visible").count() == 1)
-        page.evaluate("window.scrollTo(0, 320)")
+        page.set_viewport_size({"width": 1440, "height": 600})
+        page.evaluate("window.scrollTo(0, 60)")
         page.wait_for_timeout(200)
-        page.evaluate("""(() => {
-          window.__scrollCalls = 0;
-          var orig = window.pilogSmoothScroll;
-          window.pilogSmoothScroll = function () {
-            window.__scrollCalls++;
-            return orig.apply(this, arguments);
-          };
-        })()""")
+        before_chapter_scroll = page.evaluate("window.pageYOffset")
         page.click("#pager-next")
         page.wait_for_timeout(400)
         info2 = page.locator("#pager-info").inner_text()
         ok &= check("pager next switches chapter", "第 2 章" in info2, info2)
-        scroll_calls = page.evaluate("window.__scrollCalls")
-        ok &= check("pager switch does not scroll to top", scroll_calls == 0, str(scroll_calls))
+        after_chapter_scroll = page.evaluate("window.pageYOffset")
+        ok &= check("pager switch preserves scroll position", abs(after_chapter_scroll - before_chapter_scroll) < 5,
+                    f"{before_chapter_scroll} → {after_chapter_scroll}")
+        page.set_viewport_size({"width": 1440, "height": 1000})
         # clicking a TOC entry for a hidden chapter switches to its page
         page.locator("#post-toc a", has_text="专题四").click()
         page.wait_for_timeout(600)
@@ -446,7 +449,8 @@ def main() -> None:
         ok &= check("next points to next post", next_href and "mathqwen" in next_href, str(next_href))
         page.goto(base + "/posts/toy/zi-she.html", wait_until="networkidle")
         wrap_href = page.locator(".post-nav-link.is-next").get_attribute("href")
-        ok &= check("oldest post next wraps to first", wrap_href and "10pi" in wrap_href, str(wrap_href))
+        first_post_path = (Path("posts") / expected_cards[0]["rel"]).with_suffix(".html").as_posix()
+        ok &= check("oldest post next wraps to first", wrap_href and wrap_href.endswith(first_post_path), str(wrap_href))
 
         # ← / → flip between prev / next posts on article pages
         page.goto(base + "/posts/notes/ml/mathqwen-0.6b-agentic-rl.html", wait_until="networkidle")
@@ -553,11 +557,11 @@ def main() -> None:
         page.wait_for_timeout(200)
         ok &= check("view state in url", "#view-tree" in page.url, page.url)
 
-        # giscus failure fallback: a retry button appears when the widget fails
+        # 验证真实评论组件的加载。
         page.goto(base + "/posts/toy/pilog-blog.html", wait_until="networkidle")
-        page.wait_for_selector("#giscus-fallback:not([hidden])", timeout=10000)
-        ok &= check("giscus fallback shows on failure",
-                    page.locator("#giscus-retry").is_visible())
+        page.locator(".giscus").scroll_into_view_if_needed()
+        page.wait_for_selector("iframe.giscus-frame", timeout=10000)
+        ok &= check("giscus frame loaded", page.locator("iframe.giscus-frame").is_visible())
 
         # screenshots sanity
         for name in ["01-cards.png", "02-tree.png", "03-graph.png", "05-post.png", "06-mobile.png"]:

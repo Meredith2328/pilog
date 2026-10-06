@@ -18,7 +18,7 @@ if (!existsSync(src)) {
   console.error("tools/write.html not found — build from a branch that has the write page.");
   process.exit(1);
 }
-let html = readFileSync(src, "utf8");
+let html = readFileSync(src, "utf8").replace(/\r\n?/g, "\n");
 
 // Structural patches must apply exactly once or the build fails.
 function must(label, from, to) {

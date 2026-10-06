@@ -1,7 +1,7 @@
 {
   "name": "pilog-write-android",
   "private": true,
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Capacitor Android shell around pilog's tools/write.html",
   "scripts": {
     "web": "node scripts/build-web.mjs",

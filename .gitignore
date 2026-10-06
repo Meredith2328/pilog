@@ -10,3 +10,5 @@ output/
 .playwright-cli/
 .DS_Store
 Thumbs.db
+.write_live/
+.features_tmp/

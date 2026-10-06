@@ -103,26 +103,30 @@ export all notes, uninstall that version, and install the fixed-key APK.
   3. Tap 导出 → 发布（开 PR）. The app creates a `write/<date>-<slug>` branch,
      writes `blogs/posts/<category>/<slug>.md`, and opens a PR into `pilog`.
      Review and merge it on GitHub; the app never merges.
+- **Edit an online post**: 稿件 → 编辑线上文章, then choose its directory and
+  article from the cascading dropdowns. Selecting an article loads its original
+  source from `pilog` into the editor.
 - **piwiki**: shown as disabled until the piwiki repo exists. To enable it
   later, set `PIWIKI.repo` in `web/native.js`.
 
 ## Test
 
 ```bash
-cd mobile && npm run web
-npm i --no-save playwright && npx playwright install chromium
-node scripts/smoke.mjs
+npm --prefix mobile run sync
+python -m playwright install chromium
+python tests/test_write_live.py
 ```
 
-The smoke test runs the bundled page in Chromium with fake Filesystem, Share, and
-PilogSecure plugins, and a mocked GitHub API. It checks the `.md` mirror,
-rename and delete, export, Keystore token routing, PR publish, vault
-encryption, lock and unlock, wrong password, and move into the vault. Set
-`SHOTS=<dir>` to also save screenshots.
-
-`npm run smoke` rebuilds `www/` and runs the smoke test.
+The browser test exports two same-day drafts to actual files, checks filename
+stability and manual naming, and loads an online post through the real public
+catalog and GitHub API. Screenshots and downloads are stored in `.write_live/`.
 
 ## Changelog
+
+### 0.2.3
+
+- New default filenames include a persistent six-digit suffix, such as
+  `post-20261006-123456.md`, unique among local drafts.
 
 ### 0.2.2
 

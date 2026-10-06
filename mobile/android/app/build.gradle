@@ -23,8 +23,8 @@ android {
         applicationId "io.github.meredith2328.pilogwrite"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 4
-        versionName "0.2.2"
+        versionCode 5
+        versionName "0.2.3"
         // UI copy is Chinese; drop the ~80 AppCompat translations nobody sees
         androidResources.localeFilters += ["en", "zh"]
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
