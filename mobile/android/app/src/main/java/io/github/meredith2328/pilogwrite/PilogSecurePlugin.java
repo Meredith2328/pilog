@@ -8,9 +8,11 @@ import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyPermanentlyInvalidatedException;
 import android.security.keystore.KeyProperties;
 import android.util.Base64;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.WebView;
+import android.view.inputmethod.InputMethodManager;
 
 import androidx.annotation.NonNull;
 import androidx.biometric.BiometricManager;
@@ -40,6 +42,8 @@ import javax.crypto.spec.GCMParameterSpec;
  * - bio*: the vault data key wrapped by a second Keystore key that only works after a
  *   BIOMETRIC_STRONG prompt and is invalidated when biometrics change;
  * - setSecure: FLAG_SECURE while the vault is open (no screenshots / recents preview);
+ * - syncEditorInput: restart WebView's native input connection after the soft
+ *   keyboard resizes the page, so its IME selection catches up with the caret;
  * - ready / setTheme: release the launch splash once the UI has painted, and keep the
  *   system bars and window background in step with write.html's theme.
  */
@@ -206,6 +210,18 @@ public class PilogSecurePlugin extends Plugin {
     public void ready(PluginCall call) {
         MainActivity.webReady = true;
         call.resolve();
+    }
+
+    @PluginMethod
+    public void syncEditorInput(PluginCall call) {
+        getActivity().runOnUiThread(() -> {
+            WebView webView = getBridge().getWebView();
+            View focused = webView.findFocus();
+            InputMethodManager imm = (InputMethodManager)
+                    getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (imm != null) imm.restartInput(focused != null ? focused : webView);
+            call.resolve();
+        });
     }
 
     /** Follow write.html's own light/dark toggle (not just the system setting) and remember it for cold starts. */

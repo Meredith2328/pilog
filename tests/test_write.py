@@ -718,6 +718,16 @@ def main() -> None:
             viewport={"width": 412, "height": 860}, is_mobile=True, has_touch=True,
             accept_downloads=True,
         )
+        ctx.add_init_script("""
+            (() => {
+              const original = HTMLTextAreaElement.prototype.setSelectionRange;
+              window.__pilogCaretWrites = [];
+              HTMLTextAreaElement.prototype.setSelectionRange = function (a, b, ...rest) {
+                if (this.id === "f-body") window.__pilogCaretWrites.push([a, b]);
+                return original.call(this, a, b, ...rest);
+              };
+            })();
+        """)
         pg = ctx.new_page()
         block_external(pg)
         errs = []
@@ -725,6 +735,80 @@ def main() -> None:
         pg.goto(f"http://127.0.0.1:{PORT}/write", wait_until="domcontentloaded")
         pg.wait_for_function("!!window.__pilogWrite")
         check("page loads at /write", pg.title().startswith("pilog"), pg.title())
+
+        # Android WebView can start its IME connection with an old selection
+        # when the first pointer tap focuses the full-height editor. The page
+        # must re-apply the visible caret after focus and the keyboard layout
+        # change, otherwise the first typed character goes to the text end.
+        pg.fill("#f-body", "0123456789abcdefghijklmnopqrstuvwxyz")
+        pg.evaluate("""() => {
+          document.querySelector("#f-body").blur();
+          window.__pilogCaretWrites = [];
+        }""")
+        pg.locator("#f-body").click(position={"x": 80, "y": 20})
+        pg.wait_for_timeout(180)
+        caret = pg.evaluate("""() => {
+          const el = document.querySelector("#f-body");
+          return {
+            a: el.selectionStart, b: el.selectionEnd,
+            active: document.activeElement === el,
+            last: window.__pilogCaretWrites.slice(-1)[0] || null,
+          };
+        }""")
+        check("first editor focus re-syncs the visible caret",
+              caret["active"] and caret["a"] == caret["b"] and caret["last"] == [caret["a"], caret["b"]],
+              repr(caret))
+        pg.keyboard.type("X")
+        first_typed = pg.input_value("#f-body")
+        check("first keystroke uses the visible caret, not the text end",
+              first_typed == "012345X6789abcdefghijklmnopqrstuvwxyz", repr(first_typed))
+
+        # Some Android IMEs bypass setSelectionRange and still commit the
+        # first insertion at the old text end. The editor may only correct
+        # that case when the DOM value proves the insertion was appended.
+        pg.fill("#f-body", "0123456789abcdefghijklmnopqrstuvwxyz")
+        pg.evaluate("""() => {
+          const el = document.querySelector("#f-body");
+          el.focus();
+          el.setSelectionRange(6, 6);
+          el.dispatchEvent(new InputEvent("beforeinput", {
+            bubbles: true, cancelable: true, inputType: "insertText", data: "Q",
+          }));
+          el.value = el.value + "Q";
+          el.dispatchEvent(new InputEvent("input", {
+            bubbles: true, inputType: "insertText", data: "Q",
+          }));
+        }""")
+        repaired = pg.evaluate("""() => {
+          const el = document.querySelector("#f-body");
+          return {value: el.value, a: el.selectionStart, b: el.selectionEnd};
+        }""")
+        check("IME append-at-end fallback repairs the first Latin insertion",
+              repaired == {
+                  "value": "012345Q6789abcdefghijklmnopqrstuvwxyz",
+                  "a": 7, "b": 7,
+              }, repr(repaired))
+
+        pg.fill("#f-body", "0123456789abcdefghijklmnopqrstuvwxyz")
+        pg.evaluate("""() => {
+          const el = document.querySelector("#f-body");
+          el.focus();
+          el.setSelectionRange(6, 6);
+          el.dispatchEvent(new CompositionEvent("compositionstart", {bubbles: true}));
+          el.value = el.value + "中文";
+          el.dispatchEvent(new CompositionEvent("compositionend", {
+            bubbles: true, data: "中文",
+          }));
+        }""")
+        composed = pg.evaluate("""() => {
+          const el = document.querySelector("#f-body");
+          return {value: el.value, a: el.selectionStart, b: el.selectionEnd};
+        }""")
+        check("IME append-at-end fallback repairs the first composed insertion",
+              composed == {
+                  "value": "012345中文6789abcdefghijklmnopqrstuvwxyz",
+                  "a": 8, "b": 8,
+              }, repr(composed))
 
         pg.fill("#f-title", "手机写作: 测试")
         pg.fill("#f-body", BODY)

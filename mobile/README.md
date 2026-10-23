@@ -123,6 +123,17 @@ catalog and GitHub API. Screenshots and downloads are stored in `.write_live/`.
 
 ## Changelog
 
+### 0.2.5
+
+- Fix the remaining first-focus caret bug on older Android WebViews: restart
+  the native input connection once the soft keyboard has resized the editor.
+  If a broken IME still appends the first text at the end, detect that
+  unambiguous case and move it to the visible caret before autosaving.
+
+### 0.2.4
+
+- First attempt at restoring the editor caret after Android keyboard resizing.
+
 ### 0.2.3
 
 - New default filenames include a persistent six-digit suffix, such as
