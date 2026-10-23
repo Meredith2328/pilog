@@ -123,11 +123,16 @@ catalog and GitHub API. Screenshots and downloads are stored in `.write_live/`.
 
 ## Changelog
 
+### 0.2.5
+
+- Fix the remaining first-focus caret bug on older Android WebViews: restart
+  the native input connection once the soft keyboard has resized the editor.
+  If a broken IME still appends the first text at the end, detect that
+  unambiguous case and move it to the visible caret before autosaving.
+
 ### 0.2.4
 
-- Fix the first editor focus on Android: the caret shown after tapping the
-  middle of the text is now re-applied to WebView's input connection, so the
-  first keystroke no longer jumps to the end of the article.
+- First attempt at restoring the editor caret after Android keyboard resizing.
 
 ### 0.2.3
 

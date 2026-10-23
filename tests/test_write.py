@@ -763,6 +763,53 @@ def main() -> None:
         check("first keystroke uses the visible caret, not the text end",
               first_typed == "012345X6789abcdefghijklmnopqrstuvwxyz", repr(first_typed))
 
+        # Some Android IMEs bypass setSelectionRange and still commit the
+        # first insertion at the old text end. The editor may only correct
+        # that case when the DOM value proves the insertion was appended.
+        pg.fill("#f-body", "0123456789abcdefghijklmnopqrstuvwxyz")
+        pg.evaluate("""() => {
+          const el = document.querySelector("#f-body");
+          el.focus();
+          el.setSelectionRange(6, 6);
+          el.dispatchEvent(new InputEvent("beforeinput", {
+            bubbles: true, cancelable: true, inputType: "insertText", data: "Q",
+          }));
+          el.value = el.value + "Q";
+          el.dispatchEvent(new InputEvent("input", {
+            bubbles: true, inputType: "insertText", data: "Q",
+          }));
+        }""")
+        repaired = pg.evaluate("""() => {
+          const el = document.querySelector("#f-body");
+          return {value: el.value, a: el.selectionStart, b: el.selectionEnd};
+        }""")
+        check("IME append-at-end fallback repairs the first Latin insertion",
+              repaired == {
+                  "value": "012345Q6789abcdefghijklmnopqrstuvwxyz",
+                  "a": 7, "b": 7,
+              }, repr(repaired))
+
+        pg.fill("#f-body", "0123456789abcdefghijklmnopqrstuvwxyz")
+        pg.evaluate("""() => {
+          const el = document.querySelector("#f-body");
+          el.focus();
+          el.setSelectionRange(6, 6);
+          el.dispatchEvent(new CompositionEvent("compositionstart", {bubbles: true}));
+          el.value = el.value + "中文";
+          el.dispatchEvent(new CompositionEvent("compositionend", {
+            bubbles: true, data: "中文",
+          }));
+        }""")
+        composed = pg.evaluate("""() => {
+          const el = document.querySelector("#f-body");
+          return {value: el.value, a: el.selectionStart, b: el.selectionEnd};
+        }""")
+        check("IME append-at-end fallback repairs the first composed insertion",
+              composed == {
+                  "value": "012345中文6789abcdefghijklmnopqrstuvwxyz",
+                  "a": 8, "b": 8,
+              }, repr(composed))
+
         pg.fill("#f-title", "手机写作: 测试")
         pg.fill("#f-body", BODY)
         pg.click(".tab[data-view=meta]")
