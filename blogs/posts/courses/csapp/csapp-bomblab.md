@@ -9,10 +9,96 @@ hideInList: false
 feature: posts/migrated/post-images/csapp-bomblab.png
 isTop: false
 ---
-> 最近真没写什么其他好玩的东西，所以拿课堂作业报告水一水Blog。
-> 因为写这个的时间很有限，可能不像datalab那样精致，是边做边记的，逻辑有点混乱，也有不少错误。
+> **2026.10.26更新：出于兴趣，新增符号执行部分！**
+>
+> ~~最近真没写什么其他好玩的东西，所以拿课堂作业报告水一水Blog。
+> 因为写这个的时间很有限，可能不像datalab那样精致，是边做边记的，逻辑有点混乱，也有不少错误。~~
 
-## 拆之前：先找入口
+## Bomblab的另一种做法：符号执行
+
+> 2026.10.26写。这里的符号执行解法只是一种有趣的拓展，并不在CSAPP的课程范围内。
+
+[符号执行](https://zh.wikipedia.org/wiki/符号执行) 是一种测试技术，在软件质量保障与测试（[董震老师](https://zhendong2050.github.io/)）的课程上有所讲解。其思想是，我们可以在有分支时把输入数据视作一个“符号”而不是一个具体的值，收集符号所满足的条件，最后根据约束条件反过来求解这个符号值的范围或具体值。
+
+例如：
+
+```c
+int f(int x) {
+    int y = x * 2;
+    if (y == 10) {
+        BUG();          // 我们想让它执行到这里
+    }
+    return 0;
+}
+```
+
+我们对上述条件收集得到的是 `solve(2α == 10)  →  α = 5` 。
+
+****
+
+接下来我们尝试解决 Bomblab 。
+
+从符号执行的角度思考 Bomblab ，我们可以**把输入看作符号变量，把 `explode_bomb` 当作需要避开的分支，让求解器搜索满足条件的输入。**
+
+```text
+pip install angr
+```
+
+以 phase_1 为例：
+
+```python
+import angr, claripy
+
+proj = angr.Project("bomb", auto_load_libs=False)                         # (1)
+sym = lambda n: proj.loader.main_object.get_symbol(n).rebased_addr        # (2)
+
+buf = 0x700000                                                            # (3)
+state = proj.factory.call_state(sym("phase_1"), buf)                      # (4)
+data = claripy.BVS("data", 8 * 64)                                        # (5)
+state.memory.store(buf, data)                                             # (6)
+state.add_constraints(data.get_byte(63) == 0)                             # (7)
+
+simgr = proj.factory.simgr(state)                                         # (8)
+simgr.explore(find=sym("phase_1") + 0x17, avoid=sym("explode_bomb"))      # (9)
+print(simgr.found[0].solver.eval(data, cast_to=bytes).split(b"\0")[0])    # (10)
+```
+
+以下是原始汇编的内容，方便对比：
+
+```
+0000000000400ee0 <phase_1>:
+  400ee0:	48 83 ec 08          	sub    $0x8,%rsp
+  400ee4:	be 00 24 40 00       	mov    $0x402400,%esi
+  400ee9:	e8 4a 04 00 00       	callq  401338 <strings_not_equal>
+  400eee:	85 c0                	test   %eax,%eax
+  400ef0:	74 05                	je     400ef7 <phase_1+0x17>
+  400ef2:	e8 43 05 00 00       	callq  40143a <explode_bomb>
+  400ef7:	48 83 c4 08          	add    $0x8,%rsp
+  400efb:	c3                   	retq
+```
+
+接下来我们来逐行讲解。
+
+先记住 `data` 就是符号执行当前正在猜的一个未知数据。
+
+- `(1)` 将 `bomb` 这个二进制导入进来。模板代码。
+- `(2)` 构造了一个用来取地址的辅助函数。
+- `(3)` `buf` 是我们随便挑的地址，用来存指向 `data` 的指针，要求与程序中已有的段不冲突。
+- `(4)` **把函数签名对应到符号执行的初始状态**。它建立了一个“正在调用 `phase_1` ”的初始状态。这个状态的第一个参数是函数地址 `phase_1` ，后面的参数按照函数调用的参数顺序，对应 `rdi` ，`rsi` 等等。这里用了 `buf` 来充当 `phase_1` 的第一个参数：即原始函数读输入字符串的寄存器 `rdi` 。
+- `(5)` 造符号变量。模板代码。
+- `(6)` 把符号数据 `data` 写到内存地址 `buf` 处。这样的话程序从 `buf` 读的时候读到的就是 `data` 。
+- `(7)` 添加了一条符号执行的约束：`data` 必须以 `\0` 结尾（并假设它含 `\0` 在内的长度不超过64字节）。
+- `(8)` 是模板代码。
+- `(9)` **求解。这一行的语义是我们本章的核心：找到目标分支（这里是 `phase_1+0x17` ），避免 `explode_bomb` 分支。**
+- `(10)` 把求解结果转回来输出。
+
+在官方 self-study 的炸弹上运行，phase_1 的输出是 `Border relations with Canada have never been better.` 。换一颗炸弹，解出的字符串不同，代码流程完全相同。
+
+这种方式速度快，但不会解释输入为什么成立；关卡和循环一多还会出现路径爆炸（符号执行的缺点），通常仍然需要逐关求解。
+
+两种方式可以配合使用：angr （及其他的符号执行工具）负责求解，gdb 和反汇编负责理解程序。
+
+## 如果是ai来做，它会怎么找各个入口？
 
 炸弹一般没有 strip，`nm bomb | grep -E 'phase_|explode_bomb|read_line|phase_defused|secret_phase'` 可以直接列出各关的函数名和地址（地址因炸弹而异）。官方 self-study 的 `bomb.tar` 中包含 `bomb.c`，main 中的调用顺序是 `read_line()` → `phase_n()` → `phase_defused()`，入口和调用链可以直接看出来。
 
@@ -275,38 +361,5 @@ num4 = %eax = 2
 strings_not_equal的返回值(%eax)为0就跳出去，意味着要求All strings are created equal. 识得唔识得啊。
 
 从相应位置读入所需字符串即可。
-
-## 另一种做法：符号执行
-
-手工分析六关比较花时间，phase_6 和 fun7 中的循环尤其麻烦。换一种思路：把输入看作符号变量，把 `explode_bomb` 当作需要避开的分支，让求解器搜索满足条件的输入。
-
-```text
-pip install angr
-```
-
-以 phase_1 为例：
-
-```python
-import angr, claripy
-
-proj = angr.Project("bomb", auto_load_libs=False)
-sym = lambda n: proj.loader.main_object.get_symbol(n).rebased_addr
-
-buf = 0x700000
-state = proj.factory.call_state(sym("phase_1"), buf)   # rdi = 输入字符串
-data = claripy.BVS("data", 8 * 64)                     # 64 字节符号串
-state.memory.store(buf, data)
-state.add_constraints(data.get_byte(63) == 0)          # 以 \0 结尾
-
-simgr = proj.factory.simgr(state)
-simgr.explore(find=sym("phase_1") + 0x17, avoid=sym("explode_bomb"))
-print(simgr.found[0].solver.eval(data, cast_to=bytes).split(b"\0")[0])
-```
-
-`call_state` 直接调用 phase_1，并把 rdi 指向一块内容未定的符号内存；`explore` 会执行到 `je` 后面的成功分支（示例中的 `phase_1+0x17`，换炸弹时按 `disas phase_1` 的结果调整），遇到 `explode_bomb` 的分支则排除；最后用 `eval` 取出能让第一关通过的字符串。地址都从符号表读取，不需要硬编码。
-
-在官方 self-study 的炸弹上运行，phase_1 的输出是 `Border relations with Canada have never been better.`。换一颗炸弹，解出的字符串不同，流程相同。
-
-这种方式速度快，但不会解释输入为什么成立；关卡和循环一多还会出现路径爆炸，通常仍然需要逐关求解。两种方式可以配合使用：angr 负责求解，gdb 和反汇编负责理解程序。
 
 上一篇：[[csapp-datalab|Datalab]] · 下一篇：[[csapp-attacklab|Attacklab]]
