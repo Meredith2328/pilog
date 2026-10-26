@@ -218,14 +218,14 @@ python pilog.py serve --watch                # 本地预览 + 自动重建
 
 ### 一键发布（框架内置）
 
-框架内置了手动发布兜底：构建站点 → `git add/commit` → 推送指定部署仓库。日常发布优先直接推送源码仓库的 `pilog` 分支，由 GitHub Actions 自动完成部署。
+框架内置了手动发布：构建站点后，将生成目录同步至部署仓库的 `docs/` 并提交、推送。源码仓库的工作区和暂存区保持不变。日常发布直接推送源码仓库的 `pilog` 分支，由 GitHub Actions 自动完成部署。
 
 ```powershell
-python pilog.py publish                 # 构建 + 提交 + 推送
-python pilog.py publish -m "发布说明"    # 自定义提交信息
+python pilog.py publish                 # 构建并同步至部署仓库
+python pilog.py publish -m "发布说明"    # 自定义部署提交信息
 ```
 
-或在工作台的「配置 → 发布到 GitHub」面板填写仓库、分支与令牌后点「发布到 GitHub」。令牌只写入本地 gitignore 的 `.publish-token-pages`（或环境变量 `PILOG_TOKEN`），不会进入仓库；发布流程只有 add/commit/push，不包含任何删除性操作。
+或在工作台的「配置 → 发布到 GitHub」面板填写仓库、分支与令牌后点「发布到 GitHub」。令牌只写入本地 gitignore 的 `.publish-token-pages`（或环境变量 `PILOG_TOKEN`），认证信息通过进程环境传给 Git。同步会移除部署目录中的过期文件，部署仓库的其他文件保持不变。
 
 **Fine-grained PAT 的最小权限**（GitHub 只能在网页端创建，无法通过 API 生成）：
 
@@ -239,7 +239,7 @@ python pilog.py publish -m "发布说明"    # 自定义提交信息
 
 ### 自动部署（GitHub Actions）
 
-文章、资源、站点源码或配置更新并推送到 `pilog` 分支后，`.github/workflows/deploy.yml` 会安装依赖、运行 `python build.py`，然后把 `docs/` 同步至部署仓库（`config.json` 的 `publish.repo` / `publish.branch`），GitHub Pages 随即更新。日常写作只需提交 Markdown 和资源，无需本地构建或提交 `docs/`。
+文章、资源、站点源码或配置更新并推送到 `pilog` 分支后，`.github/workflows/deploy.yml` 会安装依赖、运行 `python build.py`，然后把 `docs/` 同步至部署仓库（`config.json` 的 `publish.repo` / `publish.branch`），GitHub Pages 随即更新。日常写作只需提交 Markdown 和资源，无需本地构建；源码仓库忽略 `docs/`，生成文件仅提交到部署仓库。
 
 部署使用依赖缓存和浅克隆；连续推送时，当前部署完成后处理最新的等待任务。生成内容未变化时直接结束。仅修改 README、测试或 Android 工程时跳过站点部署；构建失败会停止发布。回归测试在修改生成器和渲染代码时运行，命令为 `python tests/test_dom.py` 与 `python tests/test_features.py`。
 

@@ -399,7 +399,7 @@ def neg(x: float) -> float:
 以下是一些基础的玩：
 
 ```
-(myminitorch) PS D:\_Project\minitorch> python
+(myminitorch) PS > python
 Python 3.11.0 | packaged by conda-forge | (main, Oct 25 2022, 06:12:32) [MSC v.1929 64 bit (AMD64)] on win32
 Type "help", "copyright", "credits" or "license" for more information.
 >>> import minitorch

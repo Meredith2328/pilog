@@ -1,6 +1,6 @@
 # AGENTS.md
 
-本仓库是 pilog 静态博客：Markdown 内容在 `blogs/`，构建输出在 `docs/`。
+本仓库是 pilog 静态博客：Markdown 内容在 `blogs/`，构建输出在 `docs/`。源码仓库忽略 `docs/`；生成文件由自动部署或手动发布同步至部署仓库。
 
 - 项目介绍：README.md
 - API / 配置项文档：posts/toy/pilog-blog（内容保持克制；新增 API 或配置项时直接追加到已有表格行之后）
