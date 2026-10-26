@@ -45,10 +45,10 @@ wandb.finish()
 
 |维度|W&B Models (你熟悉的)|W&B Weave (你可能陌生的)|
 |---|---|---|
-|**核心定位**|**实验跟踪平台**：记录训练过程的指标、超参数和模型版本。[](https://blog.csdn.net/qq_63129682/article/details/144069920)|**AI应用开发平台**：跟踪、评估和监控基于LLM的应用。[](https://qa.wandb.ai/site/weave/)|
-|**适用对象**|训练深度学习的**研究员/工程师**（CV、NLP、语音等）。|开发LLM应用的**工程师**（聊天机器人、RAG、Agent、提示词调优）。[](https://qa.wandb.ai/site/weave/)|
-|**关注焦点**|**模型性能**：损失、准确率、梯度、GPU利用率。|**应用质量**：模型回复内容、Token消耗、延迟、成本、安全性（幻觉、毒性）。[](https://qa.wandb.ai/site/weave/)|
-|**核心抽象**|**Run** (一次训练实验)、**Artifact** (数据集/模型)、**Sweep** (超参数搜索)。|**Op** (被追踪的函数，如一个LLM调用)、**Trace** (函数调用链)、**Evaluation** (对模型输出的打分)。[](https://qa.wandb.ai/site/weave/)[](https://docs.wandb.ai/weave/quickstart-inference)|
+|**核心定位**|**实验跟踪平台**：记录训练过程的指标、超参数和模型版本。|**AI应用开发平台**：跟踪、评估和监控基于LLM的应用。|
+|**适用对象**|训练深度学习的**研究员/工程师**（CV、NLP、语音等）。|开发LLM应用的**工程师**（聊天机器人、RAG、Agent、提示词调优）。|
+|**关注焦点**|**模型性能**：损失、准确率、梯度、GPU利用率。|**应用质量**：模型回复内容、Token消耗、延迟、成本、安全性（幻觉、毒性）。|
+|**核心抽象**|**Run** (一次训练实验)、**Artifact** (数据集/模型)、**Sweep** (超参数搜索)。|**Op** (被追踪的函数，如一个LLM调用)、**Trace** (函数调用链)、**Evaluation** (对模型输出的打分)。|
 |**典型场景**|“我想试试把学习率调到0.001，看看loss能不能降到0.1以下。”|“我想看看我的RAG应用对用户‘今天天气咋样’这个问题，到底检索了什么文档，最后生成了什么答案，花了多少钱。”|
 
 ## 基础使用：记录acc和loss的变化
@@ -84,7 +84,7 @@ wandb.finish()
 print("实验完成！请查看wandb仪表板")
 ```
 
-发现它帮我在终端生成了直观的变化图和总结。
+发现它在终端打印了运行摘要，变化图则生成在网页端。
 
 ![](posts/migrated/post-images/20260308214955.png)
 
@@ -176,7 +176,7 @@ wandb.finish()
 ## 基础使用：PyTorch和Huggingface Transformers的集成
 
 都一样，把变量传进去就行。某个指标、某个结果，甚至是模型权重文件 `model.pth` 。
-但wandb的免费似乎只支持200GB的存储，需要注意。
+但免费版只有 5GB 的存储额度（Pro 才到 100GB），传模型权重前需要注意。
 
 Huggingface Transformers甚至还要更加省事：
 连那些参数都不需要自己传了， `Trainer` 已经封装好了，只要 `report_to="wandb"` 就可以了。

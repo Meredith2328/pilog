@@ -12,6 +12,22 @@ isTop: false
 > 最近真没写什么其他好玩的东西，所以拿课堂作业报告水一水Blog。
 > 因为写这个的时间很有限，可能不像datalab那样精致，是边做边记的，逻辑有点混乱，也有不少错误。
 
+## 拆之前：先找入口
+
+炸弹一般没有 strip，`nm bomb | grep -E 'phase_|explode_bomb|read_line|phase_defused|secret_phase'` 可以直接列出各关的函数名和地址（地址因炸弹而异）。官方 self-study 的 `bomb.tar` 中包含 `bomb.c`，main 中的调用顺序是 `read_line()` → `phase_n()` → `phase_defused()`，入口和调用链可以直接看出来。
+
+```text
+b phase_1          # 断在各关入口
+b read_line        # 查看这一关读入的原始字符串
+b explode_bomb     # 定位炸点，反推未满足的分支
+x/s $rdi           # 进入 phase_1 时，rdi 指向输入
+disas /r phase_1   # 连同机器码一起反汇编，查看立即数
+```
+
+查找炸点可以用 `objdump -d bomb | grep -B1 "call.*explode_bomb"`，各关的炸点会按地址顺序列出。遇到不认识的 `call` 时，可以先确认它是否为 `strings_not_equal`、`read_six_numbers` 这类小函数，再查看它引用的数据。
+
+隐藏关由 `phase_defused` 触发：它会在每关结束后调用一次，但只有六关全部通过后（`num_input_strings == 6`）才进行检查——把 phase_4 的输入按 `%d %d %s` 再解析一次，多出的字符串等于 `DrEvil`（`strings bomb` 可以搜到）时才会调用 `secret_phase`。因此 phase_4 的输入写成 `5 15 DrEvil` 即可触发隐藏关。
+
 ## 效果截图
 
 ![](posts/migrated/post-images/1714446702306.png)
@@ -39,7 +55,7 @@ esi: 0
 rdi: &input_str
 rbx: rax=int(input_str)=input_int
 rax: input_int - 1
-u<=3e8, so 1 ≤ input_int ≤ 3e9
+u<=0x3e8(1000), so 1 ≤ input_int ≤ 1001
 esi: input_int
 `x/512x 0x604110`
 
@@ -83,7 +99,7 @@ r12: &num1
 r13d: 0
 rbp: &num1
 eax: num1 - 1 unsigned <= 5
-要求num1 - 1 >= 0，1 <= num1 ≤ 6
+要求 1 <= num1 ≤ 6
 r13d: 1
 执行满六次之后跳+134
 
@@ -203,7 +219,7 @@ call func4, **要求返回值等于0xf**
 传入了三个参数: num1(edi), 0(下界, esi)，0xe(上界, rdx)
 eax = 0xe - 0 = 0xe
 ebx = 0xe 逻辑右移 0x1f=31位，变0了吧，目测是看符号位
-eax = 0xe + 0 = 0xe，算术右移变0x111=7，也就是做了作差除以2下取整
+eax = 0xe + 0 = 0xe，算术右移变0b111=7，也就是做了作差除以2下取整
 ebx = 0x(7 + 0)=0x7，中点值
 跳+33
 eax=0x7
@@ -259,5 +275,38 @@ num4 = %eax = 2
 strings_not_equal的返回值(%eax)为0就跳出去，意味着要求All strings are created equal. 识得唔识得啊。
 
 从相应位置读入所需字符串即可。
+
+## 另一种做法：符号执行
+
+手工分析六关比较花时间，phase_6 和 fun7 中的循环尤其麻烦。换一种思路：把输入看作符号变量，把 `explode_bomb` 当作需要避开的分支，让求解器搜索满足条件的输入。
+
+```text
+pip install angr
+```
+
+以 phase_1 为例：
+
+```python
+import angr, claripy
+
+proj = angr.Project("bomb", auto_load_libs=False)
+sym = lambda n: proj.loader.main_object.get_symbol(n).rebased_addr
+
+buf = 0x700000
+state = proj.factory.call_state(sym("phase_1"), buf)   # rdi = 输入字符串
+data = claripy.BVS("data", 8 * 64)                     # 64 字节符号串
+state.memory.store(buf, data)
+state.add_constraints(data.get_byte(63) == 0)          # 以 \0 结尾
+
+simgr = proj.factory.simgr(state)
+simgr.explore(find=sym("phase_1") + 0x17, avoid=sym("explode_bomb"))
+print(simgr.found[0].solver.eval(data, cast_to=bytes).split(b"\0")[0])
+```
+
+`call_state` 直接调用 phase_1，并把 rdi 指向一块内容未定的符号内存；`explore` 会执行到 `je` 后面的成功分支（示例中的 `phase_1+0x17`，换炸弹时按 `disas phase_1` 的结果调整），遇到 `explode_bomb` 的分支则排除；最后用 `eval` 取出能让第一关通过的字符串。地址都从符号表读取，不需要硬编码。
+
+在官方 self-study 的炸弹上运行，phase_1 的输出是 `Border relations with Canada have never been better.`。换一颗炸弹，解出的字符串不同，流程相同。
+
+这种方式速度快，但不会解释输入为什么成立；关卡和循环一多还会出现路径爆炸，通常仍然需要逐关求解。两种方式可以配合使用：angr 负责求解，gdb 和反汇编负责理解程序。
 
 上一篇：[[csapp-datalab|Datalab]] · 下一篇：[[csapp-attacklab|Attacklab]]
