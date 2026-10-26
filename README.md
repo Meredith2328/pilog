@@ -211,9 +211,9 @@ python pilog.py serve --watch                # 本地预览 + 自动重建
 ## 构建与部署（GitHub Pages）
 
 1. 修改 `config.json` 中的 `base_path` 与 `site_url`；
-2. `python pilog.py build` 生成 `docs/`；
-3. 提交源码改动与生成的 `docs/`，并推送 `pilog` 分支；
-4. 仓库自带的 `.github/workflows/deploy.yml` 会构建、测试，并将 `docs/` 同步至部署仓库；
+2. 修改文章 Markdown 和相关资源；
+3. 提交源码改动，并推送 `pilog` 分支；
+4. 仓库自带的 `.github/workflows/deploy.yml` 会构建，并将 `docs/` 同步至部署仓库；
 5. 打开配置的 `site_url` 验证。
 
 ### 一键发布（框架内置）
@@ -239,7 +239,9 @@ python pilog.py publish -m "发布说明"    # 自定义提交信息
 
 ### 自动部署（GitHub Actions）
 
-`push` 到 `pilog` 分支时会自动触发 `.github/workflows/deploy.yml`：在 CI 里安装依赖、`python build.py` 构建、跑 `tests/test_features.py`，然后把 `docs/` 提交并推送到部署仓库（`config.json` 的 `publish.repo` / `publish.branch`），GitHub Pages 随即更新。**推代码即上线，无需本地跑 publish。**
+文章、资源、站点源码或配置更新并推送到 `pilog` 分支后，`.github/workflows/deploy.yml` 会安装依赖、运行 `python build.py`，然后把 `docs/` 同步至部署仓库（`config.json` 的 `publish.repo` / `publish.branch`），GitHub Pages 随即更新。日常写作只需提交 Markdown 和资源，无需本地构建或提交 `docs/`。
+
+部署使用依赖缓存和浅克隆；连续推送时，当前部署完成后处理最新的等待任务。生成内容未变化时直接结束。仅修改 README、测试或 Android 工程时跳过站点部署；构建失败会停止发布。回归测试在修改生成器和渲染代码时运行，命令为 `python tests/test_dom.py` 与 `python tests/test_features.py`。
 
 只需要一次性配置：
 
