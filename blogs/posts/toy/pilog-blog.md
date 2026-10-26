@@ -114,11 +114,11 @@ feature: true
 - `python pilog.py list` —— 列出文章（`--json` 输出结构化数据）；
 - `python pilog.py import 路径... --dir 目标目录` —— 批量导入 Markdown / 图片 / 整个目录；
 - `python pilog.py delete 文章rel` —— 删除文章；
-- `python pilog.py publish -m "说明"` —— 构建 → 提交 → 推送。
+- `python pilog.py publish -m "说明"` —— 构建站点并同步至部署仓库。
 
 ### 发布与评论
 
-- `publish` 使用 fine-grained token（只需 Contents: Read and write），只做 add / commit / push，绝不执行删除操作；令牌只保存在本地 gitignore 的文件里，不会进仓库；
+- `publish` 使用 fine-grained token（只需 Contents: Read and write），只在部署仓库中同步 `docs/`、提交和推送；同步会清除过期生成文件，源码工作区和暂存区保持不变；令牌只保存在本地 gitignore 的文件里；
 - 自动部署：`push` 到 `pilog` 分支时，`.github/workflows/deploy.yml` 会自动构建并推送到部署仓库（需在源码仓库配置 `PILOG_TOKEN` secret，见 README「自动部署」）；CI 里构建产物与 `docs/` 一致时不会产生多余提交；
 - 评论由 giscus 驱动（GitHub Discussions），配置 `giscus` 段即可；
 - 自动生成 RSS。

@@ -3,8 +3,11 @@ __pycache__/
 .cache/
 .deploy_test/
 .stress/
-.publish-token
-.publish-token-pages
+.publish-token*
+.env
+.env.*
+!.env.example
+!.env.*.example
 .obsidian/
 output/
 .playwright-cli/
@@ -12,3 +15,10 @@ output/
 Thumbs.db
 .write_live/
 .features_tmp/
+.mimosa/
+.write_tmp/
+_deploy_test/
+/.pytest_cache/
+/work/
+/site/
+/docs/
