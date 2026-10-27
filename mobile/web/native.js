@@ -334,11 +334,13 @@
   }
 
   /* ================= injected UI ================= */
+  /* App-only rows mount in #draft-app-slot (inside #sheet-more, after 外观).
+     A write.html without the slot still works: they go into the 更多 sheet body. */
+  function appSlot() { return $("#draft-app-slot") || $("#sheet-more .more-body"); }
   function injectNotesUi() {
-    var anchor = $("#btn-wipe");
-    if (!anchor) return;
-    anchor.parentNode.insertBefore(el('<div><div class="sub">私密库</div>' +
-      '<button class="pbtn block" type="button" id="app-vault">进入私密库（密码锁）</button></div>'), anchor);
+    var slot = appSlot();
+    if (!slot) return;
+    slot.appendChild(el('<button class="mrow" type="button" id="app-vault">私密库<small>密码锁</small><span class="go">›</span></button>'));
     $("#app-vault").addEventListener("click", enterVault);
   }
   function injectVaultUi() {
@@ -351,23 +353,21 @@
       var t = $(".brand-t", brand);
       if (t) t.textContent = "VAULT";
     }
-    var anchor = $("#btn-wipe");
-    if (anchor) anchor.textContent = "清空私密库全部稿件";
-    var list = $("#draft-list");
-    if (!list) return;
-    var box = el('<div><div class="sub">私密库</div>' +
-      '<button class="pbtn block" type="button" id="app-move">从普通稿件移入…</button>' +
+    var slot = appSlot();
+    if (!slot) return;
+    var box = el('<div>' +
+      '<button class="mrow" type="button" id="app-move">从普通稿件移入<small>选择稿件</small><span class="go">›</span></button>' +
       '<div id="app-move-list"></div>' +
-      '<div class="two" style="margin-top:12px"><button class="pbtn block" type="button" id="app-bio"></button>' +
-      '<button class="pbtn block" type="button" id="app-pw">修改密码</button></div>' +
+      '<button class="mrow" type="button" id="app-bio">指纹解锁<small id="app-bio-s"></small><span class="go">›</span></button>' +
+      '<button class="mrow" type="button" id="app-pw">修改密码<span class="go">›</span></button>' +
       '<div id="app-pw-box" hidden><div class="fld" style="margin-top:12px"><label class="lbl" for="app-pw-old">当前密码</label>' +
       '<input class="inp mono" id="app-pw-old" type="password" autocomplete="off"></div>' +
       '<div class="fld"><label class="lbl" for="app-pw-new">新密码 <small>至少 6 位</small></label>' +
       '<input class="inp mono" id="app-pw-new" type="password" autocomplete="off"></div>' +
       '<button class="pbtn primary block" type="button" id="app-pw-go">保存新密码</button></div>' +
-      '<div class="two" style="margin-top:12px"><button class="pbtn primary block" type="button" id="app-leave">锁定并返回普通稿件</button></div>' +
+      '<button class="mrow" type="button" id="app-leave">锁定并返回普通稿件<span class="go">›</span></button>' +
       "</div>");
-    list.parentNode.insertBefore(box, list.nextSibling);
+    slot.appendChild(box);
     $("#app-leave").addEventListener("click", leaveVault);
     $("#app-move").addEventListener("click", renderMoveList);
     $("#app-move-list").addEventListener("click", function (e) {
@@ -380,10 +380,10 @@
     $("#app-pw-go").addEventListener("click", changePassword);
   }
   function syncBioBtn() {
-    var b = $("#app-bio");
+    var b = $("#app-bio"), s = $("#app-bio-s");
     if (!b) return;
-    if (!Sec) { b.disabled = true; b.textContent = "指纹解锁（仅 App）"; return; }
-    b.textContent = vault.file.bio ? "关闭指纹解锁" : "开启指纹解锁";
+    if (!Sec) { b.disabled = true; if (s) s.textContent = "仅 App"; return; }
+    if (s) s.textContent = vault.file.bio ? "已开启" : "已关闭";
   }
   function toggleBio() {
     var on = !vault.file.bio;
@@ -417,9 +417,8 @@
       var d; try { d = JSON.parse(lget(PFX + "d." + id)); } catch (e) { d = null; }
       if (!d) return "";
       var t = String(d.title || "").trim() || String(d.body || "").trim().split("\n")[0].slice(0, 40) || "无标题稿件";
-      return '<div class="drow"><span class="drow-main" style="cursor:default"><span class="drow-t">' + esc(t) +
-        '</span><span class="drow-m"><span>posts/' + esc(d.category || "") + "</span></span></span>" +
-        '<button class="drow-del" type="button" data-move="' + esc(id) + '">移入</button></div>';
+      return '<button class="mrow" type="button" data-move="' + esc(id) + '">' + esc(t) +
+        '<small>posts/' + esc(d.category || "") + '</small><span class="go">移入</span></button>';
     }).join("");
     $("#app-move-list").innerHTML = rows || '<p class="note">普通稿件里没有可移入的稿件。</p>';
   }
@@ -457,10 +456,11 @@
     if (title) title.textContent = "使用说明";
     var web = $("ol", help);
     var ol = el("<ol>" +
-      "<li><b>稿件就是 .md 文件</b><p>普通稿件随写随存，同时同步到 <code>Documents/pilog/posts/分类/文件名.md</code>，带 pilog 的 front matter。在「信息」里改分类或文件名就是重命名；在「稿件」里删除会一并删掉文件。</p></li>" +
-      "<li><b>打开已有文件</b><p>「稿件 → 导入 .md」选择手机里的文件；「编辑线上文章」通过下拉菜单依次选择目录和文章，从 <code>pilog</code> 分支载入原文。</p></li>" +
-      "<li><b>私密库</b><p>「稿件 → 进入私密库」，第一次设置密码。内容只以加密形式存在 App 私有目录，不生成 .md 文件；右上角锁形按钮立即上锁，离开 App 1 分钟也会自动上锁。解锁后可开启指纹解锁、修改密码，或把普通稿件移入。</p></li>" +
-      "<li><b>开 PR 到 pilog</b><p>「稿件 → GitHub 令牌」粘贴只授权 <code>Meredith2328/pilog</code> 的 fine-grained token（Contents 与 Pull requests 读写），令牌由 Android Keystore 加密保存。之后「导出 → 发布（开 PR）」会新建 <code>write/日期-文件名</code> 分支并开 PR 到 <code>pilog</code>，在 GitHub 上审阅后手动合并。</p></li>" +
+      "<li><b>稿件就是 .md 文件</b><p>普通稿件随写随存，同时同步到 <code>Documents/pilog/posts/分类/文件名.md</code>，带 pilog 的 front matter。在「信息」里改分类或文件名就是重命名；在「稿件 → ⋯ → 查看归档文章」里删除会一并删掉文件。</p></li>" +
+      "<li><b>滑动与整理稿件</b><p>「信息 / 写作 / 预览」之间左右滑动切换，输入中、键盘弹出时不会误触；在面板标题栏向下滑可以关闭面板。稿件面板顶部一行是「新建」、排序、搜索框和 ⋯：搜索框默认只搜标题，输入框内部最右端的「全文」按钮点亮后会同时搜正文（以及标签和目录），命中的正文段落会显示在条目里并高亮关键词，多个关键词用空格分隔；⋯ 里是「编辑线上文章」「查看归档文章」「更多设置」。每行行尾是「置顶 / 归档」；进归档列表后行尾变成「恢复 / 删除」，删除要点两次确认，右上角「←」返回全部稿件。手动排序时长按稿件行拖动调整顺序。</p></li>" +
+      "<li><b>更多设置</b><p>「稿件 → ⋯ → 更多设置」里有「导入 .md」「GitHub 令牌」「外观」「私密库」和「使用说明」。</p></li>" +
+      "<li><b>私密库</b><p>「更多设置 → 私密库」，第一次设置密码。内容只以加密形式存在 App 私有目录，不生成 .md 文件；右上角锁形按钮立即上锁，离开 App 1 分钟也会自动上锁。解锁后可开启指纹解锁、修改密码，或把普通稿件移入。</p></li>" +
+      "<li><b>更多设置 → GitHub 令牌</b><p>粘贴只授权 <code>Meredith2328/pilog</code> 的 fine-grained token（Contents 与 Pull requests 读写），令牌由 Android Keystore 加密保存。之后「导出 → 发布（开 PR）」会新建 <code>write/日期-文件名</code> 分支并开 PR 到 <code>pilog</code>，在 GitHub 上审阅后手动合并。</p></li>" +
       "<li><b>导出与电脑同步</b><p>「导出 → 分享 / 导出 .md」走系统分享。USB 连电脑，把 <code>Documents/pilog/posts/</code> 拷进仓库的 <code>blogs/posts/</code> 即可。</p></li>" +
       "</ol>");
     if (web) web.replaceWith(ol); else help.insertBefore(ol, help.firstChild);
