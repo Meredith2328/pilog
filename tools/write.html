@@ -498,11 +498,23 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
 }
 .dsearch input::placeholder { color: var(--mute); }
 .dsearch input::-webkit-search-cancel-button, .dsearch input::-webkit-search-decoration { -webkit-appearance: none; display: none; }
+.dsearch #d-search-full {
+  flex: none; align-self: center; height: 22px; margin: 0 2px; padding: 0 5px;
+  border: 1px solid var(--rule); background: var(--paper); color: var(--mute);
+  font: 700 9.5px/1 var(--mono); letter-spacing: .04em;
+}
+.dsearch #d-search-full[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--paper); }
 .dsearch button {
   flex: none; width: 30px; border: 0; border-left: 1px solid var(--hairline); background: none;
   font: 400 16px/1 var(--mono); color: var(--mute);
 }
+.dsearch #d-search-clear { width: 26px; }
 .dsearch button[hidden] { display: none; }
+.drow-snip {
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  margin-top: 6px; font: 11.5px/1.55 var(--sans); color: var(--text);
+}
+.drow-snip mark { padding: 0 1px; background: var(--hl-bg); color: var(--ink); box-shadow: inset 0 -2px 0 var(--highlight); }
 .dmenu { position: relative; flex: none; }
 .dmenu-btn { width: 44px; height: 40px; border: 2px solid var(--ink); background: var(--paper); color: var(--ink); font: 700 18px/1 var(--mono); }
 .dmenu-btn[aria-expanded="true"] { background: var(--ink); color: var(--paper); }
@@ -883,7 +895,8 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
           <span class="car" aria-hidden="true">▾</span>
         </label>
         <div class="dsearch">
-          <input id="d-search" type="search" placeholder="搜索标题 / 全文" aria-label="搜索稿件" autocomplete="off" spellcheck="false" enterkeyhint="search">
+          <input id="d-search" type="search" placeholder="搜索标题" aria-label="搜索稿件" autocomplete="off" spellcheck="false" enterkeyhint="search">
+          <button type="button" id="d-search-full" aria-pressed="false" aria-label="搜索全文" title="搜索全文">全文</button>
           <button type="button" id="d-search-clear" aria-label="清除搜索" hidden>×</button>
         </div>
         <div class="dmenu">
@@ -2158,9 +2171,7 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
     }
     if (name === "drafts") {
       setMenu(false);
-      searchQ = "";
-      var q = $("#d-search");
-      if (q) q.value = "";
+      resetSearch();
       renderDrafts();
     }
     if (name === "more") syncMore();
@@ -2922,7 +2933,7 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
   }
   /* ---------- drafts: 新建 / 排序 / 列表 ---------- */
   var SORTS = ["updated", "created", "title", "manual"];
-  var suppressClick = false, drag = null, menuOpen = false, searchQ = "";
+  var suppressClick = false, drag = null, menuOpen = false, searchQ = "", searchFull = false;
   /* Chromium (and Android System WebView) ships ICU, where Chinese collation
      is pinyin; the 阿/波 probe rejects engines that only have codepoint order. */
   var pinyin = (function () {
@@ -2959,8 +2970,50 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
   function draftMatches(d, q) {
     if (!q) return true;
     var terms = q.toLowerCase().split(/\s+/).filter(Boolean);
-    var hay = (d.title + "\n" + d.body + "\n" + (d.tags || []).join(" ") + "\n" + catOf(d)).toLowerCase();
+    if (!terms.length) return true;
+    var hay = searchFull
+      ? (draftTitle(d) + "\n" + d.body + "\n" + (d.tags || []).join(" ") + "\n" + catOf(d)).toLowerCase()
+      : draftTitle(d).toLowerCase();
     return terms.every(function (t) { return hay.indexOf(t) >= 0; });
+  }
+  function plainPara(p) {
+    return p.replace(/^ {0,3}(?:#{1,6}|>|[-*+]|\d+[.)])\s+/gm, "")
+      .replace(/^ {0,3}```.*$/gm, "").replace(/\s+/g, " ").trim();
+  }
+  function hlTerms(text, terms) {
+    var re = new RegExp(terms.map(function (t) { return t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }).join("|"), "gi");
+    var out = "", last = 0, m;
+    while ((m = re.exec(text))) {
+      out += esc(text.slice(last, m.index)) + "<mark>" + esc(m[0]) + "</mark>";
+      last = m.index + m[0].length;
+      if (m.index === re.lastIndex) re.lastIndex++;
+    }
+    return out + esc(text.slice(last));
+  }
+  /* 全文模式：在命中的段落里截一段前后文，并把关键词标出来。 */
+  function draftSnippet(d, q) {
+    if (!searchFull || !q) return "";
+    var terms = q.toLowerCase().split(/\s+/).filter(Boolean);
+    if (!terms.length) return "";
+    var paras = d.body.replace(/\r\n?/g, "\n").split(/\n{2,}/).map(plainPara).filter(Boolean);
+    var best = "", bestScore = 0;
+    for (var i = 0; i < paras.length; i++) {
+      var low = paras[i].toLowerCase(), score = 0;
+      for (var k = 0; k < terms.length; k++) if (low.indexOf(terms[k]) >= 0) score++;
+      if (score > bestScore) { best = paras[i]; bestScore = score; }
+    }
+    if (!best) return "";
+    var lowBest = best.toLowerCase(), at = -1;
+    terms.forEach(function (t) {
+      var p = lowBest.indexOf(t);
+      if (p >= 0 && (at < 0 || p < at)) at = p;
+    });
+    if (at < 0) at = 0;
+    var start = Math.max(0, at - 36), end = Math.min(best.length, at + 120);
+    var text = best.slice(start, end).trim();
+    if (start > 0) text = "…" + text;
+    if (end < best.length) text += "…";
+    return '<span class="drow-snip">' + hlTerms(text, terms) + "</span>";
   }
   function visibleDrafts() {
     var list = allDrafts().filter(function (d) {
@@ -3022,7 +3075,7 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
       '<button class="drow-main" type="button" data-act="open">' +
       '<span class="drow-t' + (t ? "" : " is-empty") + '">' + esc(t || "无标题稿件") + "</span>" +
       '<span class="drow-m"><span>posts/' + esc(catOf(d)) + "</span><span>" + proseCount(d.body) + " 字</span><span>" +
-      relTime(d.updated) + "</span>" + draftBadges(d, active) + "</span></button>" + btns + "</div>";
+      relTime(d.updated) + "</span>" + draftBadges(d, active) + "</span>" + draftSnippet(d, searchQ) + "</button>" + btns + "</div>";
   }
   function renderDrafts() {
     syncDraftTools();
@@ -3127,6 +3180,14 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
     renderDrafts();
     toast("已删除");
   });
+  function resetSearch() {
+    searchQ = "";
+    searchFull = false;
+    var q = $("#d-search"), full = $("#d-search-full"), clear = $("#d-search-clear");
+    if (q) { q.value = ""; q.placeholder = "搜索标题"; }
+    if (full) full.setAttribute("aria-pressed", "false");
+    if (clear) clear.hidden = true;
+  }
   $("#d-menu").addEventListener("click", function () { setMenu(!menuOpen); });
   document.addEventListener("click", function (e) {
     if (menuOpen && !(e.target.closest && e.target.closest(".dmenu"))) setMenu(false);
@@ -3136,22 +3197,25 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
     prefs.filter = "archived";
     store.set("prefs", prefs);
     setMenu(false);
-    searchQ = "";
-    var q = $("#d-search");
-    if (q) q.value = "";
+    resetSearch();
     renderDrafts();
   });
   $("#d-back").addEventListener("click", function () {
     prefs.filter = "all";
     store.set("prefs", prefs);
-    searchQ = "";
-    var q = $("#d-search");
-    if (q) q.value = "";
+    resetSearch();
     renderDrafts();
   });
   (function bindSearch() {
-    var input = $("#d-search"), clear = $("#d-search-clear"), timer = 0;
+    var input = $("#d-search"), clear = $("#d-search-clear"), full = $("#d-search-full"), timer = 0;
     if (!input || !clear) return;
+    if (full) full.addEventListener("click", function () {
+      searchFull = !searchFull;
+      full.setAttribute("aria-pressed", String(searchFull));
+      input.placeholder = searchFull ? "搜索全文" : "搜索标题";
+      renderDrafts();
+      input.focus();
+    });
     input.addEventListener("input", function () {
       clear.hidden = !input.value;
       clearTimeout(timer);
