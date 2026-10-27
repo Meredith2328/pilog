@@ -79,14 +79,16 @@ export all notes, uninstall that version, and install the fixed-key APK.
   `Documents/pilog/posts/<category>/<slug>.md` with pilog front matter.
   If shared Documents can't be written, the app falls back to
   `Android/data/io.github.meredith2328.pilogwrite/files/pilog/`. To rename a note,
-  change its category or file name in 信息; to delete it, use 稿件 → 删除. To
-  open an existing file, use 稿件 → 导入 .md.
+  change its category or file name in 信息. To delete one, archive it first
+  (归档 on its row), open ⋯ → 查看归档文章, and tap 删除 there (it asks twice);
+  to open an existing file, use ⋯ → 更多设置 → 导入 .md.
 - **Export**: 导出 → 分享 / 导出 .md opens the Android share sheet.
 - **PC sync**: plug in over USB and copy `Documents/pilog/posts/` into the repo's
   `blogs/posts/`. This is a one-way copy; there is no sync engine.
-- **Vault**: 稿件 → 进入私密库. The first time, you set a password (minimum 6
-  characters; it can't be recovered). Vault notes are stored as one AES-GCM
-  encrypted file in app-private storage and are never mirrored as `.md`.
+- **Vault** (Android app only): open ⋯ → 更多设置 → 私密库. The first time, you
+  set a password (minimum 6 characters; it can't be recovered). Vault notes are
+  stored as one AES-GCM encrypted file in app-private storage and are never
+  mirrored as `.md`.
   - Lock with the lock button in the top bar. The vault also locks itself after
     60 s in the background.
   - Screenshots are blocked while the vault is open.
@@ -97,15 +99,15 @@ export all notes, uninstall that version, and install the fixed-key APK.
   1. Create a GitHub fine-grained token with resource owner `Meredith2328`,
      only the `Meredith2328/pilog` repository, and `Contents` and
      `Pull requests` set to Read and write. Set an expiry.
-  2. In the app, open 稿件 → GitHub 令牌, paste the token, turn on 记住, and
-     tap 保存并验证. The token is encrypted with an Android Keystore key and
-     sent only to `api.github.com`.
+  2. In the app, open ⋯ → 更多设置 → GitHub 令牌, paste the token, turn on
+     记住, and tap 保存并验证. The token is encrypted with an Android Keystore
+     key and sent only to `api.github.com`.
   3. Tap 导出 → 发布（开 PR）. The app creates a `write/<date>-<slug>` branch,
      writes `blogs/posts/<category>/<slug>.md`, and opens a PR into `pilog`.
      Review and merge it on GitHub; the app never merges.
-- **Edit an online post**: 稿件 → 编辑线上文章, then choose its directory and
-  article from the cascading dropdowns. Selecting an article loads its original
-  source from `pilog` into the editor.
+- **Edit an online post**: 稿件 ⋯ → 编辑线上文章, then choose its directory
+  and article from the cascading dropdowns. Selecting an article loads its
+  original source from `pilog` into the editor.
 - **piwiki**: shown as disabled until the piwiki repo exists. To enable it
   later, set `PIWIKI.repo` in `web/native.js`.
 
@@ -114,14 +116,58 @@ export all notes, uninstall that version, and install the fixed-key APK.
 ```bash
 npm --prefix mobile run sync
 python -m playwright install chromium
+python tests/test_write.py
+python tests/test_write_drafts.py
 python tests/test_write_live.py
 ```
 
 The browser test exports two same-day drafts to actual files, checks filename
 stability and manual naming, and loads an online post through the real public
 catalog and GitHub API. Screenshots and downloads are stored in `.write_live/`.
+`tests/test_write.py` covers the writer itself (autosave, preview, publish/PR,
+post picker) and `tests/test_write_drafts.py` covers swipe gestures plus 稿件
+sorting, pinning, archiving and manual order; both start their own local server
+and need Playwright's chromium.
 
 ## Changelog
+
+### 0.3.0 (2026-10-27)
+
+- The 稿件 panel is slimmer: a dark title bar, one top row with 新建, a compact
+  排序 box that shows only the current value, a search box, and ⋯. The list is
+  flat: pinned drafts stay first, archived ones are kept out of it.
+- Search filters as you type by title, body, tags, and folder; it ignores case
+  and needs every space-separated keyword to match. The header counts the
+  results (「N 个结果」) and the box has a clear button; switching views or
+  reopening the panel clears the query.
+- Each row has 置顶 / 取消置顶 and 归档 on its right, and a pinned row now draws
+  the highlight border around the whole row. ⋯ → 查看归档文章 opens the archive:
+  there the top-right control is a ← back arrow instead of ⋯, and the rows
+  offer 恢复 and 删除, with delete still asking twice.
+- 编辑线上文章 and 更多设置 also live in the ⋯ menu. The 更多设置 sheet holds
+  导入 .md, GitHub 令牌 (with status), 外观 (light/dark), 私密库 (app only),
+  使用说明, and the local-storage hint.
+- Sorting covers edited / created / name by pinyin / manual; manual order is set
+  by long-pressing a row and dragging it up or down. 导出 / 发布（开 PR）stay in
+  the write page, and the clear-all drafts button is still gone.
+- Interface Chinese now uses a self-hosted pixel font, Ark Pixel 12px zh_hans
+  (OFL-1.1, subset to about 165 KB). Body text and preview keep the reading
+  font, and English stays Inter / JetBrains Mono.
+
+### 0.2.6 (2026-10-27)
+
+- Swipe left or right between 信息, 写作, and 预览: left goes to the next page,
+  right goes back. A swipe that starts while the keyboard is open, or on a
+  scrollable area or form control, does nothing; with the keyboard closed the
+  editor itself can be swiped. Swipe down on a bottom sheet's title to close
+  the sheet.
+- Removed the 清空本机全部稿件 button from 稿件 and the 清空私密库全部稿件 button
+  from the vault. Deleting a single draft is still there and asks for
+  confirmation.
+- The 稿件 list gained sorting (edited / created / name by pinyin / manual), a
+  filter (all / pinned / archived), pin, archive, and grouping by category
+  folder. Manual order is changed with 上移 / 下移 in the ⋯ menu at the end of
+  each row, and the sort, filter, and grouping choices are remembered.
 
 ### 0.2.5
 

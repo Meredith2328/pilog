@@ -20,7 +20,7 @@
 - **Obsidian 语法**：`![[图片.png]]`、`[[文章]]`、`![[图片.png|300]]` 均原生支持，也支持 Markdown 原生相对/绝对路径图片；
 - **图片工作台**：本地拖入图片即导入，支持缩放、裁剪、旋转、替换、删除，并一键复制引用片段；
 - **所见即所得工作台**：本地 `/manager` 提供配置表单 + 博客首页实时预览编辑——直接点选/拖拽更换头图与背景长图、增删改导航栏、拖拽卡片排序（跨入置顶区即置顶）、双击卡片编辑标题/预览/标签/高亮/全文、拖图到卡片设置预览图；所有修改即时写入本地文件，支持撤销/重做，并实时显示每次修改影响的文件；
-- **手机写作**：`tools/write.html` 是单文件、可离线的 Android 写作页（线上位于 <https://meredith2328.github.io/write/>，serve 时位于 `/write`，局域网手机也能打开；文章页的「✎ 编辑」可从 `pilog` 载入原文原地修改）：编辑 / 预览 / front matter 表单、本机多稿件自动保存、导出 `.md`；仓库主人还可以用**只存在自己手机上**的 fine-grained token 直接「发布（开 PR）」到 `pilog`（见[手机发布](#手机发布开-pr)）；
+- **手机写作**：`tools/write.html` 是单文件、可离线的 Android 写作页（线上位于 <https://meredith2328.github.io/write/>，serve 时位于 `/write`，局域网手机也能打开；文章页的「✎ 编辑」可从 `pilog` 载入原文原地修改）：信息 / 写作 / 预览三页可左右滑动切换（左滑下一页、右滑上一页；软键盘弹出、从表单控件 / 表格 / 横向滚动区开始滑动时不会误触，底部面板标题向下滑可关闭）、编辑 / 预览 / front matter 表单、本机多稿件自动保存、导出 `.md`；稿件面板顶部一行是新建 / 短排序 / 搜索框 / ⋯，短排序只显示当前排序值（编辑时间、创建时间、名称（拼音）或手动排序），选「手动排序」后长按一行上下拖动即可调整顺序；列表平铺、置顶始终排最前、归档的稿件不在此列表；搜索按标题、正文、标签和目录即时过滤，忽略大小写、多个关键词用空格隔开（全部命中），输入框有清除按钮，标题旁显示「N 个结果」，切换普通 / 归档或重开面板时清空；每行右侧是「置顶 / 取消置顶」和「归档」两个按钮，⋯ → 查看归档文章进入归档列表（右上角换成 ← 返回，点它回到全部稿件），右侧按钮换成「恢复」和「删除」，删除仍二次确认；⋯ 里还收着编辑线上文章和更多设置，导入 .md、GitHub 令牌（带状态）、外观、私密库（仅 App）、使用说明与本机存储提示都在「更多设置」里；「清空本机全部稿件」和「清空私密库全部稿件」两个按钮已移除；仓库主人还可以用**只存在自己手机上**的 fine-grained token 直接「发布（开 PR）」到 `pilog`（见[手机发布](#手机发布开-pr)）；
 - **导航自定义**：`blogs/nav.md` 决定导航栏内容（支持多级下拉）；
 - **giscus 评论 + RSS**：`config.json` 填好仓库即可开启评论，`rss.xml` 自动生成；
 - **社交图标**：GitHub / X / Bilibili / 微博 / 邮箱，配置后显示在页头；
@@ -118,11 +118,11 @@ python pilog.py serve --watch                # 本地预览 + 自动重建
 1. GitHub → Settings → Developer settings → Fine-grained tokens → [Generate new token](https://github.com/settings/personal-access-tokens/new)；
 2. Resource owner 选 `Meredith2328`，Repository access 选 **Only select repositories** → `Meredith2328/pilog`；
 3. Repository permissions 只开 **Contents: Read and write** 与 **Pull requests: Read and write**（Metadata: Read 自动带上），其余保持 No access；设置到期时间；
-4. 手机打开写作页 →「稿件 → GitHub 令牌」（或导出面板里的「令牌」）粘贴并「保存并验证」。默认只存 `sessionStorage`（关闭标签页即清除）；打开「在这台设备上记住」才存 `localStorage`。随时可「清除令牌」，丢手机时到 GitHub 上 Revoke 即时失效。
+4. 手机打开写作页 →「稿件 ⋯ → 更多设置 → GitHub 令牌」（或导出面板里的「令牌」）粘贴并「保存并验证」。默认只存 `sessionStorage`（关闭标签页即清除）；打开「在这台设备上记住」才存 `localStorage`。随时可「清除令牌」，丢手机时到 GitHub 上 Revoke 即时失效。
 
 **原地修改已发布的文章**：
 
-- 每篇文章页的元信息行有「✎ 编辑」，链接到 `/write/index.html?path=blogs/posts/…/*.md`；也可以在写作页「稿件 → 编辑线上文章」输入路径或直接粘贴文章网址（`posts/…/x.html` 会换成对应的 `.md`）。只接受 `blogs/posts/` 下的 `.md`；
+- 每篇文章页的元信息行有「✎ 编辑」，链接到 `/write/index.html?path=blogs/posts/…/*.md`；也可以在写作页「稿件 ⋯ → 编辑线上文章」（高级里可直接输入路径或粘贴文章网址，`posts/…/x.html` 会换成对应的 `.md`）载入。只接受 `blogs/posts/` 下的 `.md`；
 - 有令牌时用 Contents API 读取 `pilog` 分支上的当前版本（`GET /repos/Meredith2328/pilog/contents/<path>?ref=pilog`）放进本机稿件；没有令牌会先请你设置，保存后自动继续载入；
 - 没改信息字段时原样保留原文的 front matter 与空白，PR 的 diff 只有你改动的正文；
 - 发布走同样的流程：新建 `write/<载入日期>-edit-<文件名>` 分支，带着载入时的文件 sha 提交修改，开「更新文章：…」PR 到 `pilog`。如果载入后 `pilog` 上这篇又被改过（比如别的 PR 已合并），发布前会提示，可以选「载入线上最新」或确认用自己的版本；
@@ -277,7 +277,7 @@ giscus 是**客户端**评论系统（GitHub Discussions 驱动），博客侧�
 
 **想换字体或配色？** 主题样式集中在 `generator/static/css/style.css` 顶部的 CSS 变量里（`--paper`、`--ink`、`--accent` 等）。
 
-**字体从哪来？** 字体已自托管在仓库里（`generator/static/fonts/`，Inter + JetBrains Mono 的 woff2），`config.json` 里 `use_google_fonts: false` 可关闭、回退到系统字体（Windows 上为 Segoe UI + 微软雅黑，代码为 Cascadia Code/Consolas）。KaTeX 也已自托管（`generator/static/vendor/katex/`），全站不依赖 Google Fonts 与 jsDelivr CDN。
+**字体从哪来？** 字体已自托管在仓库里（`generator/static/fonts/`，Inter + JetBrains Mono 的 woff2）；写作页界面的中文另外用 [Ark Pixel Font](https://github.com/TakWolf/ark-pixel-font) 的 12px zh_hans 像素字体（OFL-1.1，子集化后约 165KB），只作用于界面文字，正文与预览仍用原来的阅读字体。`config.json` 里 `use_google_fonts: false` 可关闭、回退到系统字体（Windows 上为 Segoe UI + 微软雅黑，代码为 Cascadia Code/Consolas）。KaTeX 也已自托管（`generator/static/vendor/katex/`），全站不依赖 Google Fonts 与 jsDelivr CDN。
 
 ## 许可
 
