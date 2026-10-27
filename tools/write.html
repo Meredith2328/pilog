@@ -439,6 +439,12 @@ details.more .in { padding: 4px 14px 16px; border-top: 1px solid var(--hairline)
   flex: none; height: 48px; padding: 0 16px; border: 0; background: var(--ink); color: var(--paper);
   font: 700 13px/1 var(--mono); letter-spacing: .08em;
 }
+.fk-img {
+  flex: none; width: 52px; height: 48px; display: flex; align-items: center; justify-content: center;
+  border: 0; border-left: 2px solid var(--ink); background: var(--hl-bg); color: var(--ink);
+}
+.fk-img:active { background: var(--ink); color: var(--paper); }
+.fk-img .pix { width: 18px; height: 15px; }
 .app.is-fine .fk-done { display: none; }
 
 /* ---------- sheets ---------- */
@@ -863,12 +869,12 @@ html.is-vault [data-k="img"] { display: none; }
         <button class="fk" type="button" data-k="quote" aria-label="引用">&gt;</button>
         <button class="fk sep" type="button" data-k="fence" aria-label="代码块">```</button>
         <button class="fk" type="button" data-k="link" aria-label="链接">[]()</button>
-        <button class="fk" type="button" data-k="img" aria-label="图片">![]</button>
         <button class="fk" type="button" data-k="wiki" aria-label="站内引用">[[ ]]</button>
         <button class="fk sep" type="button" data-k="hr" aria-label="分隔线">—</button>
         <button class="fk" type="button" data-k="outdent" aria-label="减少缩进">⇤</button>
         <button class="fk" type="button" data-k="indent" aria-label="增加缩进">⇥</button>
       </div>
+      <button class="fk-img" type="button" id="btn-fmt-img" data-k="img" aria-label="插入图片" title="插入图片（图片库）"><span class="pix" data-pix="img"></span></button>
       <button class="fk-done" type="button" id="btn-done">完成</button>
     </div>
     <nav class="tabs" aria-label="视图">
@@ -1101,7 +1107,7 @@ html.is-vault [data-k="img"] { display: none; }
       <li><b>整理稿件</b>
         <p>「稿件」面板顶部一行是「新建 / 排序 / 搜索 / ⋯」：排序可选编辑时间、创建时间、名称（拼音）或手动排序；搜索默认只搜标题，点输入框里的小按钮「全文」后才会连正文、标签和目录一起搜，多个关键词用空格隔开。点 ⋯ 可以编辑线上文章、查看归档文章和打开「更多设置」。每篇稿件行尾有「置顶」和「归档」两个按钮，归档后从列表里收起；在归档列表里右上角是 ← 返回，两个按钮变成「恢复」和「删除」，删除要点两次。置顶的稿件始终排在最前面。手动排序时，长按一行再上下拖动就能调整顺序。</p></li>
       <li><b>插入图片</b>
-        <p>写作页格式栏的「![]」按钮，或「稿件 → ⋯ → 图片库」打开图片面板，可以拍照、从相册选择，或直接粘贴/拖入图片。选中图片后能裁剪、左右旋转、水平/垂直翻转，也可以把长边压到 2000/1600/1200/800px 再保存；「插入正文」会在光标处写入 <code>![[图片名]]</code>，预览里直接显示，「设为预览图」会把首页卡片图指向它。图片存在本机图片库（IndexedDB），Android App 还会额外镜像到 <code>Documents/pilog/assets/</code>。发布 PR 时会自动把用到的图片一起上传到 <code>blogs/assets/</code>。私密库里的稿件不支持图片。</p></li>
+        <p>写作页格式栏最右边的图片图标，或「稿件 → ⋯ → 图片库」打开图片面板，可以拍照、从相册选择，或直接粘贴/拖入图片。选中图片后能裁剪、左右旋转、水平/垂直翻转，也可以把长边压到 2000/1600/1200/800px 再保存；「插入正文」会在光标处写入 <code>![[图片名]]</code>，预览里直接显示，「设为预览图」会把首页卡片图指向它。图片存在本机图片库（IndexedDB），Android App 还会额外镜像到 <code>Documents/pilog/assets/</code>。发布 PR 时会自动把用到的图片一起上传到 <code>blogs/assets/</code>。私密库里的稿件不支持图片。</p></li>
       <li><b>或者直接开 PR（仅仓库主人）</b>
         <p>在「更多设置 → GitHub 令牌」粘贴只授权 <code>Meredith2328/pilog</code> 的 fine-grained token，之后「导出 → 发布（开 PR）」会新建 <code>write/日期-文件名</code> 分支并开 PR 到 <code>pilog</code>，在 GitHub 上审阅后手动合并。</p></li>
       <li><b>修改已发布的文章</b>
@@ -1141,7 +1147,9 @@ html.is-vault [data-k="img"] { display: none; }
     eye: ["....####....", "..##....##..", ".#...##...#.", "#...####...#", "#...####...#",
       ".#...##...#.", "..##....##..", "....####...."],
     export: [".....##.....", ".....##.....", ".....##.....", "..#..##..#..", "...#.##.#...",
-      "....####....", ".....##.....", "#..........#", "#..........#", "############"]
+      "....####....", ".....##.....", "#..........#", "#..........#", "############"],
+    img: ["............", ".##########.", ".#........#.", ".#..##....#.", ".#..##..#.#.",
+      ".#.....##.#.", ".#..######.#", ".##########.", "............", "............"]
   };
 
   /* ================= tiny helpers ================= */
@@ -2109,7 +2117,6 @@ html.is-vault [data-k="img"] { display: none; }
       else if (sel) replaceRange(a, b, "[" + sel + "](https://)", a + sel.length + 3, a + sel.length + 11);
       else replaceRange(a, b, "[文字](https://)", a + 1, a + 3);
     },
-    img: function () { openImages(); },
     wiki: function () { wrap("[[", "]]", "文章标题"); },
     hr: function () { ensureBlock("---\n", 4, 0); },
     indent: function () { mapLines(function (ls) { return ls.map(function (l) { return "    " + l; }); }); },
@@ -2120,6 +2127,9 @@ html.is-vault [data-k="img"] { display: none; }
     var k = e.target.closest(".fk");
     if (k && KEYS[k.dataset.k]) KEYS[k.dataset.k]();
   });
+  var fmtImgBtn = $("#btn-fmt-img");
+  fmtImgBtn.addEventListener("pointerdown", function (e) { e.preventDefault(); });
+  fmtImgBtn.addEventListener("click", function () { openImages(); });
   $("#btn-done").addEventListener("pointerdown", function (e) { e.preventDefault(); });
   $("#btn-done").addEventListener("click", function () { body.blur(); saveNow(); });
 

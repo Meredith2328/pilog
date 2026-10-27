@@ -255,6 +255,23 @@ def entry_checks(b):
     ctx, pg, errs = new_page(b, mobile=False)
     check("desktop: [data-k=img] toolbar entry is visible",
           pg.locator('[data-k="img"]').is_visible())
+    check("desktop: image entry is the icon button, not the old ![] text",
+          pg.get_attribute('[data-k="img"]', "id") == "btn-fmt-img"
+          and pg.get_attribute('[data-k="img"]', "aria-label") == "插入图片"
+          and pg.locator("#btn-fmt-img .pix svg").count() == 1
+          and "![]" not in pg.inner_text("#fmt-keys"))
+    pos = pg.evaluate("""() => {
+      const b = document.querySelector('#btn-fmt-img').getBoundingClientRect();
+      const f = document.querySelector('#fmt').getBoundingClientRect();
+      const keys = document.querySelector('#fmt-keys').getBoundingClientRect();
+      return {
+        right: b.right, fmtRight: f.right, left: b.left, keysRight: keys.right,
+        insideKeys: !!document.querySelector('#fmt-keys #btn-fmt-img')
+      };
+    }""")
+    check("desktop: image icon sits at the right edge, outside the scrollable keys",
+          abs(pos["right"] - pos["fmtRight"]) < 2
+          and not pos["insideKeys"] and pos["left"] >= pos["keysRight"] - 1, repr(pos))
     open_images_desktop(pg)
     check("desktop: [data-k=img] opens #sheet-images",
           pg.evaluate("document.querySelector('#sheet-images').classList.contains('is-open')")

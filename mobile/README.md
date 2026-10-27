@@ -86,13 +86,13 @@ export all notes, uninstall that version, and install the fixed-key APK.
 - **PC sync**: plug in over USB and copy `Documents/pilog/posts/` into the repo's
   `blogs/posts/`. This is a one-way copy; there is no sync engine.
 - **Images**: the write page keeps a local image library. Open it with the
-  format bar's `![]` button or 稿件 ⋯ → 图片库; take a photo, pick from the
-  gallery, paste, or drag an image in. Crop, rotate 90°, flip, and shrink the
-  long edge to 2000/1600/1200/800 px, then 插入正文 writes `![[name]]` at the
-  caret and 设为预览图 points the card cover at it. Images live in IndexedDB,
-  the app also mirrors them to `Documents/pilog/assets/`, and publishing
-  uploads the ones a draft uses to `blogs/assets/` in the same `write/…`
-  branch. The vault does not support images.
+  image button at the right edge of the format bar, or 稿件 ⋯ → 图片库; take a
+  photo, pick from the gallery, paste, or drag an image in. Crop, rotate 90°,
+  flip, and shrink the long edge to 2000/1600/1200/800 px, then 插入正文 writes
+  `![[name]]` at the caret and 设为预览图 points the card cover at it. Images
+  live in IndexedDB, the app also mirrors them to `Documents/pilog/assets/`,
+  and publishing uploads the ones a draft uses to `blogs/assets/` in the same
+  `write/…` branch. The vault does not support images.
 - **Vault** (Android app only): open ⋯ → 更多设置 → 私密库. The first time, you
   set a password (minimum 6 characters; it can't be recovered). Vault notes are
   stored as one AES-GCM encrypted file in app-private storage and are never
@@ -141,14 +141,14 @@ and need Playwright's chromium.
 
 ### 0.4.0 (2026-10-27)
 
-- Images: a local image library in the write page. Open it with the format
-  bar's `![]` button or 稿件 ⋯ → 图片库; take a photo, pick from the gallery,
-  paste, or drag images in, then crop, rotate 90°, flip, and shrink the long
-  edge to 2000/1600/1200/800 px. 插入正文 writes `![[name]]` at the caret and
-  设为预览图 sets it as the card cover. Images live in IndexedDB, the app
-  mirrors them to `Documents/pilog/assets/`, and publishing uploads the ones a
-  draft uses to `blogs/assets/` in the same write branch. The vault does not
-  support images.
+- Images: a local image library in the write page. Open it with the image
+  button at the right edge of the format bar, or 稿件 ⋯ → 图片库; take a photo,
+  pick from the gallery, paste, or drag images in, then crop, rotate 90°, flip,
+  and shrink the long edge to 2000/1600/1200/800 px. 插入正文 writes `![[name]]`
+  at the caret and 设为预览图 sets it as the card cover. Images live in
+  IndexedDB, the app mirrors them to `Documents/pilog/assets/`, and publishing
+  uploads the ones a draft uses to `blogs/assets/` in the same write branch.
+  The vault does not support images.
 
 ### 0.3.0 (2026-10-27)
 
