@@ -136,10 +136,14 @@ and need Playwright's chromium.
 - The 稿件 panel is slimmer: a dark title bar, one top row with 新建, a compact
   排序 box that shows only the current value, a search box, and ⋯. The list is
   flat: pinned drafts stay first, archived ones are kept out of it.
-- Search filters as you type by title, body, tags, and folder; it ignores case
-  and needs every space-separated keyword to match. The header counts the
-  results (「N 个结果」) and the box has a clear button; switching views or
-  reopening the panel clears the query.
+- Search filters as you type and matches titles only by default; a 全文 toggle
+  inside the search box also matches body, tags, and folder, and in that mode
+  each matching row shows the paragraph where it matched with the keywords
+  highlighted (two lines at most). It ignores case and needs every
+  space-separated keyword to match. The header counts the results
+  (「N 个结果」) and the box has a clear button; Esc clears the query without
+  closing the panel, and switching views or reopening the panel clears it and
+  returns to title search.
 - Each row has 置顶 / 取消置顶 and 归档 on its right, and a pinned row now draws
   the highlight border around the whole row. ⋯ → 查看归档文章 opens the archive:
   there the top-right control is a ← back arrow instead of ⋯, and the rows
