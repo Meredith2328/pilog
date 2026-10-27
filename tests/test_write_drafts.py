@@ -9,9 +9,12 @@
   84px sort select / search box / ⋯ menu with a ← back arrow in archive view),
   per-row 置顶 / 归档 buttons, archive view (title 归档, 恢复 / 删除 with
   two-step confirm), #drafts-sub counts and empty states;
-* search: case-insensitive multi-term substring match across title / body /
-  tags / category, "N 个结果" counter, no-result hint, clear button and reset
-  when reopening the sheet or switching normal/archive view;
+* search: title mode by default (#d-search-full 全文 toggle switches to
+  title + body + tags + category), case-insensitive multi-term matching,
+  "N 个结果" counter, no-result hint, clear/Esc behavior, reset when reopening
+  the sheet or switching normal/archive view, and full-text result snippets
+  (.drow-snip) with <mark> highlights only for body matches;
+* the toolbar + search box still fit at 360px with 全文 and clear shown;
 * manual sorting: 手动排序 then long-press + vertical drag, sortRank persisted
   across reloads, dragging disabled in the archive view, no 上移/下移 buttons;
 * pinned rows use the highlight outline, and 更多设置 ships token / theme /
@@ -100,9 +103,9 @@ def seed_js(drafts, prefs=None, active=None):
     })();""" % json.dumps(payload, ensure_ascii=False)
 
 
-def new_page(b, drafts=None, prefs=None, active=None):
+def new_page(b, drafts=None, prefs=None, active=None, width=412, height=860):
     ctx = b.new_context(
-        viewport={"width": 412, "height": 860}, is_mobile=True, has_touch=True,
+        viewport={"width": width, "height": height}, is_mobile=True, has_touch=True,
         accept_downloads=True,
     )
     if drafts is not None:
@@ -186,8 +189,21 @@ def search(pg, text):
 def search_state(pg):
     return pg.evaluate("""() => ({
       value: document.querySelector('#d-search').value,
+      placeholder: document.querySelector('#d-search').placeholder,
+      mode: document.querySelector('#d-search-full').getAttribute('aria-pressed'),
       clearHidden: document.querySelector('#d-search-clear').hidden,
       rows: Array.from(document.querySelectorAll('#sheet-drafts .drow')).map(function (r) { return r.dataset.id; }),
+      snippets: Array.from(document.querySelectorAll('#sheet-drafts .drow')).map(function (r) {
+        const s = r.querySelector('.drow-snip');
+        return s ? {
+          id: r.dataset.id,
+          text: s.textContent,
+          html: s.innerHTML,
+          marks: Array.from(s.querySelectorAll('mark')).map(function (m) { return m.textContent; }),
+          inMain: !!s.closest('.drow-main'),
+        } : null;
+      }).filter(Boolean),
+      sheetOpen: document.querySelector('#sheet-drafts').classList.contains('is-open'),
       sub: document.querySelector('#drafts-sub').textContent,
       note: document.querySelector('#draft-list .note')
         ? document.querySelector('#draft-list .note').textContent : null,
@@ -422,6 +438,16 @@ def dom_contract_checks(b):
           aria: row.querySelector('#d-search').getAttribute('aria-label'),
           clearHidden: row.querySelector('#d-search-clear').hidden,
           clearAria: row.querySelector('#d-search-clear').getAttribute('aria-label'),
+          fullText: row.querySelector('#d-search-full').textContent.trim(),
+          fullPressed: row.querySelector('#d-search-full').getAttribute('aria-pressed'),
+          fullAria: row.querySelector('#d-search-full').getAttribute('aria-label'),
+          order: Array.from(row.querySelector('.dsearch').children).map(function (e) { return e.id; }),
+          fullInside: (function () {
+            const wrap = row.querySelector('.dsearch').getBoundingClientRect();
+            const inp = row.querySelector('#d-search').getBoundingClientRect();
+            const fb = row.querySelector('#d-search-full').getBoundingClientRect();
+            return fb.left >= inp.left && fb.right <= wrap.right + 0.5;
+          })(),
         },
         menuHidden: row.querySelector('#d-menu').hidden,
         backHidden: row.querySelector('#d-back').hidden,
@@ -437,10 +463,13 @@ def dom_contract_checks(b):
           and tools["sr"]["w"] <= 1 and tools["sr"]["h"] <= 1
           and tools["sr"]["pos"] == "absolute" and tools["sr"]["overflow"] == "hidden",
           repr({k: tools[k] for k in ("sortWidth", "sr", "sortAria")}))
-    check("search box is a type=search input with placeholder + aria-label",
+    check("search box: type=search, placeholder 搜索标题, 全文 toggle at its right edge",
           tools["search"] == {
-              "type": "search", "placeholder": "搜索标题 / 全文",
-              "aria": "搜索稿件", "clearHidden": True, "clearAria": "清除搜索"},
+              "type": "search", "placeholder": "搜索标题", "aria": "搜索稿件",
+              "clearHidden": True, "clearAria": "清除搜索",
+              "fullText": "全文", "fullPressed": "false", "fullAria": "搜索全文",
+              "order": ["d-search", "d-search-full", "d-search-clear"],
+              "fullInside": True},
           repr(tools["search"]))
     check("normal view shows ⋯ and hides the ← back arrow",
           tools["menuHidden"] is False and tools["backHidden"] is True
@@ -737,101 +766,238 @@ def updated_created_checks(b):
 
 
 def search_checks(b):
-    print("\n== search box ==")
+    print("\n== search: title default / 全文 toggle / snippets ==")
     drafts = [
-        draft("s1", "排版笔记", body="正文讲 grid 布局 needle 的用法", tags=["CSS"],
-              category="notes/tools", updated=BASE_TS + 5000),
+        draft("s1", "排版笔记",
+              body="正文讲 grid 布局 needle 的用法，后面的文字用来凑出一段可以被截断的长摘要。",
+              tags=["CSS"], category="notes/tools", updated=BASE_TS + 6000),
         draft("s2", "Python 技巧", body="列表推导与生成器", tags=["代码"],
-              category="notes/algo", updated=BASE_TS + 4000),
+              category="notes/algo", updated=BASE_TS + 5000),
         draft("s3", "Alpha 杂谈", body="普通正文", tags=["misc"],
-              category="reference", updated=BASE_TS + 3000),
-        draft("s4", "归档旧稿", body="zebra 档案内容", tags=["旧"],
-              category="toy", archived=True, updated=BASE_TS + 2000),
+              category="reference", updated=BASE_TS + 4000),
+        draft("s4", "归档旧稿", body="zebra 档案内容 needle", tags=["旧"],
+              category="toy", archived=True, updated=BASE_TS + 3000),
+        draft("s5", "", body="## 标题回退\n\n正文只有 xyz 这个词。",
+              updated=BASE_TS + 2000),
     ]
     ctx, pg, _cdp, errs = new_page(b, drafts, {"sort": "updated", "filter": "all"},
                                    active="s1")
     open_drafts(pg)
     st = search_state(pg)
-    check("search box starts empty and unfiltered",
-          st["value"] == "" and st["clearHidden"] is True
-          and st["rows"] == ["s1", "s2", "s3"], repr(st))
+    check("search starts in TITLE mode with an empty query",
+          st["value"] == "" and st["placeholder"] == "搜索标题"
+          and st["mode"] == "false" and st["clearHidden"] is True
+          and st["rows"] == ["s1", "s2", "s3", "s5"], repr(st))
 
-    search(pg, "NEEDLE")
+    search(pg, "needle")
     st = search_state(pg)
-    check("search matches body text case-insensitively",
-          st["rows"] == ["s1"] and st["sub"] == "1 个结果"
-          and st["clearHidden"] is False, repr(st))
-    search(pg, "python")
-    check("search matches title case-insensitively",
-          search_state(pg)["rows"] == ["s2"], repr(search_state(pg)))
-    search(pg, "python 代码")
-    check("multi-term search matches title + tag",
+    check("title mode ignores body-only matches",
+          st["rows"] == [] and st["sub"] == "没有匹配"
+          and st["note"] and "needle" in st["note"], repr(st))
+    search(pg, "css")
+    check("title mode ignores tag-only matches",
+          search_state(pg)["rows"] == [], repr(search_state(pg)))
+    search(pg, "notes/tools")
+    check("title mode ignores category-only matches",
+          search_state(pg)["rows"] == [], repr(search_state(pg)))
+    search(pg, "alpha")
+    check("title mode matches titles case-insensitively",
+          search_state(pg)["rows"] == ["s3"], repr(search_state(pg)))
+    search(pg, "标题回退")
+    check("title mode falls back to the first body heading",
+          search_state(pg)["rows"] == ["s5"], repr(search_state(pg)))
+    search(pg, "python 技巧")
+    check("title mode multi-term requires all terms in the title",
           search_state(pg)["rows"] == ["s2"], repr(search_state(pg)))
     search(pg, "python 列表")
-    check("multi-term search matches title + body",
-          search_state(pg)["rows"] == ["s2"], repr(search_state(pg)))
-    search(pg, "notes/tools")
-    check("search matches the category path",
-          search_state(pg)["rows"] == ["s1"], repr(search_state(pg)))
-    search(pg, "css")
-    check("search matches tags case-insensitively",
-          search_state(pg)["rows"] == ["s1"], repr(search_state(pg)))
-    search(pg, "python 不存在")
-    check("multi-term search requires every term to match",
+    check("title mode multi-term rejects body-only terms",
           search_state(pg)["rows"] == [], repr(search_state(pg)))
-
-    search(pg, "zzz")
+    search(pg, "python")
     st = search_state(pg)
-    check("no-result state shows a hint with the query",
-          st["rows"] == [] and st["sub"] == "没有匹配"
-          and st["note"] and "zzz" in st["note"], repr(st))
+    check("title mode never renders snippets",
+          st["rows"] == ["s2"] and st["snippets"] == [], repr(st))
+
+    # 清除 only clears the query, keeping the current (title) mode
+    search(pg, "needle")
+    check("清除 appears while a query is present",
+          search_state(pg)["clearHidden"] is False, repr(search_state(pg)))
     pg.click("#d-search-clear")
     pg.wait_for_timeout(200)
     st = search_state(pg)
-    check("清除 restores the full list and hides itself",
-          st["value"] == "" and st["rows"] == ["s1", "s2", "s3"]
-          and st["clearHidden"] is True and "个结果" not in st["sub"], repr(st))
+    check("清除 restores the list without leaving title mode",
+          st["value"] == "" and st["rows"] == ["s1", "s2", "s3", "s5"]
+          and st["clearHidden"] is True and st["mode"] == "false"
+          and st["placeholder"] == "搜索标题", repr(st))
 
     search(pg, "python")
     pg.press("#d-search", "Escape")
     pg.wait_for_timeout(200)
     st = search_state(pg)
-    sheet_open = pg.evaluate(
-        "document.querySelector('#sheet-drafts').classList.contains('is-open')")
-    check("Esc clears the search without closing the 稿件 sheet",
-          st["value"] == "" and st["rows"] == ["s1", "s2", "s3"]
-          and st["clearHidden"] is True and sheet_open,
-          f"{st} sheet_open={sheet_open}")
+    check("Esc clears the query and keeps the sheet + title mode",
+          st["value"] == "" and st["rows"] == ["s1", "s2", "s3", "s5"]
+          and st["clearHidden"] is True and st["sheetOpen"] is True
+          and st["mode"] == "false" and st["placeholder"] == "搜索标题", repr(st))
 
+    # 全文 toggle
+    pg.click("#d-search-full")
+    pg.wait_for_timeout(150)
+    st = search_state(pg)
+    check("全文 toggles aria-pressed and the placeholder",
+          st["mode"] == "true" and st["placeholder"] == "搜索全文", repr(st))
+    search(pg, "needle")
+    st = search_state(pg)
+    check("full mode finds body matches",
+          st["rows"] == ["s1"] and st["sub"] == "1 个结果", repr(st))
+    snip = st["snippets"][0] if st["snippets"] else {}
+    check("body match renders a .drow-snip inside the row main button",
+          len(st["snippets"]) == 1 and snip.get("id") == "s1"
+          and snip.get("inMain") is True and "needle" in snip.get("text", ""),
+          repr(st["snippets"]))
+    check("snippet highlights the matched term with <mark>",
+          snip.get("marks") == ["needle"], repr(snip))
+    clamp = pg.evaluate("""() => {
+      const s = document.querySelector('.drow-snip');
+      if (!s) return null;
+      const cs = getComputedStyle(s);
+      return { clamp: cs.webkitLineClamp || cs.getPropertyValue('-webkit-line-clamp'),
+               overflow: cs.overflow };
+    }""")
+    check("snippet is clamped to two lines",
+          bool(clamp) and str(clamp["clamp"]) == "2"
+          and clamp["overflow"] == "hidden", repr(clamp))
+    search(pg, "grid needle")
+    st = search_state(pg)
+    check("multi-term full search highlights every matched term",
+          st["rows"] == ["s1"]
+          and (st["snippets"][0]["marks"] if st["snippets"] else []) == ["grid", "needle"],
+          repr(st["snippets"]))
     search(pg, "python")
+    st = search_state(pg)
+    check("title-only match in full mode has no snippet",
+          st["rows"] == ["s2"] and st["snippets"] == [], repr(st))
+    search(pg, "css")
+    st = search_state(pg)
+    check("tag-only match in full mode has no snippet",
+          st["rows"] == ["s1"] and st["snippets"] == [], repr(st))
+    search(pg, "notes/tools")
+    st = search_state(pg)
+    check("category-only match in full mode has no snippet",
+          st["rows"] == ["s1"] and st["snippets"] == [], repr(st))
+    search(pg, "xyz")
+    st = search_state(pg)
+    check("body-only match in full mode has a snippet with <mark>",
+          st["rows"] == ["s5"]
+          and (st["snippets"][0]["marks"] if st["snippets"] else []) == ["xyz"],
+          repr(st["snippets"]))
+    search(pg, "needle 不存在")
+    st = search_state(pg)
+    check("full mode still requires every term to match",
+          st["rows"] == [] and st["sub"] == "没有匹配", repr(st))
+
+    # Esc and 清除 keep the 全文 mode
+    search(pg, "needle")
+    pg.press("#d-search", "Escape")
+    pg.wait_for_timeout(200)
+    st = search_state(pg)
+    check("Esc keeps 全文 mode selected",
+          st["value"] == "" and st["rows"] == ["s1", "s2", "s3", "s5"]
+          and st["sheetOpen"] is True and st["mode"] == "true"
+          and st["placeholder"] == "搜索全文", repr(st))
+    search(pg, "needle")
+    pg.click("#d-search-clear")
+    pg.wait_for_timeout(200)
+    st = search_state(pg)
+    check("清除 keeps 全文 mode selected",
+          st["value"] == "" and st["mode"] == "true"
+          and st["placeholder"] == "搜索全文", repr(st))
+
+    # reset on reopening the sheet
+    search(pg, "needle")
     close_drafts(pg)
     open_drafts(pg)
     st = search_state(pg)
-    check("reopening 稿件 clears the search",
-          st["value"] == "" and st["rows"] == ["s1", "s2", "s3"], repr(st))
+    check("reopening 稿件 resets query and mode",
+          st["value"] == "" and st["mode"] == "false"
+          and st["placeholder"] == "搜索标题"
+          and st["rows"] == ["s1", "s2", "s3", "s5"], repr(st))
 
-    search(pg, "python")
+    # reset when switching normal/archive view
+    pg.click("#d-search-full")
+    pg.wait_for_timeout(120)
+    search(pg, "needle")
     enter_archive(pg)
     st = search_state(pg)
-    chrome = pg.evaluate("""() => ({
-      menuHidden: document.querySelector('#d-menu').hidden,
-      backHidden: document.querySelector('#d-back').hidden,
-    })""")
-    check("switching to the archive view clears the search",
-          st["value"] == "" and st["rows"] == ["s4"]
-          and chrome == {"menuHidden": True, "backHidden": False},
-          f"{st} / {chrome}")
-    search(pg, "zebra")
-    check("search works inside the archive view",
-          search_state(pg)["rows"] == ["s4"], repr(search_state(pg)))
+    check("switching to the archive view resets query and mode",
+          st["value"] == "" and st["mode"] == "false"
+          and st["placeholder"] == "搜索标题" and st["rows"] == ["s4"], repr(st))
+    pg.click("#d-search-full")
+    pg.wait_for_timeout(120)
+    search(pg, "needle")
+    st = search_state(pg)
+    check("archive full-text search renders snippets",
+          st["rows"] == ["s4"]
+          and (st["snippets"][0]["marks"] if st["snippets"] else []) == ["needle"],
+          repr(st))
     search(pg, "python")
     check("archive search never returns normal drafts",
           search_state(pg)["rows"] == [], repr(search_state(pg)))
     leave_archive(pg)
     st = search_state(pg)
-    check("← clears the search and restores the normal list",
-          st["value"] == "" and st["rows"] == ["s1", "s2", "s3"], repr(st))
+    check("← resets query and mode back to title",
+          st["value"] == "" and st["mode"] == "false"
+          and st["placeholder"] == "搜索标题"
+          and st["rows"] == ["s1", "s2", "s3", "s5"], repr(st))
     no_errors("search", errs)
+    ctx.close()
+
+
+def narrow_checks(b):
+    print("\n== 360px toolbar fits ==")
+    drafts = [
+        draft("n1", "排版笔记", body="grid needle", updated=BASE_TS + 2000),
+        draft("n2", "Python 技巧", updated=BASE_TS + 1000),
+    ]
+    ctx, pg, _cdp, errs = new_page(b, drafts, {"sort": "updated", "filter": "all"},
+                                   active="n1", width=360)
+    open_drafts(pg)
+
+    def geom():
+        return pg.evaluate("""() => {
+          const row = document.querySelector('#sheet-drafts .dtools-row');
+          const wrap = document.querySelector('#sheet-drafts .dsearch');
+          const inp = document.querySelector('#d-search');
+          const full = document.querySelector('#d-search-full');
+          const clear = document.querySelector('#d-search-clear');
+          const rb = row.getBoundingClientRect(), wb = wrap.getBoundingClientRect();
+          const ib = inp.getBoundingClientRect(), fb = full.getBoundingClientRect();
+          const cb = clear.getBoundingClientRect();
+          return {
+            inner: window.innerWidth, rowRight: rb.right,
+            rowScroll: row.scrollWidth, rowClient: row.clientWidth,
+            searchRight: wb.right, inputWidth: ib.width,
+            fullW: fb.width, fullRight: fb.right,
+            clearHidden: clear.hidden, clearW: cb.width, clearRight: cb.right,
+          };
+        }""")
+
+    g = geom()
+    check("360px: toolbar fits with the 全文 button",
+          g["rowScroll"] <= g["rowClient"] + 1
+          and g["rowRight"] <= g["inner"] + 0.5
+          and g["searchRight"] <= g["inner"] + 0.5
+          and g["inputWidth"] > 20 and g["fullW"] > 0
+          and g["fullRight"] <= g["searchRight"] + 0.5, repr(g))
+    pg.fill("#d-search", "排")
+    pg.wait_for_timeout(220)
+    g = geom()
+    check("360px: toolbar still fits with the clear button shown",
+          g["clearHidden"] is False and g["clearW"] > 0
+          and g["rowScroll"] <= g["rowClient"] + 1
+          and g["rowRight"] <= g["inner"] + 0.5
+          and g["searchRight"] <= g["inner"] + 0.5
+          and max(g["fullRight"], g["clearRight"]) <= g["searchRight"] + 0.5,
+          repr(g))
+    no_errors("360px", errs)
     ctx.close()
 
 
@@ -1059,6 +1225,7 @@ def main() -> None:
             pinyin_checks(b)
             updated_created_checks(b)
             search_checks(b)
+            narrow_checks(b)
             pin_archive_checks(b)
             manual_checks(b)
             only_archived_checks(b)
