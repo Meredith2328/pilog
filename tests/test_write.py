@@ -357,7 +357,9 @@ def publish_checks(b) -> None:
 
     pg.click("#sheet-export [data-close]")
     pg.click("#btn-drafts")
-    pg.click("#sheet-drafts [data-open=token]")
+    pg.click("#d-menu")
+    pg.click("#d-menu-pop [data-open=more]")
+    pg.click("#sheet-more [data-open=token]")
     pg.click("#btn-tok-clear")
     st = pg.evaluate("[sessionStorage.getItem('pilog.write.ghToken'), localStorage.getItem('pilog.write.ghToken')]")
     check("token: clear removes it everywhere", st == [None, None], repr(st))
@@ -597,7 +599,8 @@ def live_edit_checks(b, base_url: str) -> None:
 
     def open_picker(n):
         pg.click("#btn-drafts")
-        pg.click("#sheet-drafts [data-open=remote]")
+        pg.click("#d-menu")
+        pg.click("#d-menu-pop [data-open=remote]")
         wait_js(pg, f"document.querySelectorAll('#pk select').length === {n} && !document.querySelector('#pk select:disabled')")
 
     pg.evaluate("window.__gh.fail = []; window.__gh.calls = []")
@@ -618,7 +621,8 @@ def live_edit_checks(b, base_url: str) -> None:
           and pg.evaluate("window.__pilogWrite.current().slug") == "osu-lyrics", repr(load))
     pg.evaluate("window.__gh.calls = []")
     pg.click("#btn-drafts")
-    pg.click("#sheet-drafts [data-open=remote]")
+    pg.click("#d-menu")
+    pg.click("#d-menu-pop [data-open=remote]")
     pg.click("#rm-adv > summary")
     pg.fill("#rm-in", "posts/toy/10pi.html")
     pg.click("#btn-rm-load")
@@ -629,7 +633,9 @@ def live_edit_checks(b, base_url: str) -> None:
 
     # ---- token → full repo tree in one request, folders expand from cache ----
     pg.click("#btn-drafts")
-    pg.click("#sheet-drafts [data-open=token]")
+    pg.click("#d-menu")
+    pg.click("#d-menu-pop [data-open=more]")
+    pg.click("#sheet-more [data-open=token]")
     pg.fill("#tok-in", FAKE_TOKEN)
     pg.click("#btn-tok-save")
     wait_js(pg, "(document.querySelector('#tok-row').className || '').includes('is-set')")
@@ -682,7 +688,9 @@ def live_edit_checks(b, base_url: str) -> None:
     pg.click("#sheet-remote [data-close]")
     pg.wait_for_timeout(250)
     pg.click("#btn-drafts")
-    pg.click("#sheet-drafts [data-open=token]")
+    pg.click("#d-menu")
+    pg.click("#d-menu-pop [data-open=more]")
+    pg.click("#sheet-more [data-open=token]")
     pg.click("#btn-tok-clear")
     pg.click("#sheet-token [data-close]")
     pg.wait_for_timeout(250)
