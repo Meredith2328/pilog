@@ -88,6 +88,12 @@ const fsState = () => page.evaluate(() => JSON.parse(Storage.prototype.getItem.c
 const settle = () => page.waitForTimeout(900);
 const shot = (name) => process.env.SHOTS ? page.screenshot({ path: join(process.env.SHOTS, name + ".png") }) : null;
 const openDrafts = async () => { await page.click("#btn-drafts"); await page.waitForTimeout(250); };
+const openMore = async () => {
+  await page.click("#d-menu");
+  await page.waitForTimeout(100);
+  await page.click('#d-menu-pop [data-open="more"]');
+  await page.waitForTimeout(250);
+};
 
 console.log("notes space");
 await page.goto(url);
@@ -98,15 +104,19 @@ await settle();
 await shot("1-notes-editor");
 check("splash released after first paint", await page.evaluate(() => window.__nativeReady >= 1));
 let files = await fsState();
-const first = "DOCUMENTS:pilog/posts/toy/hello-pilog-app.md";
-check("draft mirrored to Documents/pilog/posts/<cat>/<slug>.md", first in files, Object.keys(files).join(", "));
-check("mirrored file has pilog front matter", /^---\ntitle: Hello Pilog App\ndate: \d{4}-\d\d-\d\d/.test(files[first] || ""), files[first]);
+/* new drafts get a date+number filename until 文件名 is edited, so take the
+   mirrored path from the fake filesystem instead of assuming one */
+const mirroredNotes = (f) => Object.keys(f).filter((k) => /^DOCUMENTS:pilog\/posts\/toy\/[^/]+\.md$/.test(k));
+const firstKey = mirroredNotes(files)[0];
+check("draft mirrored to Documents/pilog/posts/<cat>/<slug>.md", mirroredNotes(files).length === 1 && !!firstKey, Object.keys(files).join(", "));
+check("mirrored file has pilog front matter",
+  /^---\ntitle: Hello Pilog App\ndate: \d{4}-\d\d-\d\d/.test((firstKey && files[firstKey]) || ""), (firstKey && files[firstKey]) || "");
 
 await page.click('.tab[data-view="meta"]');
 await page.fill("#f-slug", "renamed-note");
 await settle();
 files = await fsState();
-check("rename moves the .md file", "DOCUMENTS:pilog/posts/toy/renamed-note.md" in files && !(first in files), Object.keys(files).join(", "));
+check("rename moves the .md file", "DOCUMENTS:pilog/posts/toy/renamed-note.md" in files && !(firstKey in files), Object.keys(files).join(", "));
 
 await page.click('.tab[data-view="write"]');
 await page.click(".cta");
@@ -123,10 +133,17 @@ await page.click("#btn-new");
 await page.fill("#f-title", "Second note");
 await page.fill("#f-body", "to be moved into the vault");
 await settle();
-check("second draft mirrored", "DOCUMENTS:pilog/posts/toy/second-note.md" in (await fsState()));
+files = await fsState();
+const secondKey = mirroredNotes(files).find((k) => k !== "DOCUMENTS:pilog/posts/toy/renamed-note.md");
+check("second draft mirrored", !!secondKey, Object.keys(files).join(", "));
 
 await openDrafts();
-await page.click('#sheet-drafts [data-open="token"]');
+check("wipe-all button is gone", (await page.$("#btn-wipe")) === null);
+await openMore();
+const vaultEntry = await page.$("#sheet-more #app-vault");
+check("vault entry is injected into the 更多 sheet",
+  !!vaultEntry && (await vaultEntry.textContent()).includes("私密库") && (await vaultEntry.isVisible()));
+await page.click('#sheet-more [data-open="token"]');
 await page.fill("#tok-in", "github_pat_" + "x".repeat(40));
 await page.check("#tok-remember");
 await page.click("#btn-tok-save");
@@ -156,6 +173,7 @@ await page.click("#sheet-export [data-close]");
 console.log("vault space");
 await openDrafts();
 await shot("3-drafts-sheet");
+await openMore();
 await page.click("#app-vault");
 await page.waitForSelector(".vgate");
 check("editor stays hidden behind the vault gate", await page.$eval("#app", (a) => getComputedStyle(a).visibility === "hidden"));
@@ -178,11 +196,12 @@ check("vault note never reaches WebView storage or Documents",
 check("no password material stored", !blob.includes("correct horse"));
 
 await openDrafts();
+await openMore();
 await page.click("#app-move");
-await page.click('#app-move-list .drow:has-text("Second note") [data-move]');
+await page.click('#app-move-list [data-move]:has-text("Second note")');
 await settle();
 files = await fsState();
-check("move into vault deletes the plain .md", !("DOCUMENTS:pilog/posts/toy/second-note.md" in files), Object.keys(files).join(", "));
+check("move into vault deletes the plain .md", !(secondKey in files), Object.keys(files).join(", "));
 check("moved note is open in the vault", (await page.inputValue("#f-body")) === "to be moved into the vault");
 
 await page.click("#app-lock");
@@ -198,19 +217,35 @@ await openDrafts();
 const titles = await page.$$eval("#draft-list .drow-t", (n) => n.map((x) => x.textContent));
 check("unlock restores both vault notes", titles.includes("Secret diary") && titles.includes("Second note"), titles.join(" | "));
 
+await openMore();
 await page.click("#app-leave");
 await page.waitForSelector("#f-body");
+await settle();
 await openDrafts();
 const plain = await page.$$eval("#draft-list .drow-t", (n) => n.map((x) => x.textContent));
 check("notes space shows only the non-vault note", plain.length === 1 && plain[0] === "Hello Pilog App", plain.join(" | "));
-const del = page.locator('#draft-list .drow:has-text("Hello Pilog App") [data-act="del"]');
+await page.click('#draft-list .drow:has-text("Hello Pilog App") [data-act="archive"]');
+await page.waitForTimeout(250);
+check("archiving removes the draft from the normal list", (await page.$$eval("#draft-list .drow", (n) => n.length)) === 0);
+await page.click("#d-menu");
+await page.waitForTimeout(100);
+await page.click("#d-archived");
+await page.waitForTimeout(250);
+const archivedRow = await page.$('#draft-list .drow [data-act="del"]');
+check("归档 view lists the archived draft", !!archivedRow);
+check("归档 view swaps ⋯ for a ← back button",
+  (await page.$eval("#d-back", (b) => !b.hidden)) && (await page.$eval("#d-menu", (b) => b.hidden)));
+const del = page.locator('#draft-list .drow [data-act="del"]');
 await del.click(); await del.click();
 await settle();
 check("deleting a draft deletes its .md", !("DOCUMENTS:pilog/posts/toy/renamed-note.md" in (await fsState())));
+await page.click("#d-back");
+await page.waitForTimeout(250);
+await openMore();
 await page.click("#btn-theme");
 await page.waitForTimeout(200);
 check("system bars follow the in-app theme toggle", (await page.evaluate(() => window.__nativeTheme)) === "dark");
-await page.click("#sheet-drafts [data-close]");
+await page.click("#sheet-more [data-close]");
 await page.waitForTimeout(300);
 await shot("6-dark-editor");
 check("piwiki target is present but disabled", await page.$eval("#app-piwiki", (b) => b.disabled));
