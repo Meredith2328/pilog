@@ -592,11 +592,12 @@ def dom_contract_checks(b):
     check("#d-menu opens #d-menu-pop and syncs aria-expanded",
           menu_state(pg) == {"hidden": False, "expanded": "true"}, repr(menu_state(pg)))
     items = menu_items(pg)
-    check("menu has 编辑线上文章 / 查看归档文章 / 更多设置",
-          len(items) == 3
+    check("menu has 编辑线上文章 / 图片库 / 查看归档文章 / 更多设置",
+          len(items) == 4
           and items[0]["open"] == "remote" and "编辑线上文章" in items[0]["text"]
-          and items[1]["id"] == "d-archived" and "查看归档文章" in items[1]["text"]
-          and items[2]["open"] == "more" and "更多设置" in items[2]["text"], repr(items))
+          and items[1]["id"] == "d-images" and "图片库" in items[1]["text"]
+          and items[2]["id"] == "d-archived" and "查看归档文章" in items[2]["text"]
+          and items[3]["open"] == "more" and "更多设置" in items[3]["text"], repr(items))
     pg.click("#sh-drafts-t")
     pg.wait_for_timeout(80)
     check("clicking outside closes the menu",

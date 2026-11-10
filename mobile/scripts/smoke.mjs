@@ -170,6 +170,43 @@ check("publish opens a PR into pilog", pr && pr.body.base === "pilog" && (await 
 gh.online = false;
 await page.click("#sheet-export [data-close]");
 
+console.log("image library");
+await openDrafts();
+await page.click("#d-menu");
+await page.waitForTimeout(100);
+await page.click("#d-images");
+await page.waitForTimeout(300);
+check("image bridge hooks are exposed",
+  await page.evaluate(() => ["__pilogMirrorAsset", "__pilogDeleteAsset", "__pilogRenameAsset", "__pilogShareAsset"]
+    .every((n) => typeof window[n] === "function")));
+/* 8x8 red PNG, small enough to keep the smoke fast but real enough to decode */
+const TINY_PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAFElEQVR4nGO8o6HBgA0wYRUdtBIA78QBPFxuqR4AAAAASUVORK5CYII=", "base64");
+await page.setInputFiles("#img-file", { name: "tiny.png", mimeType: "image/png", buffer: TINY_PNG });
+await page.waitForSelector("#img-editor:not([hidden])", { timeout: 5000 }).catch(() => {});
+await page.waitForFunction(
+  () => Object.keys(JSON.parse(Storage.prototype.getItem.call(localStorage, "__mock.fs") || "{}")).some((k) => k.startsWith("DOCUMENTS:pilog/assets/")),
+  undefined, { timeout: 5000 }).catch(() => {});
+await shot("7-image-editor");
+files = await fsState();
+const assetKeys = Object.keys(files).filter((k) => k.startsWith("DOCUMENTS:pilog/assets/"));
+check("imported image is mirrored to Documents/pilog/assets/", assetKeys.length === 1, Object.keys(files).join(", "));
+const assetName = assetKeys.length ? assetKeys[0].slice("DOCUMENTS:pilog/assets/".length) : "";
+const sharesBefore = (await page.evaluate(() => window.__shared || [])).length;
+await page.click("#img-share");
+await page.waitForFunction((n) => (window.__shared || []).length > n, sharesBefore, { timeout: 5000 }).catch(() => {});
+await page.waitForTimeout(300);
+files = await fsState();
+const sharedNow = await page.evaluate(() => window.__shared || []);
+const sharedImg = sharedNow[sharedNow.length - 1] || {};
+check("image share writes CACHE export and calls Share.share",
+  !!assetName && !!files["CACHE:export/" + assetName] &&
+  sharedNow.length === sharesBefore + 1 &&
+  sharedImg.dialogTitle === "分享图片" && sharedImg.title === assetName &&
+  /export\/img-.+\.png$/.test((sharedImg.files || [])[0] || ""),
+  JSON.stringify({ assetKeys, cache: Object.keys(files).filter((k) => k.startsWith("CACHE:")), shared: sharedImg }));
+await page.click("#sheet-images [data-close]");
+await page.waitForTimeout(250);
+
 console.log("vault space");
 await openDrafts();
 await shot("3-drafts-sheet");
