@@ -1,0 +1,10 @@
+{
+  "01-entry-desktop.png": "桌面写作页：格式栏最右侧的像素图片图标（图片库入口）",
+  "02-library-import.png": "图片库：一次导入 3 张图片后的缩略图网格与数量",
+  "03-editor-crop.png": "图片编辑器：拖动裁剪选框，工具条含裁剪/旋转/翻转/长边",
+  "04-insert-preview.png": "插入正文后，预览区直接渲染本机图片",
+  "05-preview-cover.png": "把本机图片设为预览图后的卡片预览效果",
+  "06-export-images.png": "导出面板列出当前稿件引用的图片，可逐张下载/分享",
+  "07-mobile-library.png": "412px 移动端：稿件 ⋯ → 图片库",
+  "08-mobile-preview.png": "412px 移动端：插入图片后的预览"
+}
