@@ -877,6 +877,23 @@ interface CompactionEntry {
 
 本质都是同一个取舍：压缩保住了会话的续航，代价是细节的永久丢失，只能靠结构化摘要（尤其是文件清单和关键决策）缓解。会话文件里逐条记录的 `usage` 在这里派上第二个用场：`tokensBefore` 加上逐条 usage 就能监控 token 增长曲线，决定阈值调松还是调紧。
 
+### Codex 的会话管理：一组不变量
+
+pi 的会话是一条 append-only 的消息流，边界由文件本身保证；Codex 的做法可以先用一组不变量说清楚：
+
+```text
+不变量：
+用户消息数量 = turn数量 = ModelClientSession数量
+
+多个turn共享同一个ModelClient
+
+普通对话一定全部遵守上述不变量关系
+
+steer和goal仅仅只是在这个不变量关系基础上做了局部优化：
+- steer消息可以复用已有的turn而不创建新的turn
+- goal消息不来自用户消息，但是也可以自己创建turn
+```
+
 ## 七、权限与安全：信任要分层
 
 先说一个会颠覆直觉的事实：**pi 没有内置的 permissions/allow 规则系统，也没有沙箱**（settings.json 里根本不存在 `permissions.allow` 这类字段，官方 security.md 明说 "It is not a sandbox"）。它的安全模型比传闻的简单得多，也诚实得多——两条防线，各管一段。
